@@ -26,22 +26,22 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-log4j12', version: "${slf4jVersion}"
 }
 
-task TPCCBench(type: CreateStartScripts) {
-    mainClass = 'com.scalar.db.benchmarks.tpcc.TPCCBench'
+task TpccBench(type: CreateStartScripts) {
+    mainClass = 'com.scalar.db.benchmarks.tpcc.TpccBench'
     applicationName = 'tpcc-bench'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
-task TPCCLoader(type: CreateStartScripts) {
-    mainClass = 'com.scalar.db.benchmarks.tpcc.TPCCLoader'
+task TpccLoader(type: CreateStartScripts) {
+    mainClass = 'com.scalar.db.benchmarks.tpcc.TpccLoader'
     applicationName = 'tpcc-loader'
     outputDir = new File(project.buildDir, 'tmp')
     classpath = jar.outputs.files + project.configurations.runtimeClasspath
 }
 
 applicationDistribution.into('bin') {
-    from(TPCCBench)
-    from(TPCCLoader)
+    from(TpccBench)
+    from(TpccLoader)
     fileMode = 0755
 }

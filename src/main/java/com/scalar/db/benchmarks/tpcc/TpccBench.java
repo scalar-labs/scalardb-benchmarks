@@ -1,5 +1,9 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.exception.transaction.TransactionException;
+import com.scalar.db.service.TransactionFactory;
 import java.io.FileInputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -8,15 +12,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.config.DatabaseConfig;
-import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.service.TransactionFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "tpcc-bench", description = "Execute TPC-C benchmark.")
-public class TPCCBench implements Callable<Integer> {
+public class TpccBench implements Callable<Integer> {
 
   @CommandLine.Option(
       names = {"--properties", "--config"},
@@ -80,7 +80,7 @@ public class TPCCBench implements Callable<Integer> {
   private static final AtomicInteger errorCounter = new AtomicInteger();
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new TPCCBench()).execute(args);
+    int exitCode = new CommandLine(new TpccBench()).execute(args);
     System.exit(exitCode);
   }
 
@@ -90,10 +90,10 @@ public class TPCCBench implements Callable<Integer> {
     TransactionFactory factory = new TransactionFactory(dbConfig);
     DistributedTransactionManager manager = factory.getTransactionManager();
     manager.withNamespace(namespace);
-    TPCCConfig config = new TPCCConfig(numWarehouse, ratePayment);
+    TpccConfig config = new TpccConfig(numWarehouse, ratePayment);
 
     if (times > 0) {
-      TPCCRunner tpcc = new TPCCRunner(manager, config);
+      TpccRunner tpcc = new TpccRunner(manager, config);
       for (int i = 0; i < times; ++i) {
         try {
           tpcc.run();
@@ -113,7 +113,7 @@ public class TPCCBench implements Callable<Integer> {
     long from = start;
     for (int i = 0; i < numThreads; ++i) {
       executor.execute(() -> {
-        TPCCRunner tpcc = new TPCCRunner(manager, config);
+        TpccRunner tpcc = new TpccRunner(manager, config);
         while (isRunning.get()) {
           try {
             long eachStart = System.currentTimeMillis();

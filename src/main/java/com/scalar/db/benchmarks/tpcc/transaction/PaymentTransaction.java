@@ -1,27 +1,27 @@
 package com.scalar.db.benchmarks.tpcc.transaction;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Customer;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.CustomerSecondary;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.District;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.History;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Warehouse;
-import com.scalar.db.benchmarks.tpcc.TPCCUtil;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Customer;
+import com.scalar.db.benchmarks.tpcc.TpccTable.CustomerSecondary;
+import com.scalar.db.benchmarks.tpcc.TpccTable.District;
+import com.scalar.db.benchmarks.tpcc.TpccTable.History;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Warehouse;
+import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.DoubleValue;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
 import com.scalar.db.io.Value;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 public class PaymentTransaction {
   int warehouseId;
@@ -34,13 +34,18 @@ public class PaymentTransaction {
   float paymentAmount;
   Date date;
 
+  /**
+   * Generates arguments for the payment transaction.
+   * 
+   * @param numWarehouse a number of warehouse
+   */
   public void generate(int numWarehouse) {
-    warehouseId = TPCCUtil.randomInt(1, numWarehouse);
-    districtId = TPCCUtil.randomInt(1, Warehouse.DISTRICTS);
-    paymentAmount = (float) (TPCCUtil.randomInt(100, 500000) / 100.0);
+    warehouseId = TpccUtil.randomInt(1, numWarehouse);
+    districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
+    paymentAmount = (float) (TpccUtil.randomInt(100, 500000) / 100.0);
     date = new Date();
 
-    int x = TPCCUtil.randomInt(1, 100);
+    int x = TpccUtil.randomInt(1, 100);
     if (x <= 85) {
       // home warehouse
       customerWarehouseId = warehouseId;
@@ -49,23 +54,23 @@ public class PaymentTransaction {
       // remote warehouse
       if (numWarehouse > 1) {
         do {
-          customerWarehouseId = TPCCUtil.randomInt(1, numWarehouse);
+          customerWarehouseId = TpccUtil.randomInt(1, numWarehouse);
         } while (customerWarehouseId == warehouseId);
       } else {
         customerWarehouseId = warehouseId;
       }
-      customerDistrictId = TPCCUtil.randomInt(1, Warehouse.DISTRICTS);
+      customerDistrictId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
     }
 
-    int y = TPCCUtil.randomInt(1, 100);
+    int y = TpccUtil.randomInt(1, 100);
     if (y <= 60) {
       // by last name
       byLastName = true;
-      customerLastName = TPCCUtil.getNonUniformRandomLastNameForRun();
+      customerLastName = TpccUtil.getNonUniformRandomLastNameForRun();
     } else {
       // by customer id
       byLastName = false;
-      customerId = TPCCUtil.getCustomerId();
+      customerId = TpccUtil.getCustomerId();
     }
   }
 
@@ -89,38 +94,41 @@ public class PaymentTransaction {
     return warehouseName + "    " + districtName;
   }
 
+  /**
+   * Executes the payment transaction.
+   * 
+   * @param manager a {@code DistributedTransactionManager} object
+   */
   public void execute(DistributedTransactionManager manager) throws TransactionException {
     DistributedTransaction tx = manager.start();
 
     try {
-      Get get;
-      Put put;
-      Optional<Result> result;
-
       // Get and update warehouse
-      Key warehouseKey = Warehouse.createPartitionKey(warehouseId);
-      get = new Get(warehouseKey);
-      result = tx.get(get.forTable(Warehouse.TABLE_NAME));
+      final Key warehouseKey = Warehouse.createPartitionKey(warehouseId);
+      Get get = new Get(warehouseKey);
+      Optional<Result> result = tx.get(get.forTable(Warehouse.TABLE_NAME));
       if (!result.isPresent()) {
         throw new TransactionException("Warehouse not found");
       }
-      String warehouseName = result.get().getValue(Warehouse.KEY_NAME).get().getAsString().get();
-      double warehouseYTD =
+      final String warehouseName =
+          result.get().getValue(Warehouse.KEY_NAME).get().getAsString().get();
+      final double warehouseYtd =
           result.get().getValue(Warehouse.KEY_YTD).get().getAsDouble() + paymentAmount;
-      put = new Put(warehouseKey).withValue(Warehouse.KEY_YTD, warehouseYTD);
+      Put put = new Put(warehouseKey).withValue(Warehouse.KEY_YTD, warehouseYtd);
       tx.put(put.forTable(Warehouse.TABLE_NAME));
 
       // Get and update district
-      Key districtKey = District.createPartitionKey(warehouseId, districtId);
+      final Key districtKey = District.createPartitionKey(warehouseId, districtId);
       get = new Get(districtKey);
       result = tx.get(get.forTable(District.TABLE_NAME));
       if (!result.isPresent()) {
         throw new TransactionException("District not found");
       }
-      String districtName = result.get().getValue(District.KEY_NAME).get().getAsString().get();
-      double districtYTD =
+      final String districtName =
+          result.get().getValue(District.KEY_NAME).get().getAsString().get();
+      final double districtYtd =
           result.get().getValue(District.KEY_YTD).get().getAsDouble() + paymentAmount;
-      put = new Put(districtKey).withValue(District.KEY_YTD, districtYTD);
+      put = new Put(districtKey).withValue(District.KEY_YTD, districtYtd);
       tx.put(put.forTable(District.TABLE_NAME));
 
       // Get and update customer
@@ -132,18 +140,18 @@ public class PaymentTransaction {
         customerId =
             results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
       }
-      Key customerKey = Customer.createPartitionKey(warehouseId, districtId, customerId);
+      final Key customerKey = Customer.createPartitionKey(warehouseId, districtId, customerId);
       get = new Get(customerKey);
       result = tx.get(get.forTable(Customer.TABLE_NAME));
       if (!result.isPresent()) {
         throw new TransactionException("Customer not found");
       }
-      double balance =
+      final double balance =
           result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + paymentAmount;
-      double ytdPayment =
+      final double ytdPayment =
           result.get().getValue(Customer.KEY_YTD_PAYMENT).get().getAsDouble() + paymentAmount;
-      int count = result.get().getValue(Customer.KEY_PAYMENT_CNT).get().getAsInt() + 1;
-      String credit = result.get().getValue(Customer.KEY_CREDIT).get().getAsString().get();
+      final int count = result.get().getValue(Customer.KEY_PAYMENT_CNT).get().getAsInt() + 1;
+      final String credit = result.get().getValue(Customer.KEY_CREDIT).get().getAsString().get();
       ArrayList<Value<?>> customerValues = new ArrayList<Value<?>>();
       customerValues.add(new DoubleValue(Customer.KEY_BALANCE, balance));
       customerValues.add(new DoubleValue(Customer.KEY_YTD_PAYMENT, ytdPayment));
@@ -158,9 +166,10 @@ public class PaymentTransaction {
       tx.put(put.forTable(Customer.TABLE_NAME));
 
       // Insert history
-      History history = new History(customerId, customerDistrictId, customerWarehouseId, districtId,
-          warehouseId, date, paymentAmount, generateHistoryData(warehouseName, districtName));
-      Key historyKey = history.createPartitionKey();
+      final History history =
+          new History(customerId, customerDistrictId, customerWarehouseId, districtId, warehouseId,
+              date, paymentAmount, generateHistoryData(warehouseName, districtName));
+      final Key historyKey = history.createPartitionKey();
       ArrayList<Value<?>> historyValues = history.createValues();
       put = new Put(historyKey).withValues(historyValues);
       tx.put(put.forTable(History.TABLE_NAME));

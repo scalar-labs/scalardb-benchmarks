@@ -1,10 +1,5 @@
 package com.scalar.db.benchmarks.tpcc;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.UUID;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Put;
@@ -15,9 +10,14 @@ import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
 import com.scalar.db.io.Value;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.UUID;
 import org.apache.commons.csv.CSVRecord;
 
-public class TPCCTable {
+public class TpccTable {
   public static final String NAMESPACE = "tpcc";
 
   public enum Code {
@@ -34,11 +34,11 @@ public class TPCCTable {
     WAREHOUSE
   }
 
-  public interface TPCCRecord {
+  public interface TpccRecord {
     public void insert(DistributedTransactionManager manager) throws TransactionException;
   }
 
-  public static abstract class TPCCRecordBase implements TPCCRecord {
+  public abstract static class TpccRecordBase implements TpccRecord {
     public void insert(DistributedTransactionManager manager, String table, Key partitionKey,
         ArrayList<Value<?>> values) throws TransactionException {
       DistributedTransaction tx = manager.start();
@@ -88,7 +88,7 @@ public class TPCCTable {
     public static final int ZIP_SIZE = 4;
   }
 
-  public static class Customer extends TPCCRecordBase {
+  public static class Customer extends TpccRecordBase {
     public static final String TABLE_NAME = "customer";
     public static final String KEY_WAREHOUSE_ID = "c_w_id";
     public static final String KEY_DISTRICT_ID = "c_d_id";
@@ -144,15 +144,15 @@ public class TPCCTable {
       c_w_id = warehouseId;
       c_d_id = districtId;
       c_id = customerId;
-      c_first = TPCCUtil.randomAlphaString(MIN_FIRST, MAX_FIRST);
+      c_first = TpccUtil.randomAlphaString(MIN_FIRST, MAX_FIRST);
       c_middle = "OE";
       if (c_id <= 1000) {
-        c_last = TPCCUtil.getLastName(c_id - 1);
+        c_last = TpccUtil.getLastName(c_id - 1);
       } else {
-        c_last = TPCCUtil.getNonUniformRandomLastNameForLoad();
+        c_last = TpccUtil.getNonUniformRandomLastNameForLoad();
       }
-      c_discount = TPCCUtil.randomDouble(0, 5000, 10000);
-      if (TPCCUtil.randomInt(0, 99) < 10) {
+      c_discount = TpccUtil.randomDouble(0, 5000, 10000);
+      if (TpccUtil.randomInt(0, 99) < 10) {
         c_credit = "BC";
       } else {
         c_credit = "GC";
@@ -162,14 +162,14 @@ public class TPCCTable {
       c_ytd_payment = 10.00;
       c_payment_cnt = 1;
       c_delivery_cnt = 0;
-      c_street_1 = TPCCUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
-      c_street_2 = TPCCUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
-      c_city = TPCCUtil.randomAlphaString(Address.MIN_CITY, Address.MAX_CITY);
-      c_state = TPCCUtil.randomAlphaString(Address.STATE_SIZE);
-      c_zip = TPCCUtil.randomNumberString(Address.ZIP_SIZE) + "11111";
-      c_phone = TPCCUtil.randomNumberString(PHONE_SIZE);
+      c_street_1 = TpccUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
+      c_street_2 = TpccUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
+      c_city = TpccUtil.randomAlphaString(Address.MIN_CITY, Address.MAX_CITY);
+      c_state = TpccUtil.randomAlphaString(Address.STATE_SIZE);
+      c_zip = TpccUtil.randomNumberString(Address.ZIP_SIZE) + "11111";
+      c_phone = TpccUtil.randomNumberString(PHONE_SIZE);
       c_since = date;
-      c_data = TPCCUtil.randomNumberString(MIN_DATA, MAX_DATA);
+      c_data = TpccUtil.randomNumberString(MIN_DATA, MAX_DATA);
     }
 
     public Customer(CSVRecord record) throws ParseException {
@@ -256,7 +256,7 @@ public class TPCCTable {
     }
   }
 
-  public static class CustomerSecondary extends TPCCRecordBase {
+  public static class CustomerSecondary extends TpccRecordBase {
     public static final String TABLE_NAME = "customer_secondary";
     public static final String KEY_WAREHOUSE_ID = "c_w_id";
     public static final String KEY_DISTRICT_ID = "c_d_id";
@@ -324,7 +324,7 @@ public class TPCCTable {
     }
   }
 
-  public static class District extends TPCCRecordBase {
+  public static class District extends TpccRecordBase {
     public static final String TABLE_NAME = "district";
     public static final String KEY_WAREHOUSE_ID = "d_w_id";
     public static final String KEY_ID = "d_id";
@@ -358,13 +358,13 @@ public class TPCCTable {
     public District(int warehouseId, int districtId) {
       d_w_id = warehouseId;
       d_id = districtId;
-      d_name = TPCCUtil.randomAlphaString(MIN_NAME, MAX_NAME);
-      d_street_1 = TPCCUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
-      d_street_2 = TPCCUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
-      d_city = TPCCUtil.randomAlphaString(Address.MIN_CITY, Address.MAX_CITY);
-      d_state = TPCCUtil.randomAlphaString(Address.STATE_SIZE);
-      d_zip = TPCCUtil.randomNumberString(Address.ZIP_SIZE) + "11111";
-      d_tax = TPCCUtil.randomDouble(0, 2000, 10000);
+      d_name = TpccUtil.randomAlphaString(MIN_NAME, MAX_NAME);
+      d_street_1 = TpccUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
+      d_street_2 = TpccUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
+      d_city = TpccUtil.randomAlphaString(Address.MIN_CITY, Address.MAX_CITY);
+      d_state = TpccUtil.randomAlphaString(Address.STATE_SIZE);
+      d_zip = TpccUtil.randomNumberString(Address.ZIP_SIZE) + "11111";
+      d_tax = TpccUtil.randomDouble(0, 2000, 10000);
       d_ytd = 30000.00;
       d_next_o_id = 3001;
     }
@@ -418,7 +418,7 @@ public class TPCCTable {
     }
   }
 
-  public static class History extends TPCCRecordBase {
+  public static class History extends TpccRecordBase {
     public static final String TABLE_NAME = "history";
     public static final String KEY_ID = "h_id";
     public static final String KEY_CUSTOMER_ID = "h_c_id";
@@ -452,7 +452,7 @@ public class TPCCTable {
       h_w_id = w_id;
       h_date = date;
       h_amount = 10.00;
-      h_data = TPCCUtil.randomAlphaString(MIN_DATA, MAX_DATA);
+      h_data = TpccUtil.randomAlphaString(MIN_DATA, MAX_DATA);
     }
 
     public History(int c_id, int c_d_id, int c_w_id, int d_id, int w_id, Date date, double amount,
@@ -509,7 +509,7 @@ public class TPCCTable {
     }
   }
 
-  public static class Item extends TPCCRecordBase {
+  public static class Item extends TpccRecordBase {
     public static final String TABLE_NAME = "item";
     public static final String KEY_ID = "i_id";
     public static final String KEY_NAME = "i_name";
@@ -532,10 +532,10 @@ public class TPCCTable {
 
     public Item(int itemId) {
       i_id = itemId;
-      i_name = TPCCUtil.randomAlphaString(MIN_NAME, MAX_NAME);
-      i_price = TPCCUtil.randomDouble(100, 1000, 100);
-      i_data = TPCCUtil.getRandomStringWithOriginal(MIN_DATA, MAX_DATA, 10);
-      i_im_id = TPCCUtil.randomInt(1, 10000);
+      i_name = TpccUtil.randomAlphaString(MIN_NAME, MAX_NAME);
+      i_price = TpccUtil.randomDouble(100, 1000, 100);
+      i_data = TpccUtil.getRandomStringWithOriginal(MIN_DATA, MAX_DATA, 10);
+      i_im_id = TpccUtil.randomInt(1, 10000);
     }
 
     public Item(CSVRecord record) {
@@ -570,7 +570,7 @@ public class TPCCTable {
     }
   }
 
-  public static class NewOrder extends TPCCRecordBase {
+  public static class NewOrder extends TpccRecordBase {
     public static final String TABLE_NAME = "new_order";
     public static final String KEY_WAREHOUSE_ID = "no_w_id";
     public static final String KEY_DISTRICT_ID = "no_d_id";
@@ -621,7 +621,7 @@ public class TPCCTable {
     }
   }
 
-  public static class Order extends TPCCRecordBase {
+  public static class Order extends TpccRecordBase {
     public static final String TABLE_NAME = "oorder";
     public static final String KEY_WAREHOUSE_ID = "o_w_id";
     public static final String KEY_DISTRICT_ID = "o_d_id";
@@ -659,11 +659,11 @@ public class TPCCTable {
       o_id = orderId;
       o_c_id = customerId;
       if (o_id < 2101) {
-        o_carrier_id = TPCCUtil.randomInt(1, 10);
+        o_carrier_id = TpccUtil.randomInt(1, 10);
       } else {
         o_carrier_id = 0;
       }
-      o_ol_cnt = TPCCUtil.randomInt(OrderLine.MIN_PER_ORDER, OrderLine.MAX_PER_ORDER);
+      o_ol_cnt = TpccUtil.randomInt(OrderLine.MIN_PER_ORDER, OrderLine.MAX_PER_ORDER);
       o_all_local = 1;
       o_entry_d = date;
     }
@@ -735,7 +735,7 @@ public class TPCCTable {
     }
   }
 
-  public static class OrderSecondary extends TPCCRecordBase {
+  public static class OrderSecondary extends TpccRecordBase {
     public static final String TABLE_NAME = "order_secondary";
     public static final String KEY_WAREHOUSE_ID = "o_w_id";
     public static final String KEY_DISTRICT_ID = "o_d_id";
@@ -747,7 +747,7 @@ public class TPCCTable {
     }
   }
 
-  public static class OrderLine extends TPCCRecordBase {
+  public static class OrderLine extends TpccRecordBase {
     public static final String TABLE_NAME = "order_line";
     public static final String KEY_WAREHOUSE_ID = "ol_w_id";
     public static final String KEY_DISTRICT_ID = "ol_d_id";
@@ -802,10 +802,10 @@ public class TPCCTable {
         ol_amount = 0.00;
       } else {
         ol_delivery_d = null;
-        ol_amount = TPCCUtil.randomDouble(1, 999999, 100);
+        ol_amount = TpccUtil.randomDouble(1, 999999, 100);
       }
       ol_quantity = 5;
-      ol_dist_info = TPCCUtil.randomAlphaString(DIST_INFO_SIZE);
+      ol_dist_info = TpccUtil.randomAlphaString(DIST_INFO_SIZE);
     }
 
     public OrderLine(CSVRecord record) throws ParseException {
@@ -880,7 +880,7 @@ public class TPCCTable {
     }
   }
 
-  public static class Stock extends TPCCRecordBase {
+  public static class Stock extends TpccRecordBase {
     public static final String TABLE_NAME = "stock";
     public static final String KEY_WAREHOUSE_ID = "s_w_id";
     public static final String KEY_ITEM_ID = "s_i_id";
@@ -927,13 +927,13 @@ public class TPCCTable {
     public Stock(int warehouseId, int itemId) {
       s_w_id = warehouseId;
       s_i_id = itemId;
-      s_quantity = TPCCUtil.randomInt(10, 100);
+      s_quantity = TpccUtil.randomInt(10, 100);
       s_ytd = 0;
       s_order_cnt = 0;
       s_remote_cnt = 0;
-      s_data = TPCCUtil.getRandomStringWithOriginal(MIN_DATA, MAX_DATA, 10);
+      s_data = TpccUtil.getRandomStringWithOriginal(MIN_DATA, MAX_DATA, 10);
       for (int i = 0; i < 10; i++) {
-        s_dist[i] = TPCCUtil.randomAlphaString(DIST_SIZE);
+        s_dist[i] = TpccUtil.randomAlphaString(DIST_SIZE);
       }
     }
 
@@ -989,7 +989,7 @@ public class TPCCTable {
     }
   }
 
-  public static class Warehouse extends TPCCRecordBase {
+  public static class Warehouse extends TpccRecordBase {
     public static final String TABLE_NAME = "warehouse";
     public static final String KEY_ID = "w_id";
     public static final String KEY_NAME = "w_name";
@@ -1018,13 +1018,13 @@ public class TPCCTable {
 
     public Warehouse(int warehouseId) {
       w_id = warehouseId;
-      w_name = TPCCUtil.randomAlphaString(MIN_NAME, MAX_NAME);
-      w_street_1 = TPCCUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
-      w_street_2 = TPCCUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
-      w_city = TPCCUtil.randomAlphaString(Address.MIN_CITY, Address.MAX_CITY);
-      w_state = TPCCUtil.randomAlphaString(Address.STATE_SIZE);
-      w_zip = TPCCUtil.randomNumberString(Address.ZIP_SIZE) + "11111";
-      w_tax = TPCCUtil.randomDouble(0, 2000, 10000);
+      w_name = TpccUtil.randomAlphaString(MIN_NAME, MAX_NAME);
+      w_street_1 = TpccUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
+      w_street_2 = TpccUtil.randomAlphaString(Address.MIN_STREET, Address.MAX_STREET);
+      w_city = TpccUtil.randomAlphaString(Address.MIN_CITY, Address.MAX_CITY);
+      w_state = TpccUtil.randomAlphaString(Address.STATE_SIZE);
+      w_zip = TpccUtil.randomNumberString(Address.ZIP_SIZE) + "11111";
+      w_tax = TpccUtil.randomDouble(0, 2000, 10000);
       w_ytd = 300000.00;
     }
 

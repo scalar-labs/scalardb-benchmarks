@@ -1,13 +1,13 @@
 package com.scalar.db.benchmarks.tpcc;
 
-public class TPCCConfig {
+public class TpccConfig {
   private int rateNewOrder = 50;
   private int ratePayment = 50;
   private int rateOrderStatus = 0;
   private int rateDelivery = 0;
   private int numWarehouse = 1;
 
-  public TPCCConfig(int warehouse, int payment) {
+  public TpccConfig(int warehouse, int payment) {
     numWarehouse = warehouse;
     ratePayment = payment;
   }

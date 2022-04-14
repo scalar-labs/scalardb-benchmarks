@@ -1,25 +1,25 @@
 package com.scalar.db.benchmarks.tpcc.transaction;
 
-import java.util.Date;
-import java.util.Optional;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Customer;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.District;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Item;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.NewOrder;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Order;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.OrderLine;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Stock;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Warehouse;
-import com.scalar.db.benchmarks.tpcc.TPCCUtil;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Customer;
+import com.scalar.db.benchmarks.tpcc.TpccTable.District;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Item;
+import com.scalar.db.benchmarks.tpcc.TpccTable.NewOrder;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Order;
+import com.scalar.db.benchmarks.tpcc.TpccTable.OrderLine;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Stock;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Warehouse;
+import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.Key;
+import java.util.Date;
+import java.util.Optional;
 
-public class NewOrderTransaction implements TPCCTransaction {
+public class NewOrderTransaction implements TpccTransaction {
   private int warehouseId;
   private int districtId;
   private int customerId;
@@ -31,12 +31,17 @@ public class NewOrderTransaction implements TPCCTransaction {
   private boolean remote;
   private Date date;
 
+  /**
+   * Generates arguments for the new-order transaction.
+   * 
+   * @param numWarehouse a number of warehouse
+   */
   public void generate(int numWarehouse) {
-    warehouseId = TPCCUtil.randomInt(1, numWarehouse);
-    districtId = TPCCUtil.randomInt(1, Warehouse.DISTRICTS);
-    customerId = TPCCUtil.getCustomerId();
-    rollback = TPCCUtil.randomInt(1, 100);
-    orderLineCount = TPCCUtil.randomInt(5, 15);
+    warehouseId = TpccUtil.randomInt(1, numWarehouse);
+    districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
+    customerId = TpccUtil.getCustomerId();
+    rollback = TpccUtil.randomInt(1, 100);
+    orderLineCount = TpccUtil.randomInt(5, 15);
     itemIds = new int[orderLineCount];
     supplierWarehouseIds = new int[orderLineCount];
     orderQuantities = new int[orderLineCount];
@@ -44,16 +49,16 @@ public class NewOrderTransaction implements TPCCTransaction {
     date = new Date();
 
     for (int i = 0; i < orderLineCount; i++) {
-      itemIds[i] = TPCCUtil.getItemId();
-      if (numWarehouse == 1 || TPCCUtil.randomInt(1, 100) > 1) {
+      itemIds[i] = TpccUtil.getItemId();
+      if (numWarehouse == 1 || TpccUtil.randomInt(1, 100) > 1) {
         supplierWarehouseIds[i] = warehouseId;
       } else {
         do {
-          supplierWarehouseIds[i] = TPCCUtil.randomInt(1, numWarehouse);
+          supplierWarehouseIds[i] = TpccUtil.randomInt(1, numWarehouse);
         } while (supplierWarehouseIds[i] == warehouseId);
         remote = true;
       }
-      orderQuantities[i] = TPCCUtil.randomInt(1, 10);
+      orderQuantities[i] = TpccUtil.randomInt(1, 10);
     }
 
     if (rollback == 1) {
@@ -89,17 +94,18 @@ public class NewOrderTransaction implements TPCCTransaction {
     }
   }
 
+  /**
+   * Executes the new-order transaction.
+   * 
+   * @param manager a {@code DistributedTransactionManager} object
+   */
   public void execute(DistributedTransactionManager manager) throws TransactionException {
     DistributedTransaction tx = manager.start();
 
     try {
-      Get get;
-      Put put;
-      Optional<Result> result;
-
       // Get warehouse
-      get = new Get(Warehouse.createPartitionKey(warehouseId));
-      result = tx.get(get.forTable(Warehouse.TABLE_NAME));
+      Get get = new Get(Warehouse.createPartitionKey(warehouseId));
+      Optional<Result> result = tx.get(get.forTable(Warehouse.TABLE_NAME));
       if (!result.isPresent()) {
         throw new TransactionException("Warehouse not found");
       }
@@ -114,7 +120,7 @@ public class NewOrderTransaction implements TPCCTransaction {
       }
       double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
       int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
-      put = new Put(districtKey).withValue(District.KEY_NEXT_O_ID, orderId + 1);
+      Put put = new Put(districtKey).withValue(District.KEY_NEXT_O_ID, orderId + 1);
       tx.put(put.forTable(District.TABLE_NAME));
 
       // Get customer
@@ -139,9 +145,9 @@ public class NewOrderTransaction implements TPCCTransaction {
 
       // Insert order-line
       for (int orderLineNumber = 1; orderLineNumber <= orderLineCount; orderLineNumber++) {
-        int itemId = itemIds[orderLineNumber - 1];
-        int supplyWarehouseId = supplierWarehouseIds[orderLineNumber - 1];
-        int quantity = orderQuantities[orderLineNumber - 1];
+        final int itemId = itemIds[orderLineNumber - 1];
+        final int supplyWarehouseId = supplierWarehouseIds[orderLineNumber - 1];
+        final int quantity = orderQuantities[orderLineNumber - 1];
 
         // Get item
         get = new Get(Item.createPartitionKey(itemId));
@@ -149,8 +155,8 @@ public class NewOrderTransaction implements TPCCTransaction {
         if (!result.isPresent()) {
           throw new TransactionException("Item not found");
         }
-        double itemPrice = result.get().getValue(Item.KEY_PRICE).get().getAsDouble();
-        double amount =
+        final double itemPrice = result.get().getValue(Item.KEY_PRICE).get().getAsDouble();
+        final double amount =
             quantity * itemPrice * (1.0 + warehouseTax + districtTax) * (1.0 - discount);
 
         // Get and update stock
@@ -160,7 +166,7 @@ public class NewOrderTransaction implements TPCCTransaction {
         if (!result.isPresent()) {
           throw new TransactionException("Stock not found");
         }
-        double stockYTD = result.get().getValue(Stock.KEY_YTD).get().getAsDouble() + quantity;
+        double stockYtd = result.get().getValue(Stock.KEY_YTD).get().getAsDouble() + quantity;
         int stockOrderCount = result.get().getValue(Stock.KEY_ORDER_CNT).get().getAsInt() + 1;
         int stockRemoteCount = result.get().getValue(Stock.KEY_REMOTE_CNT).get().getAsInt();
         if (remote) {
@@ -174,7 +180,7 @@ public class NewOrderTransaction implements TPCCTransaction {
         }
         String distInfo = getDistInfo(result, districtId);
         Stock stock =
-            new Stock(warehouseId, itemId, quantity, stockYTD, stockOrderCount, stockRemoteCount);
+            new Stock(warehouseId, itemId, quantity, stockYtd, stockOrderCount, stockRemoteCount);
         tx.put(new Put(stock.createPartitionKey()).withValues(stock.createValues())
             .forTable(Stock.TABLE_NAME));
 

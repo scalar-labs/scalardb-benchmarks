@@ -2,7 +2,7 @@ package com.scalar.db.benchmarks.tpcc;
 
 import java.util.Random;
 
-public class TPCCUtil {
+public class TpccUtil {
   private static final Random r = new Random();
 
   // for customer last name
@@ -15,36 +15,65 @@ public class TPCCUtil {
   public static final int CUSTOMER_ID = 987;
   public static final int ORDER_LINE_ITEM_ID = 5987;
 
+  /**
+   * Returns a customer ID for transaction arguments.
+   *
+   * @return a customer ID for transaction arguments
+   */
   public static int getCustomerId() {
-    return nonUniformRandom(1023, 1, TPCCTable.District.CUSTOMERS);
+    return nonUniformRandom(1023, 1, TpccTable.District.CUSTOMERS);
   }
 
-  public static String getLastName(int num) {
-    return NAME_TOKENS[num / 100] + NAME_TOKENS[(num / 10) % 10] + NAME_TOKENS[num % 10];
-  }
-
+  /**
+   * Returns an item ID for transaction arguments.
+   *
+   * @return an item ID for transaction arguments
+   */
   public static int getItemId() {
-    // return nonUniformRandom(8191, 1, TPCCTable.Item.ITEMS);
-    return nonUniformRandom(8191, 1, 100);
+    return nonUniformRandom(8191, 1, TpccTable.Item.ITEMS);
   }
 
+  /**
+   * Returns a random {@code String} including "ORIGINAL".
+   *
+   * @return a random {@code String} including "ORIGINAL"
+   */
   public static String getRandomStringWithOriginal(int minLength, int maxLength, int rate) {
     int length = randomInt(minLength, maxLength);
-    if (TPCCUtil.randomInt(0, 99) < 10) {
-      int startOriginal = TPCCUtil.randomInt(2, length - 8);
-      return TPCCUtil.randomAlphaString(startOriginal - 1) + "ORIGINAL"
-          + TPCCUtil.randomAlphaString(length - startOriginal - 9);
+    if (TpccUtil.randomInt(0, 99) < 10) {
+      int startOriginal = TpccUtil.randomInt(2, length - 8);
+      return TpccUtil.randomAlphaString(startOriginal - 1) + "ORIGINAL"
+          + TpccUtil.randomAlphaString(length - startOriginal - 9);
     } else {
-      return TPCCUtil.randomAlphaString(length);
+      return TpccUtil.randomAlphaString(length);
     }
   }
 
+  /**
+   * Returns a customer last name {@code String} for transaction argument.
+   *
+   * @return a customer last name {@code String} for transaction argument
+   */
   public static String getNonUniformRandomLastNameForRun() {
     return getLastName(nonUniformRandom(255, 0, 999, false));
   }
 
+  /**
+   * Returns a customer last name {@code String} for load.
+   *
+   * @return a customer last name {@code String} for load
+   */
   public static String getNonUniformRandomLastNameForLoad() {
     return getLastName(nonUniformRandom(255, 0, 999, true));
+  }
+
+  /**
+   * Returns a customer last name {@code String} for load.
+   *
+   * @return a customer last name {@code String} for load
+   */
+  public static String getLastName(int num) {
+    return NAME_TOKENS[num / 100] + NAME_TOKENS[(num / 10) % 10] + NAME_TOKENS[num % 10];
   }
 
   private static String randomString(int minLength, int maxLength, boolean isNumberOnly) {
@@ -82,17 +111,17 @@ public class TPCCUtil {
     return randomInt(min, max) / (double) divider;
   }
 
-  public static int nonUniformRandom(int A, int min, int max) {
-    return nonUniformRandom(A, min, max, false);
+  public static int nonUniformRandom(int a, int min, int max) {
+    return nonUniformRandom(a, min, max, false);
   }
 
-  public static int nonUniformRandom(int A, int min, int max, Boolean isLoad) {
-    int C = getConstantForNonUniformRandom(A, isLoad);
-    return (((randomInt(0, A) | randomInt(min, max)) + C) % (max - min + 1)) + min;
+  public static int nonUniformRandom(int a, int min, int max, Boolean isLoad) {
+    int c = getConstantForNonUniformRandom(a, isLoad);
+    return (((randomInt(0, a) | randomInt(min, max)) + c) % (max - min + 1)) + min;
   }
 
-  private static int getConstantForNonUniformRandom(int A, Boolean isLoad) {
-    switch (A) {
+  private static int getConstantForNonUniformRandom(int a, Boolean isLoad) {
+    switch (a) {
       case 255:
         return isLoad ? CUSTOMER_LASTNAME_IN_LOAD : CUSTOMER_LASTNAME_IN_RUN;
       case 1023:

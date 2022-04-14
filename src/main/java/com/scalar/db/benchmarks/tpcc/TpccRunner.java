@@ -5,13 +5,13 @@ import com.scalar.db.benchmarks.tpcc.transaction.NewOrderTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.PaymentTransaction;
 import com.scalar.db.exception.transaction.TransactionException;
 
-public class TPCCRunner {
+public class TpccRunner {
   private final DistributedTransactionManager manager;
-  private final TPCCConfig config;
+  private final TpccConfig config;
   private final NewOrderTransaction newOrder = new NewOrderTransaction();
   private final PaymentTransaction payment = new PaymentTransaction();
 
-  public TPCCRunner(DistributedTransactionManager m, TPCCConfig c) {
+  public TpccRunner(DistributedTransactionManager m, TpccConfig c) {
     manager = m;
     config = c;
   }
@@ -25,8 +25,8 @@ public class TPCCRunner {
     StockLevel,
   }
 
-  public Type decideType() {
-    int x = TPCCUtil.randomInt(1, 100);
+  private Type decideType() {
+    int x = TpccUtil.randomInt(1, 100);
     if (x <= config.getRatePayment()) {
       return Type.Payment;
     } else {
@@ -34,6 +34,9 @@ public class TPCCRunner {
     }
   }
 
+  /**
+   * Runs a TPC-C transaction.
+   */
   public void run() throws TransactionException {
     Type type = decideType();
     switch (type) {

@@ -1,10 +1,25 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Customer;
+import com.scalar.db.benchmarks.tpcc.TpccTable.CustomerSecondary;
+import com.scalar.db.benchmarks.tpcc.TpccTable.District;
+import com.scalar.db.benchmarks.tpcc.TpccTable.History;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Item;
+import com.scalar.db.benchmarks.tpcc.TpccTable.NewOrder;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Order;
+import com.scalar.db.benchmarks.tpcc.TpccTable.OrderLine;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Stock;
+import com.scalar.db.benchmarks.tpcc.TpccTable.TpccRecord;
+import com.scalar.db.benchmarks.tpcc.TpccTable.Warehouse;
+import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.service.TransactionFactory;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -19,23 +34,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.util.concurrent.Uninterruptibles;
-import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Customer;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.CustomerSecondary;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.District;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.History;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Item;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.NewOrder;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Order;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.OrderLine;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Stock;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.TPCCRecord;
-import com.scalar.db.benchmarks.tpcc.TPCCTable.Warehouse;
-import com.scalar.db.config.DatabaseConfig;
-import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.service.TransactionFactory;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -44,7 +42,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Command(name = "tpcc-loader", description = "Load tables for TPC-C benchmark.")
-public class TPCCLoader implements Callable<Integer> {
+public class TpccLoader implements Callable<Integer> {
 
   @CommandLine.Option(
       names = {"--properties", "--config"},
@@ -122,22 +120,8 @@ public class TPCCLoader implements Callable<Integer> {
       .build();
 
   public static void main(String[] args) {
-    int exitCode = new CommandLine(new TPCCLoader()).execute(args);
+    int exitCode = new CommandLine(new TpccLoader()).execute(args);
     System.exit(exitCode);
-  }
-
-  public interface LoadWrapper<T, U> {
-    void loader(T t, U u) throws TransactionException, ParseException;
-
-    default boolean apply(T t, U u) {
-      try {
-        loader(t, u);
-        return true;
-      } catch (Exception e) {
-        e.printStackTrace();
-        return false;
-      }
-    }
   }
 
   @Override
@@ -149,7 +133,7 @@ public class TPCCLoader implements Callable<Integer> {
     return 0;
   }
 
-  private void queueWarehouses(BlockingQueue<TPCCRecord> queue, AtomicInteger counter)
+  private void queueWarehouses(BlockingQueue<TpccRecord> queue, AtomicInteger counter)
       throws InterruptedException {
     Date date = new Date();
     for (int warehouseId = 1; warehouseId <= numWarehouse; warehouseId++) {
@@ -163,7 +147,7 @@ public class TPCCLoader implements Callable<Integer> {
     }
   }
 
-  private void queueDistricts(BlockingQueue<TPCCRecord> queue, AtomicInteger counter,
+  private void queueDistricts(BlockingQueue<TpccRecord> queue, AtomicInteger counter,
       int warehouseId, Date date) throws InterruptedException {
     for (int districtId = 1; districtId <= Warehouse.DISTRICTS; districtId++) {
       queue.put(new District(warehouseId, districtId));
@@ -173,7 +157,7 @@ public class TPCCLoader implements Callable<Integer> {
     }
   }
 
-  private void queueCustomers(BlockingQueue<TPCCRecord> queue, AtomicInteger counter,
+  private void queueCustomers(BlockingQueue<TpccRecord> queue, AtomicInteger counter,
       int warehouseId, int districtId, Date date) throws InterruptedException {
     for (int customerId = 1; customerId <= District.CUSTOMERS; customerId++) {
       Customer customer = new Customer(warehouseId, districtId, customerId, date);
@@ -191,7 +175,7 @@ public class TPCCLoader implements Callable<Integer> {
     }
   }
 
-  private void queueOrders(BlockingQueue<TPCCRecord> queue, AtomicInteger counter, int warehouseId,
+  private void queueOrders(BlockingQueue<TpccRecord> queue, AtomicInteger counter, int warehouseId,
       int districtId, Date date) throws InterruptedException {
     List<Integer> customers = new ArrayList<Integer>();
     for (int customerId = 1; customerId <= District.CUSTOMERS; customerId++) {
@@ -209,7 +193,7 @@ public class TPCCLoader implements Callable<Integer> {
       queue.put(order);
       counter.incrementAndGet();
       for (int number = 1; number <= orderLineCount; number++) {
-        int itemId = TPCCUtil.randomInt(1, Item.ITEMS);
+        int itemId = TpccUtil.randomInt(1, Item.ITEMS);
         // order-line
         queue.put(
             new OrderLine(warehouseId, districtId, orderId, number, warehouseId, itemId, date));
@@ -225,7 +209,7 @@ public class TPCCLoader implements Callable<Integer> {
 
   private void load(DistributedTransactionManager manager) throws InterruptedException {
     ExecutorService executor = Executors.newFixedThreadPool(numThreads + 1);
-    BlockingQueue<TPCCRecord> queue = new ArrayBlockingQueue<>(10000);
+    BlockingQueue<TpccRecord> queue = new ArrayBlockingQueue<>(10000);
     AtomicBoolean isAllQueued = new AtomicBoolean();
     AtomicInteger queuedCounter = new AtomicInteger();
     AtomicInteger succeededCounter = new AtomicInteger();
@@ -234,7 +218,7 @@ public class TPCCLoader implements Callable<Integer> {
     for (int i = 0; i < numThreads; ++i) {
       executor.execute(() -> {
         while (true) {
-          TPCCRecord record = queue.poll();
+          TpccRecord record = queue.poll();
           if (record == null) {
             if (isAllQueued.get()) {
               break;
@@ -262,16 +246,16 @@ public class TPCCLoader implements Callable<Integer> {
     });
 
     if (directory != null) {
-      queueCSV(new File(directory, warehouse), queue, queuedCounter);
-      queueCSV(new File(directory, item), queue, queuedCounter);
-      queueCSV(new File(directory, stock), queue, queuedCounter);
-      queueCSV(new File(directory, district), queue, queuedCounter);
-      queueCSV(new File(directory, customer), queue, queuedCounter);
-      queueCSV(new File(directory, customerSecondary), queue, queuedCounter);
-      queueCSV(new File(directory, history), queue, queuedCounter);
-      queueCSV(new File(directory, order), queue, queuedCounter);
-      queueCSV(new File(directory, newOrder), queue, queuedCounter);
-      queueCSV(new File(directory, orderLine), queue, queuedCounter);
+      queueCsv(new File(directory, warehouse), queue, queuedCounter);
+      queueCsv(new File(directory, item), queue, queuedCounter);
+      queueCsv(new File(directory, stock), queue, queuedCounter);
+      queueCsv(new File(directory, district), queue, queuedCounter);
+      queueCsv(new File(directory, customer), queue, queuedCounter);
+      queueCsv(new File(directory, customerSecondary), queue, queuedCounter);
+      queueCsv(new File(directory, history), queue, queuedCounter);
+      queueCsv(new File(directory, order), queue, queuedCounter);
+      queueCsv(new File(directory, newOrder), queue, queuedCounter);
+      queueCsv(new File(directory, orderLine), queue, queuedCounter);
     } else {
       for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
         queue.put(new Item(itemId));
@@ -291,7 +275,7 @@ public class TPCCLoader implements Callable<Integer> {
     executor.awaitTermination(10, TimeUnit.SECONDS);
   }
 
-  private void queueCSV(File file, BlockingQueue<TPCCRecord> queue, AtomicInteger counter)
+  private void queueCsv(File file, BlockingQueue<TpccRecord> queue, AtomicInteger counter)
       throws InterruptedException {
 
     CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT)
