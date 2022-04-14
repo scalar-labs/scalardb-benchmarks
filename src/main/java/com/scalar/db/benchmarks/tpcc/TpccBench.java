@@ -33,11 +33,39 @@ public class TpccBench implements Callable<Integer> {
   private int numWarehouse = 1;
 
   @CommandLine.Option(
+      names = {"--rate-new-order"},
+      required = false,
+      paramLabel = "RATE_NEW_ORDER",
+      description = "The percentage of new-order transaction.")
+  private int rateNewOrder = 50;
+
+  @CommandLine.Option(
       names = {"--rate-payment"},
       required = false,
       paramLabel = "RATE_PAYMENT",
       description = "The percentage of payment transaction.")
   private int ratePayment = 50;
+
+  @CommandLine.Option(
+      names = {"--rate-order-status"},
+      required = false,
+      paramLabel = "RATE_ORDER_STATUS",
+      description = "The percentage of order-status transaction.")
+  private int rateOrderStatus = 0;
+
+  @CommandLine.Option(
+      names = {"--rate-delivery"},
+      required = false,
+      paramLabel = "RATE_DERIVERRY",
+      description = "The percentage of delivery transaction.")
+  private int rateDelivery = 0;
+
+  @CommandLine.Option(
+      names = {"--rate-stock-level"},
+      required = false,
+      paramLabel = "RATE_STOCK_LEVEL",
+      description = "The percentage of stock-level transaction.")
+  private int rateStockLevel = 0;
 
   @CommandLine.Option(
       names = {"--num-threads"},
@@ -90,7 +118,14 @@ public class TpccBench implements Callable<Integer> {
     TransactionFactory factory = new TransactionFactory(dbConfig);
     DistributedTransactionManager manager = factory.getTransactionManager();
     manager.withNamespace(namespace);
-    TpccConfig config = new TpccConfig(numWarehouse, ratePayment);
+    TpccConfig config = TpccConfig.newBuilder()
+        .numWarehouse(numWarehouse)
+        .rateNewOrder(rateNewOrder)
+        .ratePayment(ratePayment)
+        .rateOrderStatus(rateOrderStatus)
+        .rateDelivery(rateDelivery)
+        .rateStockLevel(rateStockLevel)
+        .build();
 
     if (times > 0) {
       TpccRunner tpcc = new TpccRunner(manager, config);

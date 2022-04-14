@@ -27,10 +27,18 @@ public class TpccRunner {
 
   private Type decideType() {
     int x = TpccUtil.randomInt(1, 100);
-    if (x <= config.getRatePayment()) {
-      return Type.Payment;
-    } else {
+    if (x <= config.getRateNewOrder()) {
       return Type.NewOrder;
+    } else if (x <= config.getRateNewOrder() + config.getRatePayment()) {
+      return Type.Payment;
+    } else if (x <= config.getRateNewOrder() + config.getRatePayment()
+        + config.getRateOrderStatus()) {
+      return Type.OrderStatus;
+    } else if (x <= config.getRateNewOrder() + config.getRatePayment()
+        + config.getRateOrderStatus() + config.getRateDelivery()) {
+      return Type.Delivery;
+    } else {
+      return Type.StockLevel;
     }
   }
 
