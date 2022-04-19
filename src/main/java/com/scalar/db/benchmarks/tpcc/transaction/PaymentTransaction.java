@@ -6,17 +6,14 @@ import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
-import com.scalar.db.benchmarks.tpcc.TpccTable.Customer;
-import com.scalar.db.benchmarks.tpcc.TpccTable.CustomerSecondary;
-import com.scalar.db.benchmarks.tpcc.TpccTable.District;
-import com.scalar.db.benchmarks.tpcc.TpccTable.History;
-import com.scalar.db.benchmarks.tpcc.TpccTable.Warehouse;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
+import com.scalar.db.benchmarks.tpcc.table.Customer;
+import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
+import com.scalar.db.benchmarks.tpcc.table.District;
+import com.scalar.db.benchmarks.tpcc.table.History;
+import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.io.DoubleValue;
-import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
-import com.scalar.db.io.TextValue;
 import com.scalar.db.io.Value;
 import java.util.ArrayList;
 import java.util.Date;
@@ -152,17 +149,14 @@ public class PaymentTransaction {
           result.get().getValue(Customer.KEY_YTD_PAYMENT).get().getAsDouble() + paymentAmount;
       final int count = result.get().getValue(Customer.KEY_PAYMENT_CNT).get().getAsInt() + 1;
       final String credit = result.get().getValue(Customer.KEY_CREDIT).get().getAsString().get();
-      ArrayList<Value<?>> customerValues = new ArrayList<Value<?>>();
-      customerValues.add(new DoubleValue(Customer.KEY_BALANCE, balance));
-      customerValues.add(new DoubleValue(Customer.KEY_YTD_PAYMENT, ytdPayment));
-      customerValues.add(new IntValue(Customer.KEY_PAYMENT_CNT, count));
+      String data = result.get().getValue(Customer.KEY_DATA).get().getAsString().get();
       if (credit.equals("BC")) {
-        String oldData = result.get().getValue(Customer.KEY_DATA).get().getAsString().get();
-        String newData = generateCustomerData(warehouseId, districtId, customerId,
-            customerWarehouseId, customerDistrictId, paymentAmount, oldData);
-        customerValues.add(new TextValue(Customer.KEY_DATA, newData));
+        data = generateCustomerData(warehouseId, districtId, customerId,
+            customerWarehouseId, customerDistrictId, paymentAmount, data);
       }
-      put = new Put(customerKey).withValues(customerValues);
+      Customer customer = new Customer(warehouseId, districtId, customerId,
+          balance, ytdPayment, count, data);
+      put = new Put(customerKey).withValues(customer.createValues());
       tx.put(put.forTable(Customer.TABLE_NAME));
 
       // Insert history

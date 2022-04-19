@@ -1,5 +1,7 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import com.scalar.db.benchmarks.tpcc.table.District;
+import com.scalar.db.benchmarks.tpcc.table.Item;
 import java.util.Random;
 
 public class TpccUtil {
@@ -21,7 +23,7 @@ public class TpccUtil {
    * @return a customer ID for transaction arguments
    */
   public static int getCustomerId() {
-    return nonUniformRandom(1023, 1, TpccTable.District.CUSTOMERS);
+    return nonUniformRandom(1023, 1, District.CUSTOMERS);
   }
 
   /**
@@ -30,7 +32,7 @@ public class TpccUtil {
    * @return an item ID for transaction arguments
    */
   public static int getItemId() {
-    return nonUniformRandom(8191, 1, TpccTable.Item.ITEMS);
+    return nonUniformRandom(8191, 1, Item.ITEMS);
   }
 
   /**
