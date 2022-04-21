@@ -1,8 +1,8 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
-import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Get;
+import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.Value;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
-public class Stock extends TpccRecordBase {
+public class Stock extends TpccRecord {
   public static final String TABLE_NAME = "stock";
   public static final String COLUMN_PREFIX = "s_";
   public static final String KEY_WAREHOUSE_ID = "s_w_id";
@@ -106,13 +106,19 @@ public class Stock extends TpccRecordBase {
   }
 
   /**
-   * Inserts a {@code Item} record as a transaction.
-   * 
-   * @param manager a {@code DistributedTransactionManager} object
+   * Creates a {@code Get} object.
    */
-  public void insert(DistributedTransactionManager manager) throws TransactionException {
-    Key key = createPartitionKey();
+  public static Get createGet(int warehouseId, int itemId) {
+    Key parttionkey = createPartitionKey(warehouseId, itemId);
+    return new Get(parttionkey).forTable(TABLE_NAME);
+  }
+
+  /**
+   * Creates a {@code Put} object.
+   */
+  public Put createPut() {
+    Key parttionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    insert(manager, TABLE_NAME, key, values);
+    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
   }
 }

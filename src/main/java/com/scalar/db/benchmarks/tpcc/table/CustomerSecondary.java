@@ -1,7 +1,7 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
-import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.exception.transaction.TransactionException;
+import com.scalar.db.api.Put;
+import com.scalar.db.api.Scan;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextValue;
@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
-public class CustomerSecondary extends TpccRecordBase {
+public class CustomerSecondary extends TpccRecord {
   public static final String TABLE_NAME = "customer_secondary";
   public static final String COLUMN_PREFIX = "c_";
   public static final String KEY_WAREHOUSE_ID = "c_w_id";
@@ -72,13 +72,20 @@ public class CustomerSecondary extends TpccRecordBase {
   }
 
   /**
-   * Inserts a {@code CustomerSecondary} record as a transaction.
-   * 
-   * @param manager a {@code DistributedTransactionManager} object
+   * Creates a {@code Put} object.
    */
-  public void insert(DistributedTransactionManager manager) throws TransactionException {
-    Key partitionKey = createPartitionKey();
+  public Put createPut() {
+    Key parttionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
-    insert(manager, TABLE_NAME, partitionKey, clusteringKey);
+    ArrayList<Value<?>> values = createValues();
+    return new Put(parttionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+  }
+
+  /**
+   * Creates a {@code Scan} object.
+   */
+  public static Scan createScan(int warehouseId, int districtId, String lastName) {
+    Key parttionkey = createPartitionKey(warehouseId, districtId, lastName);
+    return new Scan(parttionkey).forTable(TABLE_NAME);
   }
 }

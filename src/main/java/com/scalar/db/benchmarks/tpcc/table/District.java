@@ -1,8 +1,8 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
-import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Get;
+import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.Value;
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
-public class District extends TpccRecordBase {
+public class District extends TpccRecord {
   public static final String TABLE_NAME = "district";
   public static final String COLUMN_PREFIX = "d_";
   public static final String KEY_WAREHOUSE_ID = "d_w_id";
@@ -31,6 +31,30 @@ public class District extends TpccRecordBase {
   public static final int ORDERS = 3000;
   public static final int MIN_NAME = 6;
   public static final int MAX_NAME = 10;
+
+  /**
+   * Constructs a {@code District} with ytd.
+   */
+  public District(int warehouseId, int districtId, double ytd) {
+    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
+    partitionKeyMap.put(KEY_ID, districtId);
+
+    valueMap = new HashMap<String,Object>();
+    valueMap.put(KEY_YTD, ytd);
+  }
+
+  /**
+   * Constructs a {@code District} with a next order ID.
+   */
+  public District(int warehouseId, int districtId, int nextOrderId) {
+    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
+    partitionKeyMap.put(KEY_ID, districtId);
+
+    valueMap = new HashMap<String,Object>();
+    valueMap.put(KEY_NEXT_O_ID, nextOrderId);
+  }
 
   /**
    * Constructs a {@code District} with data generation.
@@ -79,13 +103,19 @@ public class District extends TpccRecordBase {
   }
 
   /**
-   * Inserts a {@code District} record as a transaction.
-   * 
-   * @param manager a {@code DistributedTransactionManager} object
+   * Creates a {@code Get} object.
    */
-  public void insert(DistributedTransactionManager manager) throws TransactionException {
-    Key key = createPartitionKey();
+  public static Get createGet(int warehouseId, int districtId) {
+    Key parttionkey = createPartitionKey(warehouseId, districtId);
+    return new Get(parttionkey).forTable(TABLE_NAME);
+  }
+
+  /**
+   * Creates a {@code Put} object.
+   */
+  public Put createPut() {
+    Key parttionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    insert(manager, TABLE_NAME, key, values);
+    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
   }
 }

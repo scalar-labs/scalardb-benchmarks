@@ -2,8 +2,6 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.api.Get;
-import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
@@ -15,7 +13,6 @@ import com.scalar.db.benchmarks.tpcc.table.OrderLine;
 import com.scalar.db.benchmarks.tpcc.table.Stock;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.io.Key;
 import java.util.Date;
 import java.util.Optional;
 
@@ -104,28 +101,24 @@ public class NewOrderTransaction implements TpccTransaction {
 
     try {
       // Get warehouse
-      Get get = new Get(Warehouse.createPartitionKey(warehouseId));
-      Optional<Result> result = tx.get(get.forTable(Warehouse.TABLE_NAME));
+      Optional<Result> result = tx.get(Warehouse.createGet(warehouseId));
       if (!result.isPresent()) {
         throw new TransactionException("Warehouse not found");
       }
-      double warehouseTax = result.get().getValue(Warehouse.KEY_TAX).get().getAsDouble();
+      final double warehouseTax = result.get().getValue(Warehouse.KEY_TAX).get().getAsDouble();
 
       // Get and update district
-      Key districtKey = District.createPartitionKey(warehouseId, districtId);
-      get = new Get(districtKey);
-      result = tx.get(get.forTable(District.TABLE_NAME));
+      result = tx.get(District.createGet(warehouseId, districtId));
       if (!result.isPresent()) {
         throw new TransactionException("District not found");
       }
-      double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
-      int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
-      Put put = new Put(districtKey).withValue(District.KEY_NEXT_O_ID, orderId + 1);
-      tx.put(put.forTable(District.TABLE_NAME));
+      final double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
+      final int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
+      District district = new District(warehouseId, districtId, orderId + 1);
+      tx.put(district.createPut());
 
       // Get customer
-      get = new Get(Customer.createPartitionKey(warehouseId, districtId, customerId));
-      result = tx.get(get.forTable(Customer.TABLE_NAME));
+      result = tx.get(Customer.createGet(warehouseId, districtId, customerId));
       if (!result.isPresent()) {
         throw new TransactionException("Customer not found");
       }
@@ -133,15 +126,12 @@ public class NewOrderTransaction implements TpccTransaction {
 
       // Insert new-order
       NewOrder newOrder = new NewOrder(warehouseId, districtId, orderId);
-      put = new Put(newOrder.createPartitionKey(), newOrder.createClusteringKey());
-      tx.put(put.forTable(NewOrder.TABLE_NAME));
+      tx.put(newOrder.createPut());
 
       // Insert order
       Order order = new Order(warehouseId, districtId, orderId, customerId, 0, orderLineCount,
           remote ? 0 : 1, date);
-      put = new Put(order.createPartitionKey(), order.createClusteringKey())
-          .withValues(order.createValues());
-      tx.put(put.forTable(Order.TABLE_NAME));
+      tx.put(order.createPut());
 
       // Insert order-line
       for (int orderLineNumber = 1; orderLineNumber <= orderLineCount; orderLineNumber++) {
@@ -150,8 +140,7 @@ public class NewOrderTransaction implements TpccTransaction {
         final int quantity = orderQuantities[orderLineNumber - 1];
 
         // Get item
-        get = new Get(Item.createPartitionKey(itemId));
-        result = tx.get(get.forTable(Item.TABLE_NAME));
+        result = tx.get(Item.createGet(itemId));
         if (!result.isPresent()) {
           throw new TransactionException("Item not found");
         }
@@ -160,9 +149,7 @@ public class NewOrderTransaction implements TpccTransaction {
             quantity * itemPrice * (1.0 + warehouseTax + districtTax) * (1.0 - discount);
 
         // Get and update stock
-        Key stockKey = Stock.createPartitionKey(warehouseId, itemId);
-        get = new Get(stockKey);
-        result = tx.get(get.forTable(Stock.TABLE_NAME));
+        result = tx.get(Stock.createGet(warehouseId, itemId));
         if (!result.isPresent()) {
           throw new TransactionException("Stock not found");
         }
@@ -181,14 +168,12 @@ public class NewOrderTransaction implements TpccTransaction {
         String distInfo = getDistInfo(result, districtId);
         Stock stock =
             new Stock(warehouseId, itemId, quantity, stockYtd, stockOrderCount, stockRemoteCount);
-        tx.put(new Put(stock.createPartitionKey()).withValues(stock.createValues())
-            .forTable(Stock.TABLE_NAME));
+        tx.put(stock.createPut());
 
         // Insert order-line
         OrderLine orderLine = new OrderLine(warehouseId, districtId, orderId, orderLineNumber,
             supplyWarehouseId, amount, quantity, itemId, distInfo);
-        tx.put(new Put(orderLine.createPartitionKey(), orderLine.createClusteringKey())
-            .withValues(orderLine.createValues()).forTable(OrderLine.TABLE_NAME));
+        tx.put(orderLine.createPut());
       }
 
       tx.commit();

@@ -2,6 +2,7 @@ package com.scalar.db.benchmarks.tpcc;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
 import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
@@ -15,6 +16,7 @@ import com.scalar.db.benchmarks.tpcc.table.Stock;
 import com.scalar.db.benchmarks.tpcc.table.TpccRecord;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
 import java.io.BufferedReader;
 import java.io.File;
@@ -207,7 +209,21 @@ public class TpccLoader implements Callable<Integer> {
     }
   }
 
-  private void load(DistributedTransactionManager manager) throws InterruptedException {
+  private void insert(DistributedTransactionManager manager, TpccRecord record)
+      throws TransactionException {
+    DistributedTransaction tx = manager.start();
+    tx.withNamespace(TpccRecord.NAMESPACE);
+    try {
+      tx.put(record.createPut());
+      tx.commit();
+    } catch (Exception e) {
+      tx.abort();
+      throw e;
+    }
+  }
+
+  private void load(DistributedTransactionManager manager)
+      throws TransactionException, InterruptedException {
     ExecutorService executor = Executors.newFixedThreadPool(numThreads + 1);
     BlockingQueue<TpccRecord> queue = new ArrayBlockingQueue<>(10000);
     AtomicBoolean isAllQueued = new AtomicBoolean();
@@ -227,7 +243,7 @@ public class TpccLoader implements Callable<Integer> {
             continue;
           }
           try {
-            record.insert(manager);
+            insert(manager, record);
             succeededCounter.incrementAndGet();
           } catch (Exception e) {
             e.printStackTrace();

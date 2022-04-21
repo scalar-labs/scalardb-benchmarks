@@ -1,8 +1,7 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
-import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.Value;
 import java.text.ParseException;
@@ -14,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.UUID;
 import org.apache.commons.csv.CSVRecord;
 
-public class History extends TpccRecordBase {
+public class History extends TpccRecord {
   public static final String TABLE_NAME = "history";
   public static final String COLUMN_PREFIX = "h_";
   public static final String KEY_ID = "h_id";
@@ -94,13 +93,11 @@ public class History extends TpccRecordBase {
   }
 
   /**
-   * Inserts a {@code History} record as a transaction.
-   * 
-   * @param manager a {@code DistributedTransactionManager} object
+   * Creates a {@code Put} object.
    */
-  public void insert(DistributedTransactionManager manager) throws TransactionException {
-    Key key = createPartitionKey();
+  public Put createPut() {
+    Key parttionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    insert(manager, TABLE_NAME, key, values);
+    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
   }
 }

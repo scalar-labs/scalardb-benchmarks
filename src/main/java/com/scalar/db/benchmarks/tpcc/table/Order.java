@@ -1,8 +1,7 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
-import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.Value;
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
-public class Order extends TpccRecordBase {
+public class Order extends TpccRecord {
   public static final String TABLE_NAME = "oorder";
   public static final String COLUMN_PREFIX = "o_";
   public static final String KEY_WAREHOUSE_ID = "o_w_id";
@@ -119,15 +118,13 @@ public class Order extends TpccRecordBase {
   }
 
   /**
-   * Inserts a {@code Order} record as a transaction.
-   * 
-   * @param manager a {@code DistributedTransactionManager} object
+   * Creates a {@code Put} object.
    */
-  public void insert(DistributedTransactionManager manager) throws TransactionException {
-    Key partitionKey = createPartitionKey();
+  public Put createPut() {
+    Key parttionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    insert(manager, TABLE_NAME, partitionKey, clusteringKey, values);
+    return new Put(parttionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
   public int getOrderLineCount() {

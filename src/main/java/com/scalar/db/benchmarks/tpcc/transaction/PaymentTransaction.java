@@ -2,10 +2,7 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.api.Get;
-import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
-import com.scalar.db.api.Scan;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
 import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
@@ -13,9 +10,6 @@ import com.scalar.db.benchmarks.tpcc.table.District;
 import com.scalar.db.benchmarks.tpcc.table.History;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.io.Key;
-import com.scalar.db.io.Value;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -101,9 +95,7 @@ public class PaymentTransaction {
 
     try {
       // Get and update warehouse
-      final Key warehouseKey = Warehouse.createPartitionKey(warehouseId);
-      Get get = new Get(warehouseKey);
-      Optional<Result> result = tx.get(get.forTable(Warehouse.TABLE_NAME));
+      Optional<Result> result = tx.get(Warehouse.createGet(warehouseId));
       if (!result.isPresent()) {
         throw new TransactionException("Warehouse not found");
       }
@@ -111,13 +103,11 @@ public class PaymentTransaction {
           result.get().getValue(Warehouse.KEY_NAME).get().getAsString().get();
       final double warehouseYtd =
           result.get().getValue(Warehouse.KEY_YTD).get().getAsDouble() + paymentAmount;
-      Put put = new Put(warehouseKey).withValue(Warehouse.KEY_YTD, warehouseYtd);
-      tx.put(put.forTable(Warehouse.TABLE_NAME));
+      Warehouse warehouse = new Warehouse(warehouseId, warehouseYtd);
+      tx.put(warehouse.createPut());
 
       // Get and update district
-      final Key districtKey = District.createPartitionKey(warehouseId, districtId);
-      get = new Get(districtKey);
-      result = tx.get(get.forTable(District.TABLE_NAME));
+      result = tx.get(District.createGet(warehouseId, districtId));
       if (!result.isPresent()) {
         throw new TransactionException("District not found");
       }
@@ -125,21 +115,18 @@ public class PaymentTransaction {
           result.get().getValue(District.KEY_NAME).get().getAsString().get();
       final double districtYtd =
           result.get().getValue(District.KEY_YTD).get().getAsDouble() + paymentAmount;
-      put = new Put(districtKey).withValue(District.KEY_YTD, districtYtd);
-      tx.put(put.forTable(District.TABLE_NAME));
+      District district = new District(warehouseId, districtId, districtYtd);
+      tx.put(district.createPut());
 
       // Get and update customer
       if (byLastName) {
-        Key key = CustomerSecondary.createPartitionKey(warehouseId, districtId, customerLastName);
-        Scan scan = new Scan(key);
-        List<Result> results = tx.scan(scan.forTable(CustomerSecondary.TABLE_NAME));
+        List<Result> results = tx.scan(
+            CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
         int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
         customerId =
             results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
       }
-      final Key customerKey = Customer.createPartitionKey(warehouseId, districtId, customerId);
-      get = new Get(customerKey);
-      result = tx.get(get.forTable(Customer.TABLE_NAME));
+      result = tx.get(Customer.createGet(warehouseId, districtId, customerId));
       if (!result.isPresent()) {
         throw new TransactionException("Customer not found");
       }
@@ -156,17 +143,13 @@ public class PaymentTransaction {
       }
       Customer customer = new Customer(warehouseId, districtId, customerId,
           balance, ytdPayment, count, data);
-      put = new Put(customerKey).withValues(customer.createValues());
-      tx.put(put.forTable(Customer.TABLE_NAME));
+      tx.put(customer.createPut());
 
       // Insert history
       final History history =
           new History(customerId, customerDistrictId, customerWarehouseId, districtId, warehouseId,
               date, paymentAmount, generateHistoryData(warehouseName, districtName));
-      final Key historyKey = history.createPartitionKey();
-      ArrayList<Value<?>> historyValues = history.createValues();
-      put = new Put(historyKey).withValues(historyValues);
-      tx.put(put.forTable(History.TABLE_NAME));
+      tx.put(history.createPut());
 
       tx.commit();
     } catch (Exception e) {

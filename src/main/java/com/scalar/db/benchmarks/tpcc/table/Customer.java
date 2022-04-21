@@ -1,8 +1,8 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
-import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Get;
+import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.Value;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
-public class Customer extends TpccRecordBase {
+public class Customer extends TpccRecord {
   public static final String TABLE_NAME = "customer";
   public static final String COLUMN_PREFIX = "c_";
   public static final String KEY_WAREHOUSE_ID = "c_w_id";
@@ -40,6 +40,7 @@ public class Customer extends TpccRecordBase {
   public static final String KEY_SINCE = "c_since";
   public static final String KEY_DATA = "c_data";
 
+  public static final int UNUSED_ID = 0;
   public static final int MIN_FIRST = 8;
   public static final int MAX_FIRST = 16;
   public static final int MIN_DATA = 300;
@@ -145,14 +146,20 @@ public class Customer extends TpccRecordBase {
   }
 
   /**
-   * Inserts a {@code Customer} record as a transaction.
-   * 
-   * @param manager a {@code DistributedTransactionManager} object
+   * Creates a {@code Get} object.
    */
-  public void insert(DistributedTransactionManager manager) throws TransactionException {
-    Key key = createPartitionKey();
+  public static Get createGet(int warehouseId, int districtId, int customerId) {
+    Key parttionkey = createPartitionKey(warehouseId, districtId, customerId);
+    return new Get(parttionkey).forTable(TABLE_NAME);
+  }
+
+  /**
+   * Creates a {@code Put} object.
+   */
+  public Put createPut() {
+    Key parttionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    insert(manager, TABLE_NAME, key, values);
+    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
   }
 
   public String getFirstName() {
