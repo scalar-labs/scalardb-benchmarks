@@ -94,8 +94,7 @@ public class CustomerSecondary extends TpccRecord {
   public Put createPut() {
     Key partitionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
-    ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME);
   }
 
   /**

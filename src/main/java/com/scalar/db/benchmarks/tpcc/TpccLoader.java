@@ -12,6 +12,7 @@ import com.scalar.db.benchmarks.tpcc.table.Item;
 import com.scalar.db.benchmarks.tpcc.table.NewOrder;
 import com.scalar.db.benchmarks.tpcc.table.Order;
 import com.scalar.db.benchmarks.tpcc.table.OrderLine;
+import com.scalar.db.benchmarks.tpcc.table.OrderSecondary;
 import com.scalar.db.benchmarks.tpcc.table.Stock;
 import com.scalar.db.benchmarks.tpcc.table.TpccRecord;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
@@ -88,6 +89,7 @@ public class TpccLoader implements Callable<Integer> {
   private static final String NEW_ORDER = "new_order.csv";
   private static final String ORDER = "oorder.csv";
   private static final String ORDER_LINE = "order_line.csv";
+  private static final String ORDER_SECONDARY = "order_secondary.csv";
   private static final String STOCK = "stock.csv";
   private static final String WAREHOUSE = "warehouse.csv";
   private static final String[] CUSTOMER_HEADER = "c_w_id,c_d_id,c_id,c_discount,c_credit,c_last,c_first,c_credit_lim,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,c_since,c_middle,c_data"
@@ -104,6 +106,8 @@ public class TpccLoader implements Callable<Integer> {
       .split(",");
   private static final String[] ORDER_LINE_HEADER = "ol_w_id,ol_d_id,ol_o_id,ol_number,ol_i_id,ol_delivery_d,ol_amount,ol_supply_w_id,ol_quantity,ol_dist_info"
       .split(",");
+  private static final String[] ORDER_SECONDARY_HEADER = "o_w_id,o_d_id,o_c_id,o_id"
+      .split(",");
   private static final String[] STOCK_HEADER = "s_w_id,s_i_id,s_quantity,s_ytd,s_order_cnt,s_remote_cnt,s_data,s_dist_01,s_dist_02,s_dist_03,s_dist_04,s_dist_05,s_dist_06,s_dist_07,s_dist_08,s_dist_09,s_dist_10"
       .split(",");
   private static final String[] WAREHOUSE_HEADER = "w_id,w_ytd,w_tax,w_name,w_street_1,w_street_2,w_city,w_state,w_zip"
@@ -117,6 +121,7 @@ public class TpccLoader implements Callable<Integer> {
       .put(NEW_ORDER, NEW_ORDER_HEADER)
       .put(ORDER, ORDER_HEADER)
       .put(ORDER_LINE, ORDER_LINE_HEADER)
+      .put(ORDER_SECONDARY, ORDER_SECONDARY_HEADER)
       .put(STOCK, STOCK_HEADER)
       .put(WAREHOUSE, WAREHOUSE_HEADER)
       .build();
@@ -189,11 +194,15 @@ public class TpccLoader implements Callable<Integer> {
     for (int orderId = 1; orderId <= District.ORDERS; orderId++) {
       int customerId = permutation[orderId - 1];
       Order order = new Order(warehouseId, districtId, orderId, customerId, date);
-      int orderLineCount = order.getOrderLineCount();
+      OrderSecondary orderSecondary
+          = new OrderSecondary(warehouseId, districtId, customerId, orderId);
 
-      // order
+      // order & order-secondary
       queue.put(order);
       counter.incrementAndGet();
+      queue.put(orderSecondary);
+      counter.incrementAndGet();
+      int orderLineCount = order.getOrderLineCount();
       for (int number = 1; number <= orderLineCount; number++) {
         int itemId = TpccUtil.randomInt(1, Item.ITEMS);
         // order-line
@@ -271,6 +280,7 @@ public class TpccLoader implements Callable<Integer> {
       queueCsv(new File(directory, ORDER), queue, queuedCounter);
       queueCsv(new File(directory, NEW_ORDER), queue, queuedCounter);
       queueCsv(new File(directory, ORDER_LINE), queue, queuedCounter);
+      queueCsv(new File(directory, ORDER_SECONDARY), queue, queuedCounter);
     } else {
       for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
         queue.put(new Item(itemId));

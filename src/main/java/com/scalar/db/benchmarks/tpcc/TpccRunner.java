@@ -3,8 +3,11 @@ package com.scalar.db.benchmarks.tpcc;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.benchmarks.tpcc.transaction.DeliveryTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.NewOrderTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.OrderStatusTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.PaymentTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.StockLevelTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.TpccTransaction;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudConflictException;
@@ -17,10 +20,16 @@ public class TpccRunner {
   private final TpccConfig config;
   private final TpccTransaction newOrder = new NewOrderTransaction();
   private final TpccTransaction payment = new PaymentTransaction();
+  private final TpccTransaction orderStatus = new OrderStatusTransaction();
+  private final TpccTransaction delivery = new DeliveryTransaction();
+  private final TpccTransaction stockLevel = new StockLevelTransaction();
   private final Map<Type, TpccTransaction> transactionMap =
       ImmutableMap.<Type, TpccTransaction>builder()
       .put(Type.NEW_ORDER, newOrder)
       .put(Type.PAYMENT, payment)
+      .put(Type.ORDER_STATUS, orderStatus)
+      .put(Type.DELIVERY, delivery)
+      .put(Type.STOCK_LEVEL, stockLevel)
       .build();
 
   public TpccRunner(DistributedTransactionManager m, TpccConfig c) {

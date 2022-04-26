@@ -123,9 +123,6 @@ public class TpccConfig {
       if (total != 100) {
         throw new IllegalStateException("Total rate must be 100.");
       }
-      if (rateOrderStatus != 0 || rateDelivery != 0 || rateStockLevel != 0) {
-        throw new IllegalStateException("Currently TPC-C NP only.");
-      }
       return new TpccConfig(this);
     }
   }

@@ -1,5 +1,6 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
+import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.io.IntValue;
@@ -26,7 +27,27 @@ public class Order extends TpccRecord {
   public static final String KEY_ENTRY_D = "o_entry_d";
 
   /**
-   * Constructs a {@code Order} with specified parameters.
+   * Constructs a {@code Order} with a carrier ID for update.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
+   * @param carrierId a carrier ID
+   */
+  public Order(int warehouseId, int districtId, int orderId, int carrierId) {
+    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
+    partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
+
+    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap.put(KEY_ID, orderId);
+
+    valueMap = new HashMap<String,Object>();
+    valueMap.put(KEY_CARRIER_ID, carrierId);
+  }
+
+  /**
+   * Constructs a {@code Order} with specified parameters for insert.
    *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
@@ -37,7 +58,7 @@ public class Order extends TpccRecord {
    * @param local 1 if the order includes only home order lines, 0 otherwise
    * @param date entry date of this order
    */
-  public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
+   public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
       int number, int local, Date date) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
@@ -133,6 +154,15 @@ public class Order extends TpccRecord {
    */
   public static Key createClusteringKey(int orderId) {
     return new Key(KEY_ID, orderId);
+  }
+
+  /**
+   * Creates a {@code Get} object.
+   */
+  public static Get createGet(int warehouseId, int districtId, int orderId) {
+    Key parttionkey = createPartitionKey(warehouseId, districtId);
+    Key clusteringKey = createClusteringKey(orderId);
+    return new Get(parttionkey, clusteringKey).forTable(TABLE_NAME);
   }
 
   /**

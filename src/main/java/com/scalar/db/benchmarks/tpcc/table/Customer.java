@@ -73,6 +73,21 @@ public class Customer extends TpccRecord {
   }
 
   /**
+   * Constructs a {@code Customer} for delivery transaction.
+   */
+  public Customer(int warehouseId, int districtId, int customerId,
+      double balance, int deliveryCount) {
+    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
+    partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
+    partitionKeyMap.put(KEY_ID, customerId);
+
+    valueMap = new HashMap<String,Object>();
+    valueMap.put(KEY_BALANCE, balance);
+    valueMap.put(KEY_DELIVERY_CNT, deliveryCount);
+  }
+
+  /**
    * Constructs a {@code Customer} with data generation.
    *
    * @param warehouseId a warehouse ID
