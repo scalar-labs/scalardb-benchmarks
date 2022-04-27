@@ -19,12 +19,12 @@ public class Address {
   public static final int STATE_SIZE = 2;
   public static final int ZIP_SIZE = 4;
 
-  private String columnPrefix;
-  private String street1;
-  private String street2;
-  private String city;
-  private String state;
-  private String zip;
+  private final String columnPrefix;
+  private final String street1;
+  private final String street2;
+  private final String city;
+  private final String state;
+  private final String zip;
 
   /**
    * Constructs an {@code Address} with specified parameters.
@@ -57,7 +57,7 @@ public class Address {
    * @return an {@code ArrayList} of {@code Value<?>}
    */
   public ArrayList<Value<?>> createValues() {
-    ArrayList<Value<?>> values = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> values = new ArrayList<>();
     values.add(new TextValue(columnPrefix + KEY_STREET_1, street1));
     values.add(new TextValue(columnPrefix + KEY_STREET_2, street2));
     values.add(new TextValue(columnPrefix + KEY_CITY, city));

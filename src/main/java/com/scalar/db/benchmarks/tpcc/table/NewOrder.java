@@ -20,11 +20,11 @@ public class NewOrder extends TpccRecord {
    * Constructs a {@code NewOrder}.
    */
   public NewOrder(int warehouseId, int districtId, int orderId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, orderId);
   }
 
@@ -34,19 +34,23 @@ public class NewOrder extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public NewOrder(CSVRecord record) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_DISTRICT_ID, Integer.parseInt(record.get(KEY_DISTRICT_ID)));
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, Integer.parseInt(record.get(KEY_ORDER_ID)));
   }
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
     return new Key(keys);
@@ -54,6 +58,9 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
+   * 
+   * @param orderId an order ID
+   * @return a {@code Key} object
    */
   public static Key createClusteringKey(int orderId) {
     return new Key(KEY_ORDER_ID, orderId);
@@ -61,10 +68,13 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
-    return new Put(parttionkey, clusteringKey).forTable(TABLE_NAME);
+    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME);
   }
 }

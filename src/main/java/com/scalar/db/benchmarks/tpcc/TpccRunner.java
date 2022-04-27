@@ -59,6 +59,5 @@ public class TpccRunner {
       default:
         break;
     }
-    return;
   }
 }

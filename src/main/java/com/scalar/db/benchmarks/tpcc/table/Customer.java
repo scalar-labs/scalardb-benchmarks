@@ -48,16 +48,16 @@ public class Customer extends TpccRecord {
   public static final int PHONE_SIZE = 16;
 
   /**
-   * Constructs a {@code Customer} with specified parameters for update.
+   * Constructs a {@code Customer} for payment transaction.
    */
   public Customer(int warehouseId, int districtId, int customerId,
       double balance, double ytdPayment, int paymentCount, String data) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
     partitionKeyMap.put(KEY_ID, customerId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_BALANCE, balance);
     valueMap.put(KEY_YTD_PAYMENT, ytdPayment);
     valueMap.put(KEY_PAYMENT_CNT, paymentCount);
@@ -68,12 +68,12 @@ public class Customer extends TpccRecord {
    * Constructs a {@code Customer} with data generation.
    */
   public Customer(int warehouseId, int districtId, int customerId, Date date) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
     partitionKeyMap.put(KEY_ID, customerId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_FIRST, TpccUtil.randomAlphaString(MIN_FIRST, MAX_FIRST));
     valueMap.put(KEY_MIDDLE, "OE");
     if (customerId <= 1000) {
@@ -104,12 +104,12 @@ public class Customer extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public Customer(CSVRecord record) throws ParseException {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_DISTRICT_ID, Integer.parseInt(record.get(KEY_DISTRICT_ID)));
     partitionKeyMap.put(KEY_ID, Integer.parseInt(record.get(KEY_ID)));
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_FIRST, record.get(KEY_FIRST));
     valueMap.put(KEY_MIDDLE, record.get(KEY_MIDDLE));
     valueMap.put(KEY_LAST, record.get(KEY_LAST));
@@ -136,9 +136,14 @@ public class Customer extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, int customerId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
     keys.add(new IntValue(KEY_ID, customerId));
@@ -147,19 +152,27 @@ public class Customer extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
+   * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int districtId, int customerId) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId, customerId);
-    return new Get(parttionkey).forTable(TABLE_NAME);
+    Key partitionkey = createPartitionKey(warehouseId, districtId, customerId);
+    return new Get(partitionkey).forTable(TABLE_NAME);
   }
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
   }
 
   public String getFirstName() {

@@ -33,21 +33,23 @@ public class Warehouse extends TpccRecord {
    * Constructs a {@code Warehouse} with ytd.
    */
   public Warehouse(int warehouseId, double ytd) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, warehouseId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_YTD, ytd);
   }
 
   /**
    * Constructs a {@code Warehouse} with data generation.
+   * 
+   * @param warehouseId a warehouse ID
    */
   public Warehouse(int warehouseId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, warehouseId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, TpccUtil.randomAlphaString(MIN_NAME, MAX_NAME));
     valueMap.put(KEY_ADDRESS, new Address(COLUMN_PREFIX));
     valueMap.put(KEY_TAX, TpccUtil.randomDouble(0, 2000, 10000));
@@ -60,10 +62,10 @@ public class Warehouse extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public Warehouse(CSVRecord record) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, Integer.parseInt(record.get(KEY_ID)));
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, record.get(KEY_NAME));
     valueMap.put(KEY_ADDRESS,
         new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
@@ -74,6 +76,9 @@ public class Warehouse extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId) {
     return new Key(KEY_ID, warehouseId);
@@ -81,6 +86,8 @@ public class Warehouse extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
+   * 
+   * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId) {
     Key parttionkey = createPartitionKey(warehouseId);
@@ -89,7 +96,10 @@ public class Warehouse extends TpccRecord {
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
     Key parttionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();

@@ -55,24 +55,24 @@ public class TpccLoader implements Callable<Integer> {
 
   @CommandLine.Option(
       names = {"--num-warehouse"},
-      required = false,
       paramLabel = "NUM_WAREHOUSE",
+      defaultValue = "1",
       description = "The number of warehouse.")
-  private int numWarehouse = 1;
+  private int numWarehouse;
 
   @CommandLine.Option(
       names = {"--directory"},
-      required = false,
       paramLabel = "CSV_DIRECTORY",
+      defaultValue = "./",
       description = "A directory that contains csv files.")
-  private String directory = null;
+  private String directory;
 
   @CommandLine.Option(
       names = {"--num-threads"},
-      required = false,
       paramLabel = "NUM_THREADS",
+      defaultValue = "1",
       description = "The number of threads to run.")
-  private int numThreads = 1;
+  private int numThreads;
 
   @CommandLine.Option(
       names = {"-h", "--help"},
@@ -99,8 +99,8 @@ public class TpccLoader implements Callable<Integer> {
   private static final String[] historyHeaders = "h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,h_amount,h_data"
       .split(",");
   private static final String[] itemHeaders = "i_id,i_name,i_price,i_data,i_im_id".split(",");
-  private static final String[] newOrdersHeaders = "no_w_id,no_d_id,no_o_id".split(",");
-  private static final String[] oOrdersHeaders = "o_w_id,o_d_id,o_id,o_c_id,o_carrier_id,o_ol_cnt,o_all_local,o_entry_d"
+  private static final String[] newOrderHeaders = "no_w_id,no_d_id,no_o_id".split(",");
+  private static final String[] orderHeaders = "o_w_id,o_d_id,o_id,o_c_id,o_carrier_id,o_ol_cnt,o_all_local,o_entry_d"
       .split(",");
   private static final String[] orderLineHeaders = "ol_w_id,ol_d_id,ol_o_id,ol_number,ol_i_id,ol_delivery_d,ol_amount,ol_supply_w_id,ol_quantity,ol_dist_info"
       .split(",");
@@ -114,8 +114,8 @@ public class TpccLoader implements Callable<Integer> {
       .put(district, districtHeaders)
       .put(history, historyHeaders)
       .put(item, itemHeaders)
-      .put(newOrder, newOrdersHeaders)
-      .put(order, oOrdersHeaders)
+      .put(newOrder, newOrderHeaders)
+      .put(order, orderHeaders)
       .put(orderLine, orderLineHeaders)
       .put(stock, stockHeaders)
       .put(warehouse, warehouseHeaders)
@@ -179,7 +179,7 @@ public class TpccLoader implements Callable<Integer> {
 
   private void queueOrders(BlockingQueue<TpccRecord> queue, AtomicInteger counter, int warehouseId,
       int districtId, Date date) throws InterruptedException {
-    List<Integer> customers = new ArrayList<Integer>();
+    List<Integer> customers = new ArrayList<>();
     for (int customerId = 1; customerId <= District.CUSTOMERS; customerId++) {
       customers.add(customerId);
     }
@@ -222,8 +222,7 @@ public class TpccLoader implements Callable<Integer> {
     }
   }
 
-  private void load(DistributedTransactionManager manager)
-      throws TransactionException, InterruptedException {
+  private void load(DistributedTransactionManager manager) throws InterruptedException {
     ExecutorService executor = Executors.newFixedThreadPool(numThreads + 1);
     BlockingQueue<TpccRecord> queue = new ArrayBlockingQueue<>(10000);
     AtomicBoolean isAllQueued = new AtomicBoolean();
@@ -291,9 +290,7 @@ public class TpccLoader implements Callable<Integer> {
     executor.awaitTermination(10, TimeUnit.SECONDS);
   }
 
-  private void queueCsv(File file, BlockingQueue<TpccRecord> queue, AtomicInteger counter)
-      throws InterruptedException {
-
+  private void queueCsv(File file, BlockingQueue<TpccRecord> queue, AtomicInteger counter) {
     CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT)
         .setHeader(headerMap.get(file.getName())).build();
 

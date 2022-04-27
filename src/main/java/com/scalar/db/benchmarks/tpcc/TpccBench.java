@@ -1,5 +1,6 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.transaction.TransactionException;
@@ -27,73 +28,73 @@ public class TpccBench implements Callable<Integer> {
 
   @CommandLine.Option(
       names = {"--num-warehouse"},
-      required = false,
       paramLabel = "NUM_WAREHOUSE",
+      defaultValue = "1",
       description = "The number of warehouse.")
-  private int numWarehouse = 1;
+  private int numWarehouse;
 
   @CommandLine.Option(
       names = {"--rate-new-order"},
-      required = false,
       paramLabel = "RATE_NEW_ORDER",
+      defaultValue = "50",
       description = "The percentage of new-order transaction.")
-  private int rateNewOrder = 50;
+  private int rateNewOrder;
 
   @CommandLine.Option(
       names = {"--rate-payment"},
-      required = false,
       paramLabel = "RATE_PAYMENT",
+      defaultValue = "50",
       description = "The percentage of payment transaction.")
-  private int ratePayment = 50;
+  private int ratePayment;
 
   @CommandLine.Option(
       names = {"--rate-order-status"},
-      required = false,
       paramLabel = "RATE_ORDER_STATUS",
+      defaultValue = "0",
       description = "The percentage of order-status transaction.")
-  private int rateOrderStatus = 0;
+  private int rateOrderStatus;
 
   @CommandLine.Option(
       names = {"--rate-delivery"},
-      required = false,
-      paramLabel = "RATE_DERIVERRY",
+      paramLabel = "RATE_DELIVERY",
+      defaultValue = "0",
       description = "The percentage of delivery transaction.")
-  private int rateDelivery = 0;
+  private int rateDelivery;
 
   @CommandLine.Option(
       names = {"--rate-stock-level"},
-      required = false,
       paramLabel = "RATE_STOCK_LEVEL",
+      defaultValue = "0",
       description = "The percentage of stock-level transaction.")
-  private int rateStockLevel = 0;
+  private int rateStockLevel;
 
   @CommandLine.Option(
       names = {"--num-threads"},
-      required = false,
       paramLabel = "NUM_THREADS",
+      defaultValue = "1",
       description = "The number of threads to run.")
-  private int numThreads = 1;
+  private int numThreads;
 
   @CommandLine.Option(
       names = {"--duration"},
-      required = false,
       paramLabel = "DURATION",
+      defaultValue = "200",
       description = "The duration of benchmark in seconds")
-  private int duration = 200;
+  private int duration;
 
   @CommandLine.Option(
       names = {"--ramp-up-time"},
-      required = false,
       paramLabel = "RAMP_UP_TIME",
+      defaultValue = "60",
       description = "The ramp up time in seconds.")
-  private int rampUpTime = 60;
+  private int rampUpTime;
 
   @CommandLine.Option(
       names = {"--times"},
-      required = false,
       paramLabel = "TIMES",
+      defaultValue = "0",
       description = "The number of serial execution for testing.")
-  private int times = 0;
+  private int times;
 
   @CommandLine.Option(
       names = {"-h", "--help"},
@@ -178,11 +179,7 @@ public class TpccBench implements Callable<Integer> {
       counter.set(0);
       from = System.currentTimeMillis();
 
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        // ignore
-      }
+      Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
     }
     System.out
         .println("TPS: " + (double) totalCounter.get() * 1000 / (end - start - rampUpTimeMillis));

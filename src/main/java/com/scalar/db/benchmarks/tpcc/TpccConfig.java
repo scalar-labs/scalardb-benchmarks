@@ -4,12 +4,12 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class TpccConfig {
-  private int rateNewOrder = 50;
-  private int ratePayment = 50;
-  private int rateOrderStatus = 0;
-  private int rateDelivery = 0;
-  private int rateStockLevel = 0;
-  private int numWarehouse = 1;
+  private final int rateNewOrder;
+  private final int ratePayment;
+  private final int rateOrderStatus;
+  private final int rateDelivery;
+  private final int rateStockLevel;
+  private final int numWarehouse;
 
   /**
    * Constructs a {@code TpccConfig} with the specified {@link TpccConfig.Builder}.
@@ -111,7 +111,7 @@ public class TpccConfig {
         throw new IllegalArgumentException("Total rate must be 100.");
       }
       if (rateOrderStatus != 0 || rateDelivery != 0 || rateStockLevel != 0) {
-        throw new IllegalArgumentException("Currrently TPC-C NP only.");
+        throw new IllegalArgumentException("Currently TPC-C NP only.");
       }
       return new TpccConfig(this);
     }

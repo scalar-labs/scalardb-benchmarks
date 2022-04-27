@@ -30,14 +30,14 @@ public class Order extends TpccRecord {
    */
   public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
       int number, int local, Date date) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ID, orderId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_CUSTOMER_ID, customerId);
     valueMap.put(KEY_CARRIER_ID, carrierId);
     valueMap.put(KEY_OL_CNT, number);
@@ -49,14 +49,14 @@ public class Order extends TpccRecord {
    * Constructs a {@code Order} with data generation.
    */
   public Order(int warehouseId, int districtId, int orderId, int customerId, Date date) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ID, orderId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_CUSTOMER_ID, customerId);
     if (orderId < 2101) {
       valueMap.put(KEY_CARRIER_ID, TpccUtil.randomInt(1, 10));
@@ -75,14 +75,14 @@ public class Order extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public Order(CSVRecord record) throws ParseException {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_DISTRICT_ID, Integer.parseInt(record.get(KEY_DISTRICT_ID)));
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ID, Integer.parseInt(record.get(KEY_ID)));
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_CUSTOMER_ID, Integer.parseInt(record.get(KEY_CUSTOMER_ID)));
     if (!record.get(KEY_CARRIER_ID).isEmpty()
         && !record.get(KEY_CARRIER_ID).equals("\\N")) {
@@ -102,9 +102,13 @@ public class Order extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
     return new Key(keys);
@@ -112,6 +116,9 @@ public class Order extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
+   * 
+   * @param orderId an order ID
+   * @return a {@code Key} object
    */
   public static Key createClusteringKey(int orderId) {
     return new Key(KEY_ID, orderId);
@@ -119,12 +126,15 @@ public class Order extends TpccRecord {
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
   public int getOrderLineCount() {

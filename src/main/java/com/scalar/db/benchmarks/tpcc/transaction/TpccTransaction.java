@@ -4,7 +4,7 @@ import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.exception.transaction.TransactionException;
 
 public interface TpccTransaction {
-  public void generate(int numWarehouse);
+  void generate(int numWarehouse);
 
-  public void execute(DistributedTransactionManager manager) throws TransactionException;
+  void execute(DistributedTransactionManager manager) throws TransactionException;
 }

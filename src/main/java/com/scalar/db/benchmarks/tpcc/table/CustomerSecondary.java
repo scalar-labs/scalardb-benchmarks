@@ -24,12 +24,12 @@ public class CustomerSecondary extends TpccRecord {
    */
   public CustomerSecondary(int warehouseId, int districtId, String last, String first,
       int customerId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
     partitionKeyMap.put(KEY_LAST, last);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_FIRST, first);
     clusteringKeyMap.put(KEY_CUSTOMER_ID, customerId);
   }
@@ -40,21 +40,26 @@ public class CustomerSecondary extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public CustomerSecondary(CSVRecord record) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_DISTRICT_ID, Integer.parseInt(record.get(KEY_DISTRICT_ID)));
     partitionKeyMap.put(KEY_LAST, record.get(KEY_LAST));
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_FIRST, record.get(KEY_FIRST));
     clusteringKeyMap.put(KEY_CUSTOMER_ID, Integer.parseInt(record.get(KEY_CUSTOMER_ID)));
   }
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param lastName a {@code String} of last name
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, String lastName) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
     keys.add(new TextValue(KEY_LAST, lastName));
@@ -63,9 +68,13 @@ public class CustomerSecondary extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
+   * 
+   * @param firstName a {@code String} of first name
+   * @param customerId a customer ID
+   * @return a {@code Key} object
    */
   public static Key createClusteringKey(String firstName, int customerId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new TextValue(KEY_FIRST, firstName));
     keys.add(new IntValue(KEY_CUSTOMER_ID, customerId));
     return new Key(keys);
@@ -73,19 +82,23 @@ public class CustomerSecondary extends TpccRecord {
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
   /**
    * Creates a {@code Scan} object.
+   *
+   * @return a {@code Scan} object
    */
   public static Scan createScan(int warehouseId, int districtId, String lastName) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId, lastName);
-    return new Scan(parttionkey).forTable(TABLE_NAME);
+    Key partitionkey = createPartitionKey(warehouseId, districtId, lastName);
+    return new Scan(partitionkey).forTable(TABLE_NAME);
   }
 }

@@ -36,15 +36,15 @@ public class OrderLine extends TpccRecord {
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number,
       int supplyWarehouseId, double amount, int quantity, int itemId, String info) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, orderId);
     clusteringKeyMap.put(KEY_NUMBER, number);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_ITEM_ID, itemId);
     valueMap.put(KEY_SUPPLY_W_ID, supplyWarehouseId);
     valueMap.put(KEY_DELIVERY_D, null);
@@ -58,15 +58,15 @@ public class OrderLine extends TpccRecord {
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number,
       int supplyWarehouseId, int itemId, Date date) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, orderId);
     clusteringKeyMap.put(KEY_NUMBER, number);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_ITEM_ID, itemId);
     valueMap.put(KEY_SUPPLY_W_ID, supplyWarehouseId);
     if (orderId < 2101) {
@@ -86,15 +86,15 @@ public class OrderLine extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public OrderLine(CSVRecord record) throws ParseException {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_DISTRICT_ID, Integer.parseInt(record.get(KEY_DISTRICT_ID)));
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, Integer.parseInt(record.get(KEY_ORDER_ID)));
     clusteringKeyMap.put(KEY_NUMBER, Integer.parseInt(record.get(KEY_NUMBER)));
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_ITEM_ID, Integer.parseInt(record.get(KEY_ITEM_ID)));
     valueMap.put(KEY_SUPPLY_W_ID, Integer.parseInt(record.get(KEY_SUPPLY_W_ID)));
     valueMap.put(KEY_AMOUNT, Double.parseDouble(record.get(KEY_AMOUNT)));
@@ -115,9 +115,13 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
     return new Key(keys);
@@ -127,7 +131,7 @@ public class OrderLine extends TpccRecord {
    * Creates a clustering {@code Key}.
    */
   public static Key createClusteringKey(int orderId, int orderLineNumber) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_ORDER_ID, orderId));
     keys.add(new IntValue(KEY_NUMBER, orderLineNumber));
     return new Key(keys);
@@ -135,11 +139,14 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 }

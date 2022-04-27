@@ -36,11 +36,11 @@ public class District extends TpccRecord {
    * Constructs a {@code District} with ytd.
    */
   public District(int warehouseId, int districtId, double ytd) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_ID, districtId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_YTD, ytd);
   }
 
@@ -48,11 +48,11 @@ public class District extends TpccRecord {
    * Constructs a {@code District} with a next order ID.
    */
   public District(int warehouseId, int districtId, int nextOrderId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_ID, districtId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_NEXT_O_ID, nextOrderId);
   }
 
@@ -60,11 +60,11 @@ public class District extends TpccRecord {
    * Constructs a {@code District} with data generation.
    */
   public District(int warehouseId, int districtId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_ID, districtId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, TpccUtil.randomAlphaString(MIN_NAME, MAX_NAME));
     valueMap.put(KEY_ADDRESS, new Address(COLUMN_PREFIX));
     valueMap.put(KEY_TAX, TpccUtil.randomDouble(0, 2000, 10000));
@@ -78,11 +78,11 @@ public class District extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public District(CSVRecord record) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_ID, Integer.parseInt(record.get(KEY_ID)));
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, record.get(KEY_NAME));
     valueMap.put(KEY_ADDRESS,
         new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
@@ -94,9 +94,13 @@ public class District extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_ID, districtId));
     return new Key(keys);
@@ -104,18 +108,25 @@ public class District extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int districtId) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId);
-    return new Get(parttionkey).forTable(TABLE_NAME);
+    Key partitionkey = createPartitionKey(warehouseId, districtId);
+    return new Get(partitionkey).forTable(TABLE_NAME);
   }
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
   }
 }

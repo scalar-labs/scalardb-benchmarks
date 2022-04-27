@@ -42,11 +42,11 @@ public class Stock extends TpccRecord {
    */
   public Stock(int warehouseId, int itemId, int quantity, double ytd, int orderCount,
       int remoteCount) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_ITEM_ID, itemId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_QUANTITY, quantity);
     valueMap.put(KEY_YTD, ytd);
     valueMap.put(KEY_ORDER_CNT, orderCount);
@@ -57,11 +57,11 @@ public class Stock extends TpccRecord {
    * Constructs a {@code Stock} with data generation.
    */
   public Stock(int warehouseId, int itemId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_ITEM_ID, itemId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_QUANTITY, TpccUtil.randomInt(10, 100));
     valueMap.put(KEY_YTD, 0.00);
     valueMap.put(KEY_ORDER_CNT, 0);
@@ -79,11 +79,11 @@ public class Stock extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public Stock(CSVRecord record) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_ITEM_ID, Integer.parseInt(record.get(KEY_ITEM_ID)));
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_QUANTITY, Integer.parseInt(record.get(KEY_QUANTITY)));
     valueMap.put(KEY_YTD, Double.parseDouble(record.get(KEY_YTD)));
     valueMap.put(KEY_ORDER_CNT, Integer.parseInt(record.get(KEY_ORDER_CNT)));
@@ -97,9 +97,13 @@ public class Stock extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param itemId an item ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int itemId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_ITEM_ID, itemId));
     return new Key(keys);
@@ -107,18 +111,25 @@ public class Stock extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
+   *
+   * @param warehouseId a warehouse ID
+   * @param itemId an item ID
+   * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int itemId) {
-    Key parttionkey = createPartitionKey(warehouseId, itemId);
-    return new Get(parttionkey).forTable(TABLE_NAME);
+    Key partitionkey = createPartitionKey(warehouseId, itemId);
+    return new Get(partitionkey).forTable(TABLE_NAME);
   }
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
   }
 }

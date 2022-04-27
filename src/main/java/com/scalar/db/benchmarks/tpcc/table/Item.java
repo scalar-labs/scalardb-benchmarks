@@ -30,10 +30,10 @@ public class Item extends TpccRecord {
    * Constructs a {@code Item} with data generation.
    */
   public Item(int itemId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, itemId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, TpccUtil.randomAlphaString(MIN_NAME, MAX_NAME));
     valueMap.put(KEY_PRICE, TpccUtil.randomDouble(100, 1000, 100));
     valueMap.put(KEY_DATA, TpccUtil.getRandomStringWithOriginal(MIN_DATA, MAX_DATA, 10));
@@ -46,10 +46,10 @@ public class Item extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public Item(CSVRecord record) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, Integer.parseInt(record.get(KEY_ID)));
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, record.get(KEY_NAME));
     valueMap.put(KEY_PRICE, Double.parseDouble(record.get(KEY_PRICE)));
     valueMap.put(KEY_DATA, record.get(KEY_DATA));
@@ -58,6 +58,9 @@ public class Item extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param itemId an item ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int itemId) {
     return new Key(KEY_ID, itemId);
@@ -65,18 +68,24 @@ public class Item extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
+   * 
+   * @param itemId an item ID
+   * @return a {@code Get} object
    */
   public static Get createGet(int itemId) {
-    Key parttionkey = createPartitionKey(itemId);
-    return new Get(parttionkey).forTable(TABLE_NAME);
+    Key partitionkey = createPartitionKey(itemId);
+    return new Get(partitionkey).forTable(TABLE_NAME);
   }
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
   }
 }

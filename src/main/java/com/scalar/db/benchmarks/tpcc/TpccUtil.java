@@ -38,11 +38,14 @@ public class TpccUtil {
   /**
    * Returns a random {@code String} including "ORIGINAL".
    *
+   * @param minLength minimum length of generated string
+   * @param maxLength maximum length of generated string
+   * @param rate probability of including "ORIGINAL"
    * @return a random {@code String} including "ORIGINAL"
    */
   public static String getRandomStringWithOriginal(int minLength, int maxLength, int rate) {
     int length = randomInt(minLength, maxLength);
-    if (TpccUtil.randomInt(0, 99) < 10) {
+    if (TpccUtil.randomInt(0, 99) < rate) {
       int startOriginal = TpccUtil.randomInt(2, length - 8);
       return TpccUtil.randomAlphaString(startOriginal - 1) + "ORIGINAL"
           + TpccUtil.randomAlphaString(length - startOriginal - 9);
@@ -72,6 +75,7 @@ public class TpccUtil {
   /**
    * Returns a customer last name {@code String} for load.
    *
+   * @param num a number to select name tokens
    * @return a customer last name {@code String} for load
    */
   public static String getLastName(int num) {
@@ -98,7 +102,7 @@ public class TpccUtil {
   }
 
   public static String randomNumberString(int length) {
-    return randomString(length, length, true);
+    return randomNumberString(length, length);
   }
 
   public static String randomNumberString(int minLength, int maxLength) {

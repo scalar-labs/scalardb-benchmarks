@@ -35,7 +35,7 @@ public abstract class TpccRecord {
    * Creates a partition {@code Key}.
    */
   public Key createPartitionKey() {
-    ArrayList<Value<?>> values = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> values = new ArrayList<>();
     partitionKeyMap.forEach((key, value) -> {
       if (value != null) {
         values.add(createSingleValue(key, value));
@@ -48,7 +48,7 @@ public abstract class TpccRecord {
    * Creates a clustering {@code Key}.
    */
   public Key createClusteringKey() {
-    ArrayList<Value<?>> values = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> values = new ArrayList<>();
     clusteringKeyMap.forEach((key, value) -> {
       if (value != null) {
         values.add(createSingleValue(key, value));
@@ -63,7 +63,7 @@ public abstract class TpccRecord {
    * @return an {@code ArrayList} of {@code Value<?>}
    */
   public ArrayList<Value<?>> createValues() {
-    ArrayList<Value<?>> values = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> values = new ArrayList<>();
     valueMap.forEach((key, value) -> {
       if (value != null) {
         if (value instanceof Address) {

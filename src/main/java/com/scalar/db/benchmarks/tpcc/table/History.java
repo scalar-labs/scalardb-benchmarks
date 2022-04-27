@@ -34,10 +34,10 @@ public class History extends TpccRecord {
    */
   public History(int customerId, int customerDistrictId, int customerWarehouseId,
       int districtId, int warehouseId, Date date, double amount, String data) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, UUID.randomUUID().toString());
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_CUSTOMER_ID, customerId);
     valueMap.put(KEY_CUSTOMER_DID, customerDistrictId);
     valueMap.put(KEY_CUSTOMER_WID, customerWarehouseId);
@@ -53,10 +53,10 @@ public class History extends TpccRecord {
    */
   public History(int customerId, int customerDistrictId, int customerWarehouseId,
       int districtId, int warehouseId, Date date) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, UUID.randomUUID().toString());
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_CUSTOMER_ID, customerId);
     valueMap.put(KEY_CUSTOMER_DID, customerDistrictId);
     valueMap.put(KEY_CUSTOMER_WID, customerWarehouseId);
@@ -73,10 +73,10 @@ public class History extends TpccRecord {
    * @param record a {@code CSVRecord} object
    */
   public History(CSVRecord record) throws ParseException {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, UUID.randomUUID().toString());
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_CUSTOMER_ID, Integer.parseInt(record.get(KEY_CUSTOMER_ID)));
     valueMap.put(KEY_CUSTOMER_DID, Integer.parseInt(record.get(KEY_CUSTOMER_DID)));
     valueMap.put(KEY_CUSTOMER_WID, Integer.parseInt(record.get(KEY_CUSTOMER_WID)));
@@ -94,10 +94,13 @@ public class History extends TpccRecord {
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionkey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
   }
 }
