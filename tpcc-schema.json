@@ -1,0 +1,243 @@
+{
+  "tpcc.warehouse": {
+    "transaction": true,
+    "partition-key": [
+      "w_id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "w_id": "INT",
+      "w_name": "TEXT",
+      "w_street_1": "TEXT",
+      "w_street_2": "TEXT",
+      "w_city": "TEXT",
+      "w_state": "TEXT",
+      "w_zip": "TEXT",
+      "w_tax": "DOUBLE",
+      "w_ytd": "DOUBLE"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.item": {
+    "transaction": true,
+    "partition-key": [
+      "i_id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "i_id": "INT",
+      "i_name": "TEXT",
+      "i_price": "DOUBLE",
+      "i_data": "TEXT",
+      "i_im_id": "INT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.stock": {
+    "transaction": true,
+    "partition-key": [
+      "s_w_id",
+      "s_i_id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "s_w_id": "INT",
+      "s_i_id": "INT",
+      "s_quantity": "INT",
+      "s_ytd": "DOUBLE",
+      "s_order_cnt": "INT",
+      "s_remote_cnt": "INT",
+      "s_data": "TEXT",
+      "s_dist_01": "TEXT",
+      "s_dist_02": "TEXT",
+      "s_dist_03": "TEXT",
+      "s_dist_04": "TEXT",
+      "s_dist_05": "TEXT",
+      "s_dist_06": "TEXT",
+      "s_dist_07": "TEXT",
+      "s_dist_08": "TEXT",
+      "s_dist_09": "TEXT",
+      "s_dist_10": "TEXT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.district": {
+    "transaction": true,
+    "partition-key": [
+      "d_w_id",
+      "d_id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "d_w_id": "INT",
+      "d_id": "INT",
+      "d_next_o_id": "INT",
+      "d_name": "TEXT",
+      "d_street_1": "TEXT",
+      "d_street_2": "TEXT",
+      "d_city": "TEXT",
+      "d_state": "TEXT",
+      "d_zip": "TEXT",
+      "d_tax": "DOUBLE",
+      "d_ytd": "DOUBLE"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.customer": {
+    "transaction": true,
+    "partition-key": [
+      "c_w_id",
+      "c_d_id",
+      "c_id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "c_w_id": "INT",
+      "c_d_id": "INT",
+      "c_id": "INT",
+      "c_first": "TEXT",
+      "c_middle": "TEXT",
+      "c_last": "TEXT",
+      "c_street_1": "TEXT",
+      "c_street_2": "TEXT",
+      "c_city": "TEXT",
+      "c_state": "TEXT",
+      "c_zip": "TEXT",
+      "c_phone": "TEXT",
+      "c_since": "BIGINT",
+      "c_credit": "TEXT",
+      "c_credit_lim": "DOUBLE",
+      "c_discount": "DOUBLE",
+      "c_balance": "DOUBLE",
+      "c_ytd_payment": "DOUBLE",
+      "c_payment_cnt": "INT",
+      "c_delivery_cnt": "INT",
+      "c_data": "TEXT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.customer_secondary": {
+    "transaction": true,
+    "partition-key": [
+      "c_w_id",
+      "c_d_id",
+      "c_last"
+    ],
+    "clustering-key": [
+      "c_first",
+      "c_id"
+    ],
+    "columns": {
+      "c_w_id": "INT",
+      "c_d_id": "INT",
+      "c_last": "TEXT",
+      "c_first": "TEXT",
+      "c_id": "INT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.history": {
+    "transaction": true,
+    "partition-key": [
+      "h_id"
+    ],
+    "clustering-key": [
+    ],
+    "columns": {
+      "h_id": "TEXT",
+      "h_c_id": "INT",
+      "h_c_d_id": "INT",
+      "h_c_w_id": "INT",
+      "h_d_id": "INT",
+      "h_w_id": "INT",
+      "h_date": "BIGINT",
+      "h_amount": "DOUBLE",
+      "h_data": "TEXT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.oorder": {
+    "transaction": true,
+    "partition-key": [
+      "o_w_id",
+      "o_d_id"
+    ],
+    "clustering-key": [
+      "o_id"
+    ],
+    "columns": {
+      "o_w_id": "INT",
+      "o_d_id": "INT",
+      "o_id": "INT",
+      "o_c_id": "INT",
+      "o_carrier_id": "INT",
+      "o_ol_cnt": "INT",
+      "o_all_local": "INT",
+      "o_entry_d": "BIGINT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.order_secondary": {
+    "transaction": true,
+    "partition-key": [
+      "o_w_id",
+      "o_d_id",
+      "o_c_id"
+    ],
+    "clustering-key": [
+      "o_id"
+    ],
+    "columns": {
+      "o_w_id": "INT",
+      "o_d_id": "INT",
+      "o_c_id": "INT",
+      "o_id": "INT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.new_order": {
+    "transaction": true,
+    "partition-key": [
+      "no_w_id",
+      "no_d_id"
+    ],
+    "clustering-key": [
+      "no_o_id"
+    ],
+    "columns": {
+      "no_w_id": "INT",
+      "no_d_id": "INT",
+      "no_o_id": "INT"
+    },
+    "compaction-strategy": "LCS"
+  },
+  "tpcc.order_line": {
+    "transaction": true,
+    "partition-key": [
+      "ol_w_id",
+      "ol_d_id"
+    ],
+    "clustering-key": [
+      "ol_o_id",
+      "ol_number"
+    ],
+    "columns": {
+      "ol_w_id": "INT",
+      "ol_d_id": "INT",
+      "ol_o_id": "INT",
+      "ol_number": "INT",
+      "ol_i_id": "INT",
+      "ol_delivery_d": "BIGINT",
+      "ol_amount": "DOUBLE",
+      "ol_supply_w_id": "INT",
+      "ol_quantity": "INT",
+      "ol_dist_info": "TEXT"
+    },
+    "compaction-strategy": "LCS"
+  }
+}
