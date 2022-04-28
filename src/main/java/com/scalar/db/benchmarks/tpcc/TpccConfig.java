@@ -10,6 +10,7 @@ public class TpccConfig {
   private final int rateDelivery;
   private final int rateStockLevel;
   private final int numWarehouse;
+  private final int backoff;
 
   /**
    * Constructs a {@code TpccConfig} with the specified {@link TpccConfig.Builder}.
@@ -23,6 +24,7 @@ public class TpccConfig {
     this.rateDelivery = builder.rateDelivery;
     this.rateStockLevel = builder.rateStockLevel;
     this.numWarehouse = builder.numWarehouse;
+    this.backoff = builder.backoff;
   }
 
   public int getRateNewOrder() {
@@ -49,6 +51,10 @@ public class TpccConfig {
     return numWarehouse;
   }
 
+  public int getBackoff() {
+    return backoff;
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -60,6 +66,7 @@ public class TpccConfig {
     private int rateDelivery;
     private int rateStockLevel;
     private int numWarehouse;
+    private int backoff;
 
     private Builder() {
       rateNewOrder = 50;
@@ -68,6 +75,7 @@ public class TpccConfig {
       rateDelivery = 0;
       rateStockLevel = 0;
       numWarehouse = 1;
+      backoff = 0;
     }
 
     public Builder rateNewOrder(int rateNewOrder) {
@@ -97,6 +105,11 @@ public class TpccConfig {
 
     public Builder numWarehouse(int numWarehouse) {
       this.numWarehouse = numWarehouse;
+      return this;
+    }
+
+    public Builder backoff(int backoff) {
+      this.backoff = backoff;
       return this;
     }
 

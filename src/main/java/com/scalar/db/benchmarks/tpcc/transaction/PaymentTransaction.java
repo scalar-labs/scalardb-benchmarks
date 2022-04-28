@@ -14,7 +14,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-public class PaymentTransaction {
+public class PaymentTransaction implements TpccTransaction {
   private int warehouseId;
   private int districtId;
   private int customerId;

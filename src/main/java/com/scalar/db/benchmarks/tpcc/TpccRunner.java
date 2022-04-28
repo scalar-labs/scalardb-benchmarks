@@ -1,15 +1,27 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.benchmarks.tpcc.transaction.NewOrderTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.PaymentTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.TpccTransaction;
+import com.scalar.db.exception.transaction.CommitConflictException;
+import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class TpccRunner {
   private final DistributedTransactionManager manager;
   private final TpccConfig config;
-  private final NewOrderTransaction newOrder = new NewOrderTransaction();
-  private final PaymentTransaction payment = new PaymentTransaction();
+  private final TpccTransaction newOrder = new NewOrderTransaction();
+  private final TpccTransaction payment = new PaymentTransaction();
+  private final Map<Type, TpccTransaction> transactionMap =
+      ImmutableMap.<Type, TpccTransaction>builder()
+      .put(Type.NEW_ORDER, newOrder)
+      .put(Type.PAYMENT, payment)
+      .build();
 
   public TpccRunner(DistributedTransactionManager m, TpccConfig c) {
     manager = m;
@@ -47,17 +59,15 @@ public class TpccRunner {
    */
   public void run() throws TransactionException {
     Type type = decideType();
-    switch (type) {
-      case PAYMENT:
-        payment.generate(config.getNumWarehouse());
-        payment.execute(manager);
+    TpccTransaction tx = transactionMap.get(type);
+    tx.generate(config.getNumWarehouse());
+    while (true) {
+      try {
+        tx.execute(manager);
         break;
-      case NEW_ORDER:
-        newOrder.generate(config.getNumWarehouse());
-        newOrder.execute(manager);
-        break;
-      default:
-        break;
+      } catch (CrudConflictException | CommitConflictException e) {
+        Uninterruptibles.sleepUninterruptibly(config.getBackoff(), TimeUnit.MILLISECONDS);
+      }
     }
   }
 }

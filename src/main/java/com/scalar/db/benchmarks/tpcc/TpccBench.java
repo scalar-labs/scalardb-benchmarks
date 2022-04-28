@@ -98,6 +98,13 @@ public class TpccBench implements Callable<Integer> {
   private int times;
 
   @CommandLine.Option(
+      names = {"--backoff"},
+      paramLabel = "BACKOFF",
+      defaultValue = "0",
+      description = "The milliseconds of backoff when retrying.")
+  private int backoff;
+
+  @CommandLine.Option(
       names = {"-h", "--help"},
       usageHelp = true,
       description = "display the help message.")
@@ -126,6 +133,7 @@ public class TpccBench implements Callable<Integer> {
         .rateOrderStatus(rateOrderStatus)
         .rateDelivery(rateDelivery)
         .rateStockLevel(rateStockLevel)
+        .backoff(backoff)
         .build();
 
     if (times > 0) {
