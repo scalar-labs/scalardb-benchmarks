@@ -31,6 +31,9 @@ public class Warehouse extends TpccRecord {
 
   /**
    * Constructs a {@code Warehouse} with ytd.
+   *
+   * @param warehouseId a warehouse ID
+   * @param ytd a YTD balance
    */
   public Warehouse(int warehouseId, double ytd) {
     partitionKeyMap = new LinkedHashMap<>();

@@ -18,6 +18,10 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Constructs a {@code NewOrder}.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
    */
   public NewOrder(int warehouseId, int districtId, int orderId) {
     partitionKeyMap = new LinkedHashMap<>();

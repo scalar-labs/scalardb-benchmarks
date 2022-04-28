@@ -78,47 +78,47 @@ public class TpccLoader implements Callable<Integer> {
       names = {"-h", "--help"},
       usageHelp = true,
       description = "display the help message.")
-  boolean helpRequested;
+  private boolean helpRequested;
 
-  private static final String customer = "customer.csv";
-  private static final String customerSecondary = "customer_secondary.csv";
-  private static final String district = "district.csv";
-  private static final String history = "history.csv";
-  private static final String item = "item.csv";
-  private static final String newOrder = "new_order.csv";
-  private static final String order = "oorder.csv";
-  private static final String orderLine = "order_line.csv";
-  private static final String stock = "stock.csv";
-  private static final String warehouse = "warehouse.csv";
-  private static final String[] customerHeaders = "c_w_id,c_d_id,c_id,c_discount,c_credit,c_last,c_first,c_credit_lim,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,c_since,c_middle,c_data"
+  private static final String CUSTOMER = "customer.csv";
+  private static final String CUSTOMER_SECONDARY = "customer_secondary.csv";
+  private static final String DISTRICT = "district.csv";
+  private static final String HISTORY = "history.csv";
+  private static final String ITEM = "item.csv";
+  private static final String NEW_ORDER = "new_order.csv";
+  private static final String ORDER = "oorder.csv";
+  private static final String ORDER_LINE = "order_line.csv";
+  private static final String STOCK = "stock.csv";
+  private static final String WAREHOUSE = "warehouse.csv";
+  private static final String[] CUSTOMER_HEADER = "c_w_id,c_d_id,c_id,c_discount,c_credit,c_last,c_first,c_credit_lim,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,c_since,c_middle,c_data"
       .split(",");
-  private static final String[] customerSecondaryHeaders = "c_w_id,c_d_id,c_last,c_first,c_id"
+  private static final String[] CUSTOMER_SECONDARY_HEADER = "c_w_id,c_d_id,c_last,c_first,c_id"
       .split(",");
-  private static final String[] districtHeaders = "d_w_id,d_id,d_ytd,d_tax,d_next_o_id,d_name,d_street_1,d_street_2,d_city,d_state,d_zip"
+  private static final String[] DISTRICT_HEADER = "d_w_id,d_id,d_ytd,d_tax,d_next_o_id,d_name,d_street_1,d_street_2,d_city,d_state,d_zip"
       .split(",");
-  private static final String[] historyHeaders = "h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,h_amount,h_data"
+  private static final String[] HISTORY_HEADER = "h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,h_amount,h_data"
       .split(",");
-  private static final String[] itemHeaders = "i_id,i_name,i_price,i_data,i_im_id".split(",");
-  private static final String[] newOrderHeaders = "no_w_id,no_d_id,no_o_id".split(",");
-  private static final String[] orderHeaders = "o_w_id,o_d_id,o_id,o_c_id,o_carrier_id,o_ol_cnt,o_all_local,o_entry_d"
+  private static final String[] ITEM_HEADER = "i_id,i_name,i_price,i_data,i_im_id".split(",");
+  private static final String[] NEW_ORDER_HEADER = "no_w_id,no_d_id,no_o_id".split(",");
+  private static final String[] ORDER_HEADER = "o_w_id,o_d_id,o_id,o_c_id,o_carrier_id,o_ol_cnt,o_all_local,o_entry_d"
       .split(",");
-  private static final String[] orderLineHeaders = "ol_w_id,ol_d_id,ol_o_id,ol_number,ol_i_id,ol_delivery_d,ol_amount,ol_supply_w_id,ol_quantity,ol_dist_info"
+  private static final String[] ORDER_LINE_HEADER = "ol_w_id,ol_d_id,ol_o_id,ol_number,ol_i_id,ol_delivery_d,ol_amount,ol_supply_w_id,ol_quantity,ol_dist_info"
       .split(",");
-  private static final String[] stockHeaders = "s_w_id,s_i_id,s_quantity,s_ytd,s_order_cnt,s_remote_cnt,s_data,s_dist_01,s_dist_02,s_dist_03,s_dist_04,s_dist_05,s_dist_06,s_dist_07,s_dist_08,s_dist_09,s_dist_10"
+  private static final String[] STOCK_HEADER = "s_w_id,s_i_id,s_quantity,s_ytd,s_order_cnt,s_remote_cnt,s_data,s_dist_01,s_dist_02,s_dist_03,s_dist_04,s_dist_05,s_dist_06,s_dist_07,s_dist_08,s_dist_09,s_dist_10"
       .split(",");
-  private static final String[] warehouseHeaders = "w_id,w_ytd,w_tax,w_name,w_street_1,w_street_2,w_city,w_state,w_zip"
+  private static final String[] WAREHOUSE_HEADER = "w_id,w_ytd,w_tax,w_name,w_street_1,w_street_2,w_city,w_state,w_zip"
       .split(",");
-  private static final Map<String, String[]> headerMap = ImmutableMap.<String, String[]>builder()
-      .put(customer, customerHeaders)
-      .put(customerSecondary, customerSecondaryHeaders)
-      .put(district, districtHeaders)
-      .put(history, historyHeaders)
-      .put(item, itemHeaders)
-      .put(newOrder, newOrderHeaders)
-      .put(order, orderHeaders)
-      .put(orderLine, orderLineHeaders)
-      .put(stock, stockHeaders)
-      .put(warehouse, warehouseHeaders)
+  private static final Map<String, String[]> HEADER_MAP = ImmutableMap.<String, String[]>builder()
+      .put(CUSTOMER, CUSTOMER_HEADER)
+      .put(CUSTOMER_SECONDARY, CUSTOMER_SECONDARY_HEADER)
+      .put(DISTRICT, DISTRICT_HEADER)
+      .put(HISTORY, HISTORY_HEADER)
+      .put(ITEM, ITEM_HEADER)
+      .put(NEW_ORDER, NEW_ORDER_HEADER)
+      .put(ORDER, ORDER_HEADER)
+      .put(ORDER_LINE, ORDER_LINE_HEADER)
+      .put(STOCK, STOCK_HEADER)
+      .put(WAREHOUSE, WAREHOUSE_HEADER)
       .build();
 
   public static void main(String[] args) {
@@ -261,16 +261,16 @@ public class TpccLoader implements Callable<Integer> {
     });
 
     if (directory != null) {
-      queueCsv(new File(directory, warehouse), queue, queuedCounter);
-      queueCsv(new File(directory, item), queue, queuedCounter);
-      queueCsv(new File(directory, stock), queue, queuedCounter);
-      queueCsv(new File(directory, district), queue, queuedCounter);
-      queueCsv(new File(directory, customer), queue, queuedCounter);
-      queueCsv(new File(directory, customerSecondary), queue, queuedCounter);
-      queueCsv(new File(directory, history), queue, queuedCounter);
-      queueCsv(new File(directory, order), queue, queuedCounter);
-      queueCsv(new File(directory, newOrder), queue, queuedCounter);
-      queueCsv(new File(directory, orderLine), queue, queuedCounter);
+      queueCsv(new File(directory, WAREHOUSE), queue, queuedCounter);
+      queueCsv(new File(directory, ITEM), queue, queuedCounter);
+      queueCsv(new File(directory, STOCK), queue, queuedCounter);
+      queueCsv(new File(directory, DISTRICT), queue, queuedCounter);
+      queueCsv(new File(directory, CUSTOMER), queue, queuedCounter);
+      queueCsv(new File(directory, CUSTOMER_SECONDARY), queue, queuedCounter);
+      queueCsv(new File(directory, HISTORY), queue, queuedCounter);
+      queueCsv(new File(directory, ORDER), queue, queuedCounter);
+      queueCsv(new File(directory, NEW_ORDER), queue, queuedCounter);
+      queueCsv(new File(directory, ORDER_LINE), queue, queuedCounter);
     } else {
       for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
         queue.put(new Item(itemId));
@@ -292,41 +292,41 @@ public class TpccLoader implements Callable<Integer> {
 
   private void queueCsv(File file, BlockingQueue<TpccRecord> queue, AtomicInteger counter) {
     CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT)
-        .setHeader(headerMap.get(file.getName())).build();
+        .setHeader(HEADER_MAP.get(file.getName())).build();
 
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(new BOMInputStream(new FileInputStream(file))))) {
       CSVParser parser = CSVParser.parse(reader, format);
       for (CSVRecord record : parser) {
         switch (file.getName()) {
-          case customer:
+          case CUSTOMER:
             queue.put(new Customer(record));
             break;
-          case customerSecondary:
+          case CUSTOMER_SECONDARY:
             queue.put(new CustomerSecondary(record));
             break;
-          case district:
+          case DISTRICT:
             queue.put(new District(record));
             break;
-          case history:
+          case HISTORY:
             queue.put(new History(record));
             break;
-          case item:
+          case ITEM:
             queue.put(new Item(record));
             break;
-          case newOrder:
+          case NEW_ORDER:
             queue.put(new NewOrder(record));
             break;
-          case order:
+          case ORDER:
             queue.put(new Order(record));
             break;
-          case orderLine:
+          case ORDER_LINE:
             queue.put(new OrderLine(record));
             break;
-          case stock:
+          case STOCK:
             queue.put(new Stock(record));
             break;
-          case warehouse:
+          case WAREHOUSE:
             queue.put(new Warehouse(record));
             break;
           default:

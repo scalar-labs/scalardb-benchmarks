@@ -5,7 +5,7 @@ import com.scalar.db.benchmarks.tpcc.table.Item;
 import java.util.Random;
 
 public class TpccUtil {
-  private static final Random r = new Random();
+  private static final Random RANDOM = new Random();
 
   // for customer last name
   public static final String[] NAME_TOKENS =
@@ -110,7 +110,7 @@ public class TpccUtil {
   }
 
   public static int randomInt(int min, int max) {
-    return (int) (r.nextDouble() * (max - min + 1) + min);
+    return (int) (RANDOM.nextDouble() * (max - min + 1) + min);
   }
 
   public static double randomDouble(int min, int max, int divider) {
@@ -121,12 +121,12 @@ public class TpccUtil {
     return nonUniformRandom(a, min, max, false);
   }
 
-  public static int nonUniformRandom(int a, int min, int max, Boolean isLoad) {
+  public static int nonUniformRandom(int a, int min, int max, boolean isLoad) {
     int c = getConstantForNonUniformRandom(a, isLoad);
     return (((randomInt(0, a) | randomInt(min, max)) + c) % (max - min + 1)) + min;
   }
 
-  private static int getConstantForNonUniformRandom(int a, Boolean isLoad) {
+  private static int getConstantForNonUniformRandom(int a, boolean isLoad) {
     switch (a) {
       case 255:
         return isLoad ? CUSTOMER_LASTNAME_IN_LOAD : CUSTOMER_LASTNAME_IN_RUN;

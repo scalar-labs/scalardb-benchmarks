@@ -49,6 +49,14 @@ public class Customer extends TpccRecord {
 
   /**
    * Constructs a {@code Customer} for payment transaction.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
+   * @param balance a balance of the customer
+   * @param ytdPayment a YTD payment amount
+   * @param paymentCount number of payments
+   * @param data customer data
    */
   public Customer(int warehouseId, int districtId, int customerId,
       double balance, double ytdPayment, int paymentCount, String data) {
@@ -66,6 +74,10 @@ public class Customer extends TpccRecord {
 
   /**
    * Constructs a {@code Customer} with data generation.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
    */
   public Customer(int warehouseId, int districtId, int customerId, Date date) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -126,12 +138,7 @@ public class Customer extends TpccRecord {
     valueMap.put(KEY_PHONE, record.get(KEY_PHONE));
     valueMap.put(KEY_DATA, record.get(KEY_DATA));
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    try {
-      valueMap.put(KEY_SINCE, dateFormat.parse(record.get(KEY_SINCE)));
-    } catch (ParseException e) {
-      e.printStackTrace();
-      throw e;
-    }
+    valueMap.put(KEY_SINCE, dateFormat.parse(record.get(KEY_SINCE)));
   }
 
   /**

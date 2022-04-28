@@ -34,6 +34,10 @@ public class District extends TpccRecord {
 
   /**
    * Constructs a {@code District} with ytd.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param ytd a YTD balance
    */
   public District(int warehouseId, int districtId, double ytd) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -46,6 +50,10 @@ public class District extends TpccRecord {
 
   /**
    * Constructs a {@code District} with a next order ID.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param nextOrderId a next order ID
    */
   public District(int warehouseId, int districtId, int nextOrderId) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -58,6 +66,9 @@ public class District extends TpccRecord {
 
   /**
    * Constructs a {@code District} with data generation.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
    */
   public District(int warehouseId, int districtId) {
     partitionKeyMap = new LinkedHashMap<>();

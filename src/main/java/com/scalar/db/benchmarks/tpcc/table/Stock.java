@@ -39,6 +39,13 @@ public class Stock extends TpccRecord {
 
   /**
    * Constructs a {@code Stock} with specified parameters for update.
+   *
+   * @param warehouseId a warehouse ID
+   * @param itemId an item ID
+   * @param quantity quantity in stock
+   * @param ytd a YTD balance
+   * @param orderCount number of order count
+   * @param remoteCount number of remote count
    */
   public Stock(int warehouseId, int itemId, int quantity, double ytd, int orderCount,
       int remoteCount) {
@@ -55,6 +62,9 @@ public class Stock extends TpccRecord {
 
   /**
    * Constructs a {@code Stock} with data generation.
+   *
+   * @param warehouseId a warehouse ID
+   * @param itemId an item ID
    */
   public Stock(int warehouseId, int itemId) {
     partitionKeyMap = new LinkedHashMap<>();

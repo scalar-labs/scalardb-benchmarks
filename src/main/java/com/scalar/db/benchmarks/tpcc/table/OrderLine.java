@@ -33,6 +33,16 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Constructs a {@code OrderLine} with specified parameters.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
+   * @param number an order-line number
+   * @param supplyWarehouseId a supplier warehouse ID in this order line
+   * @param amount amount for the item in this order line
+   * @param quantity quantity of the item in this order line
+   * @param itemId an item ID in this order line
+   * @param info district information
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number,
       int supplyWarehouseId, double amount, int quantity, int itemId, String info) {
@@ -55,6 +65,14 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Constructs a {@code OrderLine} with data generation.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
+   * @param number an order-line number
+   * @param supplyWarehouseId a supplier warehouse ID in this order line
+   * @param itemId an item ID in this order line
+   * @param date delivery date of this order
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number,
       int supplyWarehouseId, int itemId, Date date) {
@@ -103,11 +121,7 @@ public class OrderLine extends TpccRecord {
     if (!record.get(KEY_DELIVERY_D).isEmpty()
         && !record.get(KEY_DELIVERY_D).equals("\\N")) {
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-      try {
-        valueMap.put(KEY_DELIVERY_D, dateFormat.parse(record.get(KEY_DELIVERY_D)));
-      } catch (ParseException e) {
-        throw e;
-      }
+      valueMap.put(KEY_DELIVERY_D, dateFormat.parse(record.get(KEY_DELIVERY_D)));
     } else {
       valueMap.put(KEY_DELIVERY_D, null);
     }

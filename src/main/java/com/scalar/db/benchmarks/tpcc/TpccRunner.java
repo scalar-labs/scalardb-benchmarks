@@ -17,28 +17,28 @@ public class TpccRunner {
   }
 
   public enum Type {
-    None,
-    NewOrder,
-    Payment,
-    OrderStatus,
-    Delivery,
-    StockLevel,
+    NONE,
+    NEW_ORDER,
+    PAYMENT,
+    ORDER_STATUS,
+    DELIVERY,
+    STOCK_LEVEL,
   }
 
   private Type decideType() {
     int x = TpccUtil.randomInt(1, 100);
     if (x <= config.getRateNewOrder()) {
-      return Type.NewOrder;
+      return Type.NEW_ORDER;
     } else if (x <= config.getRateNewOrder() + config.getRatePayment()) {
-      return Type.Payment;
+      return Type.PAYMENT;
     } else if (x <= config.getRateNewOrder() + config.getRatePayment()
         + config.getRateOrderStatus()) {
-      return Type.OrderStatus;
+      return Type.ORDER_STATUS;
     } else if (x <= config.getRateNewOrder() + config.getRatePayment()
         + config.getRateOrderStatus() + config.getRateDelivery()) {
-      return Type.Delivery;
+      return Type.DELIVERY;
     } else {
-      return Type.StockLevel;
+      return Type.STOCK_LEVEL;
     }
   }
 
@@ -48,11 +48,11 @@ public class TpccRunner {
   public void run() throws TransactionException {
     Type type = decideType();
     switch (type) {
-      case Payment:
+      case PAYMENT:
         payment.generate(config.getNumWarehouse());
         payment.execute(manager);
         break;
-      case NewOrder:
+      case NEW_ORDER:
         newOrder.generate(config.getNumWarehouse());
         newOrder.execute(manager);
         break;

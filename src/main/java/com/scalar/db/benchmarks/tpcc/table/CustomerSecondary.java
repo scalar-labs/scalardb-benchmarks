@@ -21,6 +21,12 @@ public class CustomerSecondary extends TpccRecord {
 
   /**
    * Constructs a {@code CustomerSecondary}.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param last last name of the customer
+   * @param first first name of the customer
+   * @param customerId a customer ID
    */
   public CustomerSecondary(int warehouseId, int districtId, String last, String first,
       int customerId) {

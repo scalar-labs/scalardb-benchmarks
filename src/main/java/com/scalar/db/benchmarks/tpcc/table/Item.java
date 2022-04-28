@@ -28,6 +28,8 @@ public class Item extends TpccRecord {
 
   /**
    * Constructs a {@code Item} with data generation.
+   *
+   * @param itemId an item ID
    */
   public Item(int itemId) {
     partitionKeyMap = new LinkedHashMap<>();

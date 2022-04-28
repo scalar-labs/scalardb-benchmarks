@@ -2,6 +2,7 @@ package com.scalar.db.benchmarks.tpcc;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.benchmarks.tpcc.table.TpccRecord;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
@@ -100,13 +101,12 @@ public class TpccBench implements Callable<Integer> {
       names = {"-h", "--help"},
       usageHelp = true,
       description = "display the help message.")
-  boolean helpRequested;
+  private boolean helpRequested;
 
-  private static final String namespace = "tpcc";
-  private static final AtomicInteger counter = new AtomicInteger();
-  private static final AtomicInteger totalCounter = new AtomicInteger();
-  private static final AtomicLong latencyTotal = new AtomicLong();
-  private static final AtomicInteger errorCounter = new AtomicInteger();
+  private final AtomicInteger counter = new AtomicInteger();
+  private final AtomicInteger totalCounter = new AtomicInteger();
+  private final AtomicLong latencyTotal = new AtomicLong();
+  private final AtomicInteger errorCounter = new AtomicInteger();
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new TpccBench()).execute(args);
@@ -118,7 +118,7 @@ public class TpccBench implements Callable<Integer> {
     DatabaseConfig dbConfig = new DatabaseConfig(new FileInputStream(properties));
     TransactionFactory factory = new TransactionFactory(dbConfig);
     DistributedTransactionManager manager = factory.getTransactionManager();
-    manager.withNamespace(namespace);
+    manager.withNamespace(TpccRecord.NAMESPACE);
     TpccConfig config = TpccConfig.newBuilder()
         .numWarehouse(numWarehouse)
         .rateNewOrder(rateNewOrder)
@@ -137,7 +137,7 @@ public class TpccBench implements Callable<Integer> {
           e.printStackTrace();
         }
       }
-      System.exit(0);
+      return 0;
     }
 
     long durationMillis = duration * 1000L;
@@ -161,7 +161,6 @@ public class TpccBench implements Callable<Integer> {
               latencyTotal.addAndGet(eachEnd - eachStart);
             }
           } catch (TransactionException e) {
-            // e.printStackTrace();
             errorCounter.incrementAndGet();
           }
         }

@@ -27,6 +27,15 @@ public class Order extends TpccRecord {
 
   /**
    * Constructs a {@code Order} with specified parameters.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
+   * @param customerId a customer ID
+   * @param carrierId a carrier ID
+   * @param number number of order lines
+   * @param local 1 if the order includes only home order lines, 0 otherwise
+   * @param date entry date of this order
    */
   public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
       int number, int local, Date date) {
@@ -47,6 +56,12 @@ public class Order extends TpccRecord {
 
   /**
    * Constructs a {@code Order} with data generation.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
+   * @param customerId a customer ID
+   * @param date entry date of this order
    */
   public Order(int warehouseId, int districtId, int orderId, int customerId, Date date) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -93,11 +108,7 @@ public class Order extends TpccRecord {
     valueMap.put(KEY_OL_CNT, Integer.parseInt(record.get(KEY_OL_CNT)));
     valueMap.put(KEY_ALL_LOCAL, Integer.parseInt(record.get(KEY_ALL_LOCAL)));
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    try {
-      valueMap.put(KEY_ENTRY_D, dateFormat.parse(record.get(KEY_ENTRY_D)));
-    } catch (ParseException e) {
-      throw e;
-    }
+    valueMap.put(KEY_ENTRY_D, dateFormat.parse(record.get(KEY_ENTRY_D)));
   }
 
   /**

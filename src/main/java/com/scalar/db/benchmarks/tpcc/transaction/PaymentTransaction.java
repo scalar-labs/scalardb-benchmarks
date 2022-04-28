@@ -15,15 +15,15 @@ import java.util.List;
 import java.util.Optional;
 
 public class PaymentTransaction {
-  int warehouseId;
-  int districtId;
-  int customerId;
-  int customerWarehouseId;
-  int customerDistrictId;
-  String customerLastName;
-  boolean byLastName;
-  float paymentAmount;
-  Date date;
+  private int warehouseId;
+  private int districtId;
+  private int customerId;
+  private int customerWarehouseId;
+  private int customerDistrictId;
+  private String customerLastName;
+  private boolean byLastName;
+  private float paymentAmount;
+  private Date date;
 
   /**
    * Generates arguments for the payment transaction.

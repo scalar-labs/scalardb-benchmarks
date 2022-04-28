@@ -30,7 +30,16 @@ public class History extends TpccRecord {
   public static final int MAX_DATA = 24;
 
   /**
-   * Constructs a {@code Customer} with data generation.
+   * Constructs a {@code Customer} with specified parameters.
+   * 
+   * @param customerId a customer ID
+   * @param customerDistrictId customer's district ID
+   * @param customerWarehouseId customer's warehouse ID
+   * @param districtId a district ID
+   * @param warehouseId a warehouse ID
+   * @param date payment date
+   * @param amount payment amount
+   * @param data history data
    */
   public History(int customerId, int customerDistrictId, int customerWarehouseId,
       int districtId, int warehouseId, Date date, double amount, String data) {
@@ -50,6 +59,13 @@ public class History extends TpccRecord {
 
   /**
    * Constructs a {@code History} with data generation.
+   *
+   * @param customerId a customer ID
+   * @param customerDistrictId customer's district ID
+   * @param customerWarehouseId customer's warehouse ID
+   * @param districtId a district ID
+   * @param warehouseId a warehouse ID
+   * @param date payment date
    */
   public History(int customerId, int customerDistrictId, int customerWarehouseId,
       int districtId, int warehouseId, Date date) {
@@ -83,11 +99,7 @@ public class History extends TpccRecord {
     valueMap.put(KEY_DISTRICT_ID, Integer.parseInt(record.get(KEY_DISTRICT_ID)));
     valueMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    try {
-      valueMap.put(KEY_DATE, dateFormat.parse(record.get(KEY_DATE)));
-    } catch (ParseException e) {
-      throw e;
-    }
+    valueMap.put(KEY_DATE, dateFormat.parse(record.get(KEY_DATE)));
     valueMap.put(KEY_AMOUNT, Double.parseDouble(record.get(KEY_AMOUNT)));
     valueMap.put(KEY_DATA, record.get(KEY_DATA));
   }

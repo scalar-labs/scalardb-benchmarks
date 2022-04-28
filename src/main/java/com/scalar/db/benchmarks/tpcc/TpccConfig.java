@@ -61,7 +61,7 @@ public class TpccConfig {
     private int rateStockLevel;
     private int numWarehouse;
 
-    Builder() {
+    private Builder() {
       rateNewOrder = 50;
       ratePayment = 50;
       rateOrderStatus = 0;
@@ -108,10 +108,10 @@ public class TpccConfig {
     public TpccConfig build() {
       int total = rateNewOrder + ratePayment + rateOrderStatus + rateDelivery + rateStockLevel;
       if (total != 100) {
-        throw new IllegalArgumentException("Total rate must be 100.");
+        throw new IllegalStateException("Total rate must be 100.");
       }
       if (rateOrderStatus != 0 || rateDelivery != 0 || rateStockLevel != 0) {
-        throw new IllegalArgumentException("Currently TPC-C NP only.");
+        throw new IllegalStateException("Currently TPC-C NP only.");
       }
       return new TpccConfig(this);
     }
