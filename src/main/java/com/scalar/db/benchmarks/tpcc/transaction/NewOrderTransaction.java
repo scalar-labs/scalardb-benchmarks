@@ -33,6 +33,7 @@ public class NewOrderTransaction implements TpccTransaction {
    * 
    * @param numWarehouse a number of warehouse
    */
+  @Override
   public void generate(int numWarehouse) {
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
@@ -96,6 +97,7 @@ public class NewOrderTransaction implements TpccTransaction {
    * 
    * @param manager a {@code DistributedTransactionManager} object
    */
+  @Override
   public void execute(DistributedTransactionManager manager) throws TransactionException {
     DistributedTransaction tx = manager.start();
 

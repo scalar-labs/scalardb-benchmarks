@@ -24,6 +24,7 @@ public class DeliveryTransaction implements TpccTransaction {
    * 
    * @param numWarehouse a number of warehouse
    */
+  @Override
   public void generate(int numWarehouse) {
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     carrierId = TpccUtil.randomInt(1, 10);
@@ -35,6 +36,7 @@ public class DeliveryTransaction implements TpccTransaction {
    * 
    * @param manager a {@code DistributedTransactionManager} object
    */
+  @Override
   public void execute(DistributedTransactionManager manager) throws TransactionException {
     DistributedTransaction tx = manager.start();
 

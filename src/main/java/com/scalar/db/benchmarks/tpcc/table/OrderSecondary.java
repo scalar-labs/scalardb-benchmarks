@@ -20,6 +20,11 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Constructs a {@code OrderSecondary}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
+   * @param orderId an order ID
    */
   public OrderSecondary(int warehouseId, int districtId, int customerId, int orderId) {
     partitionKeyMap = new LinkedHashMap<String,Object>();
@@ -48,6 +53,11 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
+   * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, int customerId) {
     ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
@@ -59,6 +69,9 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
+   * 
+   * @param orderId an order ID
+   * @return a {@code Key} object
    */
   public static Key createClusteringKey(int orderId) {
     ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
@@ -68,7 +81,10 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Creates a {@code Put} object.
+   *
+   * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
     Key parttionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
@@ -77,6 +93,11 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Creates a {@code Scan} object for the last order of a customer.
+   * 
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
+   * @return a {@code Scan} object for the last order of a customer
    */
   public static Scan createScan(int warehouseId, int districtId, int customerId) {
     Key parttionkey = createPartitionKey(warehouseId, districtId, customerId);

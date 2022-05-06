@@ -91,6 +91,7 @@ public class CustomerSecondary extends TpccRecord {
    *
    * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
     Key partitionkey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
