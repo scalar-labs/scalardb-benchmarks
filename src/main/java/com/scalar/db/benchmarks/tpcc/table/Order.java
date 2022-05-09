@@ -58,7 +58,7 @@ public class Order extends TpccRecord {
    * @param local 1 if the order includes only home order lines, 0 otherwise
    * @param date entry date of this order
    */
-   public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
+  public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
       int number, int local, Date date) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);

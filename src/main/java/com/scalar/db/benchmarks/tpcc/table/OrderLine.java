@@ -67,7 +67,7 @@ public class OrderLine extends TpccRecord {
    * @param itemId an item ID in this order line
    * @param info district information
    */
-   public OrderLine(int warehouseId, int districtId, int orderId, int number,
+  public OrderLine(int warehouseId, int districtId, int orderId, int number,
       int supplyWarehouseId, double amount, int quantity, int itemId, String info) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
