@@ -69,11 +69,11 @@ public class TpccConfig {
     private int backoff;
 
     private Builder() {
-      rateNewOrder = 50;
-      ratePayment = 50;
-      rateOrderStatus = 0;
-      rateDelivery = 0;
-      rateStockLevel = 0;
+      rateNewOrder = 45;
+      ratePayment = 43;
+      rateOrderStatus = 4;
+      rateDelivery = 4;
+      rateStockLevel = 4;
       numWarehouse = 1;
       backoff = 0;
     }

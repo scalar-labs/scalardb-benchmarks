@@ -10,6 +10,7 @@ import com.scalar.db.benchmarks.tpcc.table.Item;
 import com.scalar.db.benchmarks.tpcc.table.NewOrder;
 import com.scalar.db.benchmarks.tpcc.table.Order;
 import com.scalar.db.benchmarks.tpcc.table.OrderLine;
+import com.scalar.db.benchmarks.tpcc.table.OrderSecondary;
 import com.scalar.db.benchmarks.tpcc.table.Stock;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.exception.transaction.TransactionException;
@@ -134,6 +135,11 @@ public class NewOrderTransaction implements TpccTransaction {
       Order order = new Order(warehouseId, districtId, orderId, customerId, 0, orderLineCount,
           remote ? 0 : 1, date);
       tx.put(order.createPut());
+
+      // Insert order's secondary index
+      OrderSecondary orderSecondary
+          = new OrderSecondary(warehouseId, districtId, customerId, orderId);
+      tx.put(orderSecondary.createPut());
 
       // Insert order-line
       for (int orderLineNumber = 1; orderLineNumber <= orderLineCount; orderLineNumber++) {
