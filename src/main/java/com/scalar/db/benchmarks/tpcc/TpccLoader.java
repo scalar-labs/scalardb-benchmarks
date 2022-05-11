@@ -333,6 +333,9 @@ public class TpccLoader implements Callable<Integer> {
           case ORDER_LINE:
             queue.put(new OrderLine(record));
             break;
+          case ORDER_SECONDARY:
+            queue.put(new OrderSecondary(record));
+            break;
           case STOCK:
             queue.put(new Stock(record));
             break;

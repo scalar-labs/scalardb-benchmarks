@@ -6,7 +6,6 @@ import com.scalar.db.api.Scan.Ordering;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.Value;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
@@ -27,12 +26,12 @@ public class OrderSecondary extends TpccRecord {
    * @param orderId an order ID
    */
   public OrderSecondary(int warehouseId, int districtId, int customerId, int orderId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
     partitionKeyMap.put(KEY_CUSTOMER_ID, customerId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, orderId);
   }
 
@@ -41,13 +40,13 @@ public class OrderSecondary extends TpccRecord {
    * 
    * @param record a {@code CSVRecord} object
    */
-  public OrderSecondary(CSVRecord record) throws ParseException {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+  public OrderSecondary(CSVRecord record) {
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, Integer.parseInt(record.get(KEY_WAREHOUSE_ID)));
     partitionKeyMap.put(KEY_DISTRICT_ID, Integer.parseInt(record.get(KEY_DISTRICT_ID)));
     partitionKeyMap.put(KEY_CUSTOMER_ID, Integer.parseInt(record.get(KEY_CUSTOMER_ID)));
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, Integer.parseInt(record.get(KEY_ORDER_ID)));
   }
 
@@ -60,7 +59,7 @@ public class OrderSecondary extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, int customerId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
     keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
     keys.add(new IntValue(KEY_CUSTOMER_ID, customerId));
@@ -74,7 +73,7 @@ public class OrderSecondary extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createClusteringKey(int orderId) {
-    ArrayList<Value<?>> keys = new ArrayList<Value<?>>();
+    ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_ORDER_ID, orderId));
     return new Key(keys);
   }
@@ -86,9 +85,9 @@ public class OrderSecondary extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
-    return new Put(parttionkey, clusteringKey).forTable(TABLE_NAME);
+    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
   /**
@@ -100,8 +99,8 @@ public class OrderSecondary extends TpccRecord {
    * @return a {@code Scan} object for the last order of a customer
    */
   public static Scan createScan(int warehouseId, int districtId, int customerId) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId, customerId);
-    return new Scan(parttionkey)
+    Key partitionKey = createPartitionKey(warehouseId, districtId, customerId);
+    return new Scan(partitionKey)
         .forTable(TABLE_NAME)
         .withOrdering(new Ordering(KEY_ORDER_ID, Scan.Ordering.Order.DESC))
         .withLimit(1);

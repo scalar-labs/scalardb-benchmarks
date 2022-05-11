@@ -111,8 +111,8 @@ public class History extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
   }
 }

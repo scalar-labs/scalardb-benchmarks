@@ -35,14 +35,14 @@ public class Order extends TpccRecord {
    * @param carrierId a carrier ID
    */
   public Order(int warehouseId, int districtId, int orderId, int carrierId) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ID, orderId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_CARRIER_ID, carrierId);
   }
 
@@ -160,9 +160,9 @@ public class Order extends TpccRecord {
    * Creates a {@code Get} object.
    */
   public static Get createGet(int warehouseId, int districtId, int orderId) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId);
+    Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key clusteringKey = createClusteringKey(orderId);
-    return new Get(parttionkey, clusteringKey).forTable(TABLE_NAME);
+    return new Get(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
   /**
@@ -172,10 +172,10 @@ public class Order extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
   public int getOrderLineCount() {

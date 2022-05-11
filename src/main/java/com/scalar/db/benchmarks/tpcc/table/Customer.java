@@ -77,12 +77,12 @@ public class Customer extends TpccRecord {
    */
   public Customer(int warehouseId, int districtId, int customerId,
       double balance, int deliveryCount) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
     partitionKeyMap.put(KEY_ID, customerId);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_BALANCE, balance);
     valueMap.put(KEY_DELIVERY_CNT, deliveryCount);
   }
@@ -181,8 +181,8 @@ public class Customer extends TpccRecord {
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int districtId, int customerId) {
-    Key partitionkey = createPartitionKey(warehouseId, districtId, customerId);
-    return new Get(partitionkey).forTable(TABLE_NAME);
+    Key partitionKey = createPartitionKey(warehouseId, districtId, customerId);
+    return new Get(partitionKey).forTable(TABLE_NAME);
   }
 
   /**
@@ -192,9 +192,9 @@ public class Customer extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
   }
 
   public String getFirstName() {

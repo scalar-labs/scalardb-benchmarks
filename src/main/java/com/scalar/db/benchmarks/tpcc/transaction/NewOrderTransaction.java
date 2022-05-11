@@ -21,7 +21,6 @@ public class NewOrderTransaction implements TpccTransaction {
   private int warehouseId;
   private int districtId;
   private int customerId;
-  private int rollback;
   private int orderLineCount;
   private int[] itemIds;
   private int[] supplierWarehouseIds;
@@ -39,13 +38,13 @@ public class NewOrderTransaction implements TpccTransaction {
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
     customerId = TpccUtil.getCustomerId();
-    rollback = TpccUtil.randomInt(1, 100);
     orderLineCount = TpccUtil.randomInt(5, 15);
     itemIds = new int[orderLineCount];
     supplierWarehouseIds = new int[orderLineCount];
     orderQuantities = new int[orderLineCount];
     remote = false;
     date = new Date();
+    int rollback = TpccUtil.randomInt(1, 100);
 
     for (int i = 0; i < orderLineCount; i++) {
       itemIds[i] = TpccUtil.getItemId();

@@ -31,7 +31,7 @@ public class OrderStatusTransaction implements TpccTransaction {
   public void generate(int numWarehouse) {
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
-    byLastName = TpccUtil.randomInt(1, 100) <= 60 ? true : false;
+    byLastName = TpccUtil.randomInt(1, 100) <= 60;
     if (byLastName) {
       customerId = Customer.UNUSED_ID;
       lastName = TpccUtil.getNonUniformRandomLastNameForRun();

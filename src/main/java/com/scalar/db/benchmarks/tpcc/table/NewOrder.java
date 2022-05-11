@@ -80,26 +80,26 @@ public class NewOrder extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
-    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME);
+    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
   /**
    * Creates a {@code Delete} object.
    */
   public static Delete createDelete(int warehouseId, int districtId, int orderId) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId);
+    Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key clusteringKey = createClusteringKey(orderId);
-    return new Delete(parttionkey, clusteringKey).forTable(TABLE_NAME);
+    return new Delete(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
   /**
    * Creates a {@code Scan} object for the oldest outstanding new-order.
    */
   public static Scan createScan(int warehouseId, int districtId) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId);
-    return new Scan(parttionkey)
+    Key partitionKey = createPartitionKey(warehouseId, districtId);
+    return new Scan(partitionKey)
         .forTable(TABLE_NAME)
         .withOrdering(new Ordering(KEY_ORDER_ID, Scan.Ordering.Order.ASC))
         .withLimit(1);

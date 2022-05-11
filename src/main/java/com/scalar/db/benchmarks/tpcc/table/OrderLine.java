@@ -42,15 +42,15 @@ public class OrderLine extends TpccRecord {
    * @param deliveryDate district information
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number, Date deliveryDate) {
-    partitionKeyMap = new LinkedHashMap<String,Object>();
+    partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
 
-    clusteringKeyMap = new LinkedHashMap<String,Object>();
+    clusteringKeyMap = new LinkedHashMap<>();
     clusteringKeyMap.put(KEY_ORDER_ID, orderId);
     clusteringKeyMap.put(KEY_NUMBER, number);
 
-    valueMap = new HashMap<String,Object>();
+    valueMap = new HashMap<>();
     valueMap.put(KEY_DELIVERY_D, deliveryDate);
   }
 
@@ -181,10 +181,10 @@ public class OrderLine extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
   /**
@@ -198,9 +198,9 @@ public class OrderLine extends TpccRecord {
    * Creates a {@code Scan} object for order-lines with a range of order IDs.
    */
   public static Scan createScan(int warehouseId, int districtId, int orderIdStart, int orderIdEnd) {
-    Key parttionkey = createPartitionKey(warehouseId, districtId);
+    Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key start = new Key(OrderLine.KEY_ORDER_ID, orderIdStart);
     Key end = new Key(OrderLine.KEY_ORDER_ID, orderIdEnd);
-    return new Scan(parttionkey).forTable(TABLE_NAME).withStart(start).withEnd(end);
+    return new Scan(partitionKey).forTable(TABLE_NAME).withStart(start).withEnd(end);
   }
 }
