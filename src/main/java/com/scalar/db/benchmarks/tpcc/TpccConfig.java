@@ -78,6 +78,24 @@ public class TpccConfig {
       backoff = 0;
     }
 
+    public Builder fullMix() {
+      this.rateNewOrder = 45;
+      this.ratePayment = 43;
+      this.rateOrderStatus = 4;
+      this.rateDelivery = 4;
+      this.rateStockLevel = 4;
+      return this;
+    }
+
+    public Builder npOnly() {
+      this.rateNewOrder = 50;
+      this.ratePayment = 50;
+      this.rateOrderStatus = 0;
+      this.rateDelivery = 0;
+      this.rateStockLevel = 0;
+      return this;
+    }
+
     public Builder rateNewOrder(int rateNewOrder) {
       this.rateNewOrder = rateNewOrder;
       return this;
