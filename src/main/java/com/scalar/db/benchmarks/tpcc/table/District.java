@@ -125,8 +125,8 @@ public class District extends TpccRecord {
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int districtId) {
-    Key partitionkey = createPartitionKey(warehouseId, districtId);
-    return new Get(partitionkey).forTable(TABLE_NAME);
+    Key partitionKey = createPartitionKey(warehouseId, districtId);
+    return new Get(partitionKey).forTable(TABLE_NAME);
   }
 
   /**
@@ -136,8 +136,8 @@ public class District extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
   }
 }

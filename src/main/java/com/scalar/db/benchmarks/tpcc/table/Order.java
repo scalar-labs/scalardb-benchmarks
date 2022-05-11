@@ -1,5 +1,6 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
+import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.io.IntValue;
@@ -26,7 +27,27 @@ public class Order extends TpccRecord {
   public static final String KEY_ENTRY_D = "o_entry_d";
 
   /**
-   * Constructs a {@code Order} with specified parameters.
+   * Constructs a {@code Order} with a carrier ID for update.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
+   * @param carrierId a carrier ID
+   */
+  public Order(int warehouseId, int districtId, int orderId, int carrierId) {
+    partitionKeyMap = new LinkedHashMap<>();
+    partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
+    partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
+
+    clusteringKeyMap = new LinkedHashMap<>();
+    clusteringKeyMap.put(KEY_ID, orderId);
+
+    valueMap = new HashMap<>();
+    valueMap.put(KEY_CARRIER_ID, carrierId);
+  }
+
+  /**
+   * Constructs a {@code Order} with specified parameters for insert.
    *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
@@ -136,16 +157,25 @@ public class Order extends TpccRecord {
   }
 
   /**
+   * Creates a {@code Get} object.
+   */
+  public static Get createGet(int warehouseId, int districtId, int orderId) {
+    Key partitionKey = createPartitionKey(warehouseId, districtId);
+    Key clusteringKey = createClusteringKey(orderId);
+    return new Get(partitionKey, clusteringKey).forTable(TABLE_NAME);
+  }
+
+  /**
    * Creates a {@code Put} object.
    *
    * @return a {@code Put} object
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
   public int getOrderLineCount() {

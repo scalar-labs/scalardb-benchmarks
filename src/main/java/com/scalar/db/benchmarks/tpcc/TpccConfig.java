@@ -69,13 +69,31 @@ public class TpccConfig {
     private int backoff;
 
     private Builder() {
-      rateNewOrder = 50;
-      ratePayment = 50;
-      rateOrderStatus = 0;
-      rateDelivery = 0;
-      rateStockLevel = 0;
+      rateNewOrder = 45;
+      ratePayment = 43;
+      rateOrderStatus = 4;
+      rateDelivery = 4;
+      rateStockLevel = 4;
       numWarehouse = 1;
       backoff = 0;
+    }
+
+    public Builder fullMix() {
+      this.rateNewOrder = 45;
+      this.ratePayment = 43;
+      this.rateOrderStatus = 4;
+      this.rateDelivery = 4;
+      this.rateStockLevel = 4;
+      return this;
+    }
+
+    public Builder npOnly() {
+      this.rateNewOrder = 50;
+      this.ratePayment = 50;
+      this.rateOrderStatus = 0;
+      this.rateDelivery = 0;
+      this.rateStockLevel = 0;
+      return this;
     }
 
     public Builder rateNewOrder(int rateNewOrder) {
@@ -122,9 +140,6 @@ public class TpccConfig {
       int total = rateNewOrder + ratePayment + rateOrderStatus + rateDelivery + rateStockLevel;
       if (total != 100) {
         throw new IllegalStateException("Total rate must be 100.");
-      }
-      if (rateOrderStatus != 0 || rateDelivery != 0 || rateStockLevel != 0) {
-        throw new IllegalStateException("Currently TPC-C NP only.");
       }
       return new TpccConfig(this);
     }

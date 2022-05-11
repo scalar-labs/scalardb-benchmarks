@@ -91,11 +91,11 @@ public class CustomerSecondary extends TpccRecord {
    *
    * @return a {@code Put} object
    */
+  @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
-    ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
   /**
@@ -104,7 +104,7 @@ public class CustomerSecondary extends TpccRecord {
    * @return a {@code Scan} object
    */
   public static Scan createScan(int warehouseId, int districtId, String lastName) {
-    Key partitionkey = createPartitionKey(warehouseId, districtId, lastName);
-    return new Scan(partitionkey).forTable(TABLE_NAME);
+    Key partitionKey = createPartitionKey(warehouseId, districtId, lastName);
+    return new Scan(partitionKey).forTable(TABLE_NAME);
   }
 }

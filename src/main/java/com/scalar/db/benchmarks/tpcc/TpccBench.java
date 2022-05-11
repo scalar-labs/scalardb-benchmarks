@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 
 @Command(name = "tpcc-bench", description = "Execute TPC-C benchmark.")
@@ -34,40 +35,57 @@ public class TpccBench implements Callable<Integer> {
       description = "The number of warehouse.")
   private int numWarehouse;
 
-  @CommandLine.Option(
-      names = {"--rate-new-order"},
-      paramLabel = "RATE_NEW_ORDER",
-      defaultValue = "50",
-      description = "The percentage of new-order transaction.")
-  private int rateNewOrder;
+  static class Rate {
+    @CommandLine.Option(
+        names = {"--rate-new-order"},
+        paramLabel = "RATE_NEW_ORDER",
+        required = true,
+        description = "The percentage of new-order transaction.")
+    int newOrder;
 
-  @CommandLine.Option(
-      names = {"--rate-payment"},
-      paramLabel = "RATE_PAYMENT",
-      defaultValue = "50",
-      description = "The percentage of payment transaction.")
-  private int ratePayment;
+    @CommandLine.Option(
+        names = {"--rate-payment"},
+        paramLabel = "RATE_PAYMENT",
+        required = true,
+        description = "The percentage of payment transaction.")
+    int payment;
 
-  @CommandLine.Option(
-      names = {"--rate-order-status"},
-      paramLabel = "RATE_ORDER_STATUS",
-      defaultValue = "0",
-      description = "The percentage of order-status transaction.")
-  private int rateOrderStatus;
+    @CommandLine.Option(
+        names = {"--rate-order-status"},
+        paramLabel = "RATE_ORDER_STATUS",
+        required = true,
+        description = "The percentage of order-status transaction.")
+    int orderStatus;
 
-  @CommandLine.Option(
-      names = {"--rate-delivery"},
-      paramLabel = "RATE_DELIVERY",
-      defaultValue = "0",
-      description = "The percentage of delivery transaction.")
-  private int rateDelivery;
+    @CommandLine.Option(
+        names = {"--rate-delivery"},
+        paramLabel = "RATE_DELIVERY",
+        required = true,
+        description = "The percentage of delivery transaction.")
+    int delivery;
 
-  @CommandLine.Option(
-      names = {"--rate-stock-level"},
-      paramLabel = "RATE_STOCK_LEVEL",
-      defaultValue = "0",
-      description = "The percentage of stock-level transaction.")
-  private int rateStockLevel;
+    @CommandLine.Option(
+        names = {"--rate-stock-level"},
+        paramLabel = "RATE_STOCK_LEVEL",
+        required = true,
+        description = "The percentage of stock-level transaction.")
+    int stockLevel;
+  }
+
+  static class Mode {
+    @CommandLine.Option(
+        names = {"--np-only"},
+        paramLabel = "NP_ONLY",
+        defaultValue = "false",
+        description = "Run with TPC-C NP-only mode.")
+    boolean npOnly;
+
+    @CommandLine.ArgGroup(exclusive = false)
+    Rate rate;
+  }
+
+  @ArgGroup(exclusive = true, multiplicity = "0..1")
+  private Mode mode;
 
   @CommandLine.Option(
       names = {"--num-threads"},
@@ -126,15 +144,31 @@ public class TpccBench implements Callable<Integer> {
     TransactionFactory factory = new TransactionFactory(dbConfig);
     DistributedTransactionManager manager = factory.getTransactionManager();
     manager.withNamespace(TpccRecord.NAMESPACE);
-    TpccConfig config = TpccConfig.newBuilder()
-        .numWarehouse(numWarehouse)
-        .rateNewOrder(rateNewOrder)
-        .ratePayment(ratePayment)
-        .rateOrderStatus(rateOrderStatus)
-        .rateDelivery(rateDelivery)
-        .rateStockLevel(rateStockLevel)
-        .backoff(backoff)
-        .build();
+
+    TpccConfig config;
+    if (mode == null) {
+      config = TpccConfig.newBuilder()
+          .numWarehouse(numWarehouse)
+          .fullMix()
+          .backoff(backoff)
+          .build();
+    } else if (mode.npOnly) {
+      config = TpccConfig.newBuilder()
+          .numWarehouse(numWarehouse)
+          .npOnly()
+          .backoff(backoff)
+          .build();
+    } else {
+      config = TpccConfig.newBuilder()
+          .numWarehouse(numWarehouse)
+          .rateNewOrder(mode.rate.newOrder)
+          .ratePayment(mode.rate.payment)
+          .rateOrderStatus(mode.rate.orderStatus)
+          .rateDelivery(mode.rate.delivery)
+          .rateStockLevel(mode.rate.stockLevel)
+          .backoff(backoff)
+          .build();
+    }
 
     if (times > 0) {
       TpccRunner tpcc = new TpccRunner(manager, config);

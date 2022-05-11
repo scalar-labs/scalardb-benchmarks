@@ -1,6 +1,7 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Scan;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
@@ -32,7 +33,29 @@ public class OrderLine extends TpccRecord {
   public static final int DIST_INFO_SIZE = 24;
 
   /**
-   * Constructs a {@code OrderLine} with specified parameters.
+   * Constructs a {@code OrderLine} with delivery date for update.
+   *
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param orderId an order ID
+   * @param number an order-line number
+   * @param deliveryDate district information
+   */
+  public OrderLine(int warehouseId, int districtId, int orderId, int number, Date deliveryDate) {
+    partitionKeyMap = new LinkedHashMap<>();
+    partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
+    partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
+
+    clusteringKeyMap = new LinkedHashMap<>();
+    clusteringKeyMap.put(KEY_ORDER_ID, orderId);
+    clusteringKeyMap.put(KEY_NUMBER, number);
+
+    valueMap = new HashMap<>();
+    valueMap.put(KEY_DELIVERY_D, deliveryDate);
+  }
+
+  /**
+   * Constructs a {@code OrderLine} with specified parameters for insert.
    *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
@@ -158,9 +181,26 @@ public class OrderLine extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(partitionkey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+  }
+
+  /**
+   * Creates a {@code Scan} object for order-lines with a specified order ID.
+   */
+  public static Scan createScan(int warehouseId, int districtId, int orderId) {
+    return createScan(warehouseId, districtId, orderId, orderId);
+  }
+
+  /**
+   * Creates a {@code Scan} object for order-lines with a range of order IDs.
+   */
+  public static Scan createScan(int warehouseId, int districtId, int orderIdStart, int orderIdEnd) {
+    Key partitionKey = createPartitionKey(warehouseId, districtId);
+    Key start = new Key(OrderLine.KEY_ORDER_ID, orderIdStart);
+    Key end = new Key(OrderLine.KEY_ORDER_ID, orderIdEnd);
+    return new Scan(partitionKey).forTable(TABLE_NAME).withStart(start).withEnd(end);
   }
 }

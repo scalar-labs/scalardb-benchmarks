@@ -93,8 +93,8 @@ public class Warehouse extends TpccRecord {
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId) {
-    Key parttionkey = createPartitionKey(warehouseId);
-    return new Get(parttionkey).forTable(TABLE_NAME);
+    Key partitionKey = createPartitionKey(warehouseId);
+    return new Get(partitionKey).forTable(TABLE_NAME);
   }
 
   /**
@@ -104,8 +104,8 @@ public class Warehouse extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key parttionkey = createPartitionKey();
+    Key partitionKey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
-    return new Put(parttionkey).forTable(TABLE_NAME).withValues(values);
+    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
   }
 }
