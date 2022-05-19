@@ -18,23 +18,28 @@ import java.util.concurrent.TimeUnit;
 public class TpccRunner {
   private final DistributedTransactionManager manager;
   private final TpccConfig config;
-  private final TpccTransaction newOrder = new NewOrderTransaction();
-  private final TpccTransaction payment = new PaymentTransaction();
-  private final TpccTransaction orderStatus = new OrderStatusTransaction();
-  private final TpccTransaction delivery = new DeliveryTransaction();
-  private final TpccTransaction stockLevel = new StockLevelTransaction();
-  private final Map<Type, TpccTransaction> transactionMap =
-      ImmutableMap.<Type, TpccTransaction>builder()
-      .put(Type.NEW_ORDER, newOrder)
-      .put(Type.PAYMENT, payment)
-      .put(Type.ORDER_STATUS, orderStatus)
-      .put(Type.DELIVERY, delivery)
-      .put(Type.STOCK_LEVEL, stockLevel)
-      .build();
+  private final TpccTransaction newOrder;
+  private final TpccTransaction payment;
+  private final TpccTransaction orderStatus;
+  private final TpccTransaction delivery;
+  private final TpccTransaction stockLevel;
+  private final Map<Type, TpccTransaction> transactionMap;
 
   public TpccRunner(DistributedTransactionManager m, TpccConfig c) {
     manager = m;
     config = c;
+    newOrder = new NewOrderTransaction(c);
+    payment = new PaymentTransaction(c);
+    orderStatus = new OrderStatusTransaction(c);
+    delivery = new DeliveryTransaction(c);
+    stockLevel = new StockLevelTransaction(c);
+    transactionMap = ImmutableMap.<Type, TpccTransaction>builder()
+        .put(Type.NEW_ORDER, newOrder)
+        .put(Type.PAYMENT, payment)
+        .put(Type.ORDER_STATUS, orderStatus)
+        .put(Type.DELIVERY, delivery)
+        .put(Type.STOCK_LEVEL, stockLevel)
+        .build();
   }
 
   public enum Type {
@@ -69,7 +74,7 @@ public class TpccRunner {
   public void run() throws TransactionException {
     Type type = decideType();
     TpccTransaction tx = transactionMap.get(type);
-    tx.generate(config.getNumWarehouse());
+    tx.generate();
     while (true) {
       try {
         tx.execute(manager);

@@ -3,6 +3,7 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Result;
+import com.scalar.db.benchmarks.tpcc.TpccConfig;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
 import com.scalar.db.benchmarks.tpcc.table.NewOrder;
@@ -15,17 +16,21 @@ import java.util.List;
 import java.util.Optional;
 
 public class DeliveryTransaction implements TpccTransaction {
+  private final TpccConfig config;
   private int warehouseId;
   private int carrierId;
   private Date deliveryDate;
 
+  public DeliveryTransaction(TpccConfig c) {
+    config = c;
+  }
+
   /**
    * Generates arguments for the delivery transaction.
-   * 
-   * @param numWarehouse a number of warehouse
    */
   @Override
-  public void generate(int numWarehouse) {
+  public void generate() {
+    int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     carrierId = TpccUtil.randomInt(1, 10);
     deliveryDate = new Date();

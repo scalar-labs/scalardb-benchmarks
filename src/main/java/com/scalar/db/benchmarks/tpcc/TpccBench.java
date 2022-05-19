@@ -123,6 +123,13 @@ public class TpccBench implements Callable<Integer> {
   private int backoff;
 
   @CommandLine.Option(
+      names = {"--verbose"},
+      paramLabel = "VERBOSE",
+      defaultValue = "false",
+      description = "Show verbose error messages.")
+  boolean verbose;
+
+  @CommandLine.Option(
       names = {"-h", "--help"},
       usageHelp = true,
       description = "display the help message.")
@@ -203,6 +210,9 @@ public class TpccBench implements Callable<Integer> {
               latencyTotal.addAndGet(eachEnd - eachStart);
             }
           } catch (TransactionException e) {
+            if (verbose) {
+              e.printStackTrace();
+            }
             errorCounter.incrementAndGet();
           }
         }

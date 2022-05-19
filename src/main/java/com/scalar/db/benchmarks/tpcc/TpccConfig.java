@@ -11,6 +11,7 @@ public class TpccConfig {
   private final int rateStockLevel;
   private final int numWarehouse;
   private final int backoff;
+  private final boolean isNpOnly;
 
   /**
    * Constructs a {@code TpccConfig} with the specified {@link TpccConfig.Builder}.
@@ -25,6 +26,7 @@ public class TpccConfig {
     this.rateStockLevel = builder.rateStockLevel;
     this.numWarehouse = builder.numWarehouse;
     this.backoff = builder.backoff;
+    this.isNpOnly = builder.isNpOnly;
   }
 
   public int getRateNewOrder() {
@@ -55,6 +57,10 @@ public class TpccConfig {
     return backoff;
   }
 
+  public boolean isNpOnly() {
+    return isNpOnly;
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -67,6 +73,7 @@ public class TpccConfig {
     private int rateStockLevel;
     private int numWarehouse;
     private int backoff;
+    private boolean isNpOnly;
 
     private Builder() {
       rateNewOrder = 45;
@@ -76,6 +83,7 @@ public class TpccConfig {
       rateStockLevel = 4;
       numWarehouse = 1;
       backoff = 0;
+      isNpOnly = false;
     }
 
     public Builder fullMix() {
@@ -140,6 +148,9 @@ public class TpccConfig {
       int total = rateNewOrder + ratePayment + rateOrderStatus + rateDelivery + rateStockLevel;
       if (total != 100) {
         throw new IllegalStateException("Total rate must be 100.");
+      }
+      if (rateNewOrder == ratePayment) {
+        isNpOnly = true;
       }
       return new TpccConfig(this);
     }

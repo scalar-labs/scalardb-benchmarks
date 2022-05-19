@@ -3,6 +3,7 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Result;
+import com.scalar.db.benchmarks.tpcc.TpccConfig;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.District;
 import com.scalar.db.benchmarks.tpcc.table.Item;
@@ -16,17 +17,21 @@ import java.util.Optional;
 import java.util.Set;
 
 public class StockLevelTransaction implements TpccTransaction {
+  private final TpccConfig config;
   private int warehouseId;
   private int districtId;
   private int threshold;
 
+  public StockLevelTransaction(TpccConfig c) {
+    config = c;
+  }
+
   /**
    * Generates arguments for the stock-level transaction.
-   * 
-   * @param numWarehouse a number of warehouse
    */
   @Override
-  public void generate(int numWarehouse) {
+  public void generate() {
+    int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
     threshold = TpccUtil.randomInt(10, 20);

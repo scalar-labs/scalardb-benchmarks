@@ -3,6 +3,7 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Result;
+import com.scalar.db.benchmarks.tpcc.TpccConfig;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
 import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
@@ -16,19 +17,23 @@ import java.util.List;
 import java.util.Optional;
 
 public class OrderStatusTransaction implements TpccTransaction {
+  private final TpccConfig config;
   private int warehouseId;
   private int districtId;
   private int customerId;
   private boolean byLastName;
   private String lastName;
 
+  public OrderStatusTransaction(TpccConfig c) {
+    config = c;
+  }
+
   /**
    * Generates arguments for the order-status transaction.
-   * 
-   * @param numWarehouse a number of warehouse
    */
   @Override
-  public void generate(int numWarehouse) {
+  public void generate() {
+    int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
     byLastName = TpccUtil.randomInt(1, 100) <= 60;
