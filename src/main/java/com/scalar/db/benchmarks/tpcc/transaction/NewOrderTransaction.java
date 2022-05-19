@@ -156,7 +156,7 @@ public class NewOrderTransaction implements TpccTransaction {
             quantity * itemPrice * (1.0 + warehouseTax + districtTax) * (1.0 - discount);
 
         // Get and update stock
-        result = tx.get(Stock.createGet(warehouseId, itemId));
+        result = tx.get(Stock.createGet(supplyWarehouseId, itemId));
         if (!result.isPresent()) {
           throw new TransactionException("Stock not found");
         }

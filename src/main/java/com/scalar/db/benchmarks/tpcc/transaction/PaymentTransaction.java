@@ -128,7 +128,7 @@ public class PaymentTransaction implements TpccTransaction {
         customerId =
             results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
       }
-      result = tx.get(Customer.createGet(warehouseId, districtId, customerId));
+      result = tx.get(Customer.createGet(customerWarehouseId, customerDistrictId, customerId));
       if (!result.isPresent()) {
         throw new TransactionException("Customer not found");
       }
@@ -143,7 +143,7 @@ public class PaymentTransaction implements TpccTransaction {
         data = generateCustomerData(warehouseId, districtId, customerId,
             customerWarehouseId, customerDistrictId, paymentAmount, data);
       }
-      Customer customer = new Customer(warehouseId, districtId, customerId,
+      Customer customer = new Customer(customerWarehouseId, customerDistrictId, customerId,
           balance, ytdPayment, count, data);
       tx.put(customer.createPut());
 
