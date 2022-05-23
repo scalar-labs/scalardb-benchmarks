@@ -3,6 +3,7 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Result;
+import com.scalar.db.benchmarks.tpcc.TpccConfig;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
 import com.scalar.db.benchmarks.tpcc.table.District;
@@ -18,6 +19,7 @@ import java.util.Date;
 import java.util.Optional;
 
 public class NewOrderTransaction implements TpccTransaction {
+  private final TpccConfig config;
   private int warehouseId;
   private int districtId;
   private int customerId;
@@ -28,13 +30,16 @@ public class NewOrderTransaction implements TpccTransaction {
   private boolean remote;
   private Date date;
 
+  public NewOrderTransaction(TpccConfig c) {
+    config = c;
+  }
+
   /**
    * Generates arguments for the new-order transaction.
-   * 
-   * @param numWarehouse a number of warehouse
    */
   @Override
-  public void generate(int numWarehouse) {
+  public void generate() {
+    int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
     customerId = TpccUtil.getCustomerId();
@@ -133,12 +138,17 @@ public class NewOrderTransaction implements TpccTransaction {
       // Insert order
       Order order = new Order(warehouseId, districtId, orderId, customerId, 0, orderLineCount,
           remote ? 0 : 1, date);
+      if (!config.useTableIndex()) {
+        order.buildIndexColumn();
+      }
       tx.put(order.createPut());
 
       // Insert order's secondary index
-      OrderSecondary orderSecondary
-          = new OrderSecondary(warehouseId, districtId, customerId, orderId);
-      tx.put(orderSecondary.createPut());
+      if (!config.isNpOnly() && config.useTableIndex()) {
+        OrderSecondary orderSecondary
+            = new OrderSecondary(warehouseId, districtId, customerId, orderId);
+        tx.put(orderSecondary.createPut());
+      }
 
       // Insert order-line
       for (int orderLineNumber = 1; orderLineNumber <= orderLineCount; orderLineNumber++) {
@@ -156,7 +166,7 @@ public class NewOrderTransaction implements TpccTransaction {
             quantity * itemPrice * (1.0 + warehouseTax + districtTax) * (1.0 - discount);
 
         // Get and update stock
-        result = tx.get(Stock.createGet(warehouseId, itemId));
+        result = tx.get(Stock.createGet(supplyWarehouseId, itemId));
         if (!result.isPresent()) {
           throw new TransactionException("Stock not found");
         }

@@ -64,7 +64,6 @@ public class TpccLoader implements Callable<Integer> {
   @CommandLine.Option(
       names = {"--directory"},
       paramLabel = "CSV_DIRECTORY",
-      defaultValue = "./",
       description = "A directory that contains csv files.")
   private String directory;
 
@@ -74,6 +73,13 @@ public class TpccLoader implements Callable<Integer> {
       defaultValue = "1",
       description = "The number of threads to run.")
   private int numThreads;
+
+  @CommandLine.Option(
+      names = {"--use-table-index"},
+      paramLabel = "USE_TABLE_INDEX",
+      defaultValue = "false",
+      description = "Use table-based secondary index.")
+  private boolean useTableIndex;
 
   @CommandLine.Option(
       names = {"-h", "--help"},
@@ -170,11 +176,15 @@ public class TpccLoader implements Callable<Integer> {
       Customer customer = new Customer(warehouseId, districtId, customerId, date);
       String last = customer.getLastName();
       String first = customer.getFirstName();
+      // customer_secondary
+      if (useTableIndex) {
+        queue.put(new CustomerSecondary(warehouseId, districtId, last, first, customerId));
+        counter.incrementAndGet();
+      } else {
+        customer.buildIndexColumn();
+      }
       // customer
       queue.put(customer);
-      counter.incrementAndGet();
-      // customer_secondary
-      queue.put(new CustomerSecondary(warehouseId, districtId, last, first, customerId));
       counter.incrementAndGet();
       // history
       queue.put(new History(customerId, districtId, warehouseId, districtId, warehouseId, date));
@@ -194,13 +204,14 @@ public class TpccLoader implements Callable<Integer> {
     for (int orderId = 1; orderId <= District.ORDERS; orderId++) {
       int customerId = permutation[orderId - 1];
       Order order = new Order(warehouseId, districtId, orderId, customerId, date);
-      OrderSecondary orderSecondary
-          = new OrderSecondary(warehouseId, districtId, customerId, orderId);
-
       // order & order-secondary
+      if (useTableIndex) {
+        queue.put(new OrderSecondary(warehouseId, districtId, customerId, orderId));
+        counter.incrementAndGet();
+      } else {
+        order.buildIndexColumn();
+      }
       queue.put(order);
-      counter.incrementAndGet();
-      queue.put(orderSecondary);
       counter.incrementAndGet();
       int orderLineCount = order.getOrderLineCount();
       for (int number = 1; number <= orderLineCount; number++) {
@@ -310,7 +321,11 @@ public class TpccLoader implements Callable<Integer> {
       for (CSVRecord record : parser) {
         switch (file.getName()) {
           case CUSTOMER:
-            queue.put(new Customer(record));
+            Customer customer = new Customer(record);
+            if (!useTableIndex) {
+              customer.buildIndexColumn();
+            }
+            queue.put(customer);
             break;
           case CUSTOMER_SECONDARY:
             queue.put(new CustomerSecondary(record));

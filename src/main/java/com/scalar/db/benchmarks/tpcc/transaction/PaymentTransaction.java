@@ -3,18 +3,18 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Result;
+import com.scalar.db.benchmarks.tpcc.TpccConfig;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
-import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
 import com.scalar.db.benchmarks.tpcc.table.District;
 import com.scalar.db.benchmarks.tpcc.table.History;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.exception.transaction.TransactionException;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 public class PaymentTransaction implements TpccTransaction {
+  private final TpccConfig config;
   private int warehouseId;
   private int districtId;
   private int customerId;
@@ -25,13 +25,16 @@ public class PaymentTransaction implements TpccTransaction {
   private float paymentAmount;
   private Date date;
 
+  public PaymentTransaction(TpccConfig c) {
+    config = c;
+  }
+
   /**
    * Generates arguments for the payment transaction.
-   * 
-   * @param numWarehouse a number of warehouse
    */
   @Override
-  public void generate(int numWarehouse) {
+  public void generate() {
+    int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
     paymentAmount = (float) (TpccUtil.randomInt(100, 500000) / 100.0);
@@ -122,13 +125,15 @@ public class PaymentTransaction implements TpccTransaction {
 
       // Get and update customer
       if (byLastName) {
-        List<Result> results = tx.scan(
-            CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
-        int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
-        customerId =
-            results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
+        if (config.useTableIndex()) {
+          customerId = TpccUtil.getCustomerIdByTableIndex(
+              tx, warehouseId, districtId, customerLastName);
+        } else {
+          customerId = TpccUtil.getCustomerIdBySecondaryIndex(
+              tx, warehouseId, districtId, customerLastName);
+        }
       }
-      result = tx.get(Customer.createGet(warehouseId, districtId, customerId));
+      result = tx.get(Customer.createGet(customerWarehouseId, customerDistrictId, customerId));
       if (!result.isPresent()) {
         throw new TransactionException("Customer not found");
       }
@@ -143,7 +148,7 @@ public class PaymentTransaction implements TpccTransaction {
         data = generateCustomerData(warehouseId, districtId, customerId,
             customerWarehouseId, customerDistrictId, paymentAmount, data);
       }
-      Customer customer = new Customer(warehouseId, districtId, customerId,
+      Customer customer = new Customer(customerWarehouseId, customerDistrictId, customerId,
           balance, ytdPayment, count, data);
       tx.put(customer.createPut());
 

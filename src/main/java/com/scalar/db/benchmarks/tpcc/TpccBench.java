@@ -123,6 +123,20 @@ public class TpccBench implements Callable<Integer> {
   private int backoff;
 
   @CommandLine.Option(
+      names = {"--use-table-index"},
+      paramLabel = "USE_TABLE_INDEX",
+      defaultValue = "false",
+      description = "Use table-based secondary index.")
+  private boolean useTableIndex;
+
+  @CommandLine.Option(
+      names = {"--verbose"},
+      paramLabel = "VERBOSE",
+      defaultValue = "false",
+      description = "Show verbose error messages.")
+  boolean verbose;
+
+  @CommandLine.Option(
       names = {"-h", "--help"},
       usageHelp = true,
       description = "display the help message.")
@@ -151,12 +165,14 @@ public class TpccBench implements Callable<Integer> {
           .numWarehouse(numWarehouse)
           .fullMix()
           .backoff(backoff)
+          .useTableIndex(useTableIndex)
           .build();
     } else if (mode.npOnly) {
       config = TpccConfig.newBuilder()
           .numWarehouse(numWarehouse)
           .npOnly()
           .backoff(backoff)
+          .useTableIndex(useTableIndex)
           .build();
     } else {
       config = TpccConfig.newBuilder()
@@ -166,6 +182,7 @@ public class TpccBench implements Callable<Integer> {
           .rateOrderStatus(mode.rate.orderStatus)
           .rateDelivery(mode.rate.delivery)
           .rateStockLevel(mode.rate.stockLevel)
+          .useTableIndex(useTableIndex)
           .backoff(backoff)
           .build();
     }
@@ -203,6 +220,9 @@ public class TpccBench implements Callable<Integer> {
               latencyTotal.addAndGet(eachEnd - eachStart);
             }
           } catch (TransactionException e) {
+            if (verbose) {
+              e.printStackTrace();
+            }
             errorCounter.incrementAndGet();
           }
         }

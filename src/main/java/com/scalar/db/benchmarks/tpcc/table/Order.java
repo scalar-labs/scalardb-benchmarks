@@ -2,6 +2,8 @@ package com.scalar.db.benchmarks.tpcc.table;
 
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Result;
+import com.scalar.db.api.Scan;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
@@ -9,6 +11,7 @@ import com.scalar.db.io.Value;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,6 +28,13 @@ public class Order extends TpccRecord {
   public static final String KEY_OL_CNT = "o_ol_cnt";
   public static final String KEY_ALL_LOCAL = "o_all_local";
   public static final String KEY_ENTRY_D = "o_entry_d";
+  public static final String KEY_INDEX = "o_index";
+
+  public static final Comparator<Result> ORDER_ID_COMPARATOR = (a, b) -> {
+    Integer valueA = a.getValue(KEY_ID).get().getAsInt();
+    Integer valueB = b.getValue(KEY_ID).get().getAsInt();
+    return -valueA.compareTo(valueB);
+  };
 
   /**
    * Constructs a {@code Order} with a carrier ID for update.
@@ -156,6 +166,22 @@ public class Order extends TpccRecord {
     return new Key(KEY_ID, orderId);
   }
 
+  private static String createIndexString(int warehouseId, int districtId, int customerId) {
+    return String.format("%05d", warehouseId)
+        + String.format("%03d", districtId)
+        + String.format("%05d", customerId);
+  }
+
+  /**
+   * Creates a {@code Scan} object.
+   *
+   * @return a {@code Scan} object
+   */
+  public static Scan createScan(int warehouseId, int districtId, int customerId) {
+    Key key = new Key(KEY_INDEX, createIndexString(warehouseId, districtId, customerId));
+    return new Scan(key).forTable(TABLE_NAME);
+  }
+
   /**
    * Creates a {@code Get} object.
    */
@@ -176,6 +202,17 @@ public class Order extends TpccRecord {
     Key clusteringKey = createClusteringKey();
     ArrayList<Value<?>> values = createValues();
     return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+  }
+
+  /**
+   * Builds a column for secondary index.
+   */
+  public void buildIndexColumn() {
+    int warehouseId = (int)partitionKeyMap.get(KEY_WAREHOUSE_ID);
+    int districtId = (int)partitionKeyMap.get(KEY_DISTRICT_ID);
+    int customerId = (int)valueMap.get(KEY_CUSTOMER_ID);
+    String index = createIndexString(warehouseId, districtId, customerId);
+    valueMap.put(KEY_INDEX, index);
   }
 
   public int getOrderLineCount() {

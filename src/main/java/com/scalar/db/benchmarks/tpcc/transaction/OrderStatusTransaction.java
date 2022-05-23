@@ -3,9 +3,9 @@ package com.scalar.db.benchmarks.tpcc.transaction;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Result;
+import com.scalar.db.benchmarks.tpcc.TpccConfig;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
-import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
 import com.scalar.db.benchmarks.tpcc.table.Order;
 import com.scalar.db.benchmarks.tpcc.table.OrderLine;
 import com.scalar.db.benchmarks.tpcc.table.OrderSecondary;
@@ -16,19 +16,40 @@ import java.util.List;
 import java.util.Optional;
 
 public class OrderStatusTransaction implements TpccTransaction {
+  private final TpccConfig config;
   private int warehouseId;
   private int districtId;
   private int customerId;
   private boolean byLastName;
   private String lastName;
 
+  public OrderStatusTransaction(TpccConfig c) {
+    config = c;
+  }
+
+  private int getOrderIdBySecondaryIndex(DistributedTransaction tx) throws TransactionException {
+    List<Result> results = tx.scan(Order.createScan(warehouseId, districtId, customerId));
+    if (results.size() < 1) {
+      throw new TransactionException("Invalid scan on order-secondary");
+    }
+    results.sort(Order.ORDER_ID_COMPARATOR);
+    return results.get(0).getValue(Order.KEY_ID).get().getAsInt();
+  }
+
+  private int getOrderIdByTableIndex(DistributedTransaction tx) throws TransactionException {
+    List<Result> results = tx.scan(OrderSecondary.createScan(warehouseId, districtId, customerId));
+    if (results.size() != 1) {
+      throw new TransactionException("Invalid scan on order-secondary");
+    }
+    return results.get(0).getValue(OrderSecondary.KEY_ORDER_ID).get().getAsInt();
+  }
+
   /**
    * Generates arguments for the order-status transaction.
-   * 
-   * @param numWarehouse a number of warehouse
    */
   @Override
-  public void generate(int numWarehouse) {
+  public void generate() {
+    int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
     byLastName = TpccUtil.randomInt(1, 100) <= 60;
@@ -51,12 +72,13 @@ public class OrderStatusTransaction implements TpccTransaction {
 
     try {
       if (byLastName) {
-        // Get customer ID by last name      
-        List<Result> results = tx.scan(
-            CustomerSecondary.createScan(warehouseId, districtId, lastName));
-        int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
-        customerId =
-            results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
+        if (config.useTableIndex()) {
+          customerId = TpccUtil.getCustomerIdByTableIndex(
+              tx, warehouseId, districtId, lastName);
+        } else {
+          customerId = TpccUtil.getCustomerIdBySecondaryIndex(
+              tx, warehouseId, districtId, lastName);
+        }
       }
 
       // Get customer
@@ -66,11 +88,12 @@ public class OrderStatusTransaction implements TpccTransaction {
       }
 
       // Find the last order of the customer
-      List<Result> orders = tx.scan(OrderSecondary.createScan(warehouseId, districtId, customerId));
-      if (orders.size() != 1) {
-        throw new TransactionException("Invalid scan on order-secondary");
+      int orderId;
+      if (config.useTableIndex()) {
+        orderId = getOrderIdByTableIndex(tx);
+      } else {
+        orderId = getOrderIdBySecondaryIndex(tx);
       }
-      int orderId = orders.get(0).getValue(OrderSecondary.KEY_ORDER_ID).get().getAsInt();
 
       // Get order
       result = tx.get(Order.createGet(warehouseId, districtId, orderId));
