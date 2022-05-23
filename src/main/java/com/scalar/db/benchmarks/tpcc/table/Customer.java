@@ -2,6 +2,8 @@ package com.scalar.db.benchmarks.tpcc.table;
 
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Result;
+import com.scalar.db.api.Scan;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
@@ -9,6 +11,7 @@ import com.scalar.db.io.Value;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -39,6 +42,7 @@ public class Customer extends TpccRecord {
   public static final String KEY_PHONE = "c_phone";
   public static final String KEY_SINCE = "c_since";
   public static final String KEY_DATA = "c_data";
+  public static final String KEY_INDEX = "c_index";
 
   public static final int UNUSED_ID = 0;
   public static final int MIN_FIRST = 8;
@@ -46,6 +50,12 @@ public class Customer extends TpccRecord {
   public static final int MIN_DATA = 300;
   public static final int MAX_DATA = 500;
   public static final int PHONE_SIZE = 16;
+
+  public static final Comparator<Result> FIRST_NAME_COMPARATOR = (a, b) -> {
+    String firstNameA = a.getValue(KEY_FIRST).get().getAsString().get();
+    String firstNameB = b.getValue(KEY_FIRST).get().getAsString().get();
+    return firstNameA.compareTo(firstNameB);
+  };
 
   /**
    * Constructs a {@code Customer} for payment transaction.
@@ -172,6 +182,22 @@ public class Customer extends TpccRecord {
     return new Key(keys);
   }
 
+  private static String createIndexString(int warehouseId, int districtId, String lastName) {
+    return String.format("%05d", warehouseId)
+        + String.format("%03d", districtId)
+        + lastName;
+  }
+
+  /**
+   * Creates a {@code Scan} object.
+   *
+   * @return a {@code Scan} object
+   */
+  public static Scan createScan(int warehouseId, int districtId, String lastName) {
+    Key key = new Key(KEY_INDEX, createIndexString(warehouseId, districtId, lastName));
+    return new Scan(key).forTable(TABLE_NAME);
+  }
+
   /**
    * Creates a {@code Get} object.
    * 
@@ -195,6 +221,17 @@ public class Customer extends TpccRecord {
     Key partitionKey = createPartitionKey();
     ArrayList<Value<?>> values = createValues();
     return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
+  }
+
+  /**
+   * Builds a column for secondary index.
+   */
+  public void buildIndexColumn() {
+    int warehouseId = (int)partitionKeyMap.get(KEY_WAREHOUSE_ID);
+    int districtId = (int)partitionKeyMap.get(KEY_DISTRICT_ID);
+    String lastName = (String)valueMap.get(KEY_LAST);
+    String index = createIndexString(warehouseId, districtId, lastName);
+    valueMap.put(KEY_INDEX, index);
   }
 
   public String getFirstName() {

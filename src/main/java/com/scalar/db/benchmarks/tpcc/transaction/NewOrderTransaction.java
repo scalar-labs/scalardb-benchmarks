@@ -138,10 +138,13 @@ public class NewOrderTransaction implements TpccTransaction {
       // Insert order
       Order order = new Order(warehouseId, districtId, orderId, customerId, 0, orderLineCount,
           remote ? 0 : 1, date);
+      if (!config.useTableIndex()) {
+        order.buildIndexColumn();
+      }
       tx.put(order.createPut());
 
       // Insert order's secondary index
-      if (!config.isNpOnly()) {
+      if (!config.isNpOnly() && config.useTableIndex()) {
         OrderSecondary orderSecondary
             = new OrderSecondary(warehouseId, districtId, customerId, orderId);
         tx.put(orderSecondary.createPut());

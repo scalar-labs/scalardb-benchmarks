@@ -1,7 +1,13 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import com.scalar.db.api.DistributedTransaction;
+import com.scalar.db.api.Result;
+import com.scalar.db.benchmarks.tpcc.table.Customer;
+import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
 import com.scalar.db.benchmarks.tpcc.table.District;
 import com.scalar.db.benchmarks.tpcc.table.Item;
+import com.scalar.db.exception.transaction.TransactionException;
+import java.util.List;
 import java.util.Random;
 
 public class TpccUtil {
@@ -16,6 +22,42 @@ public class TpccUtil {
   public static final int CUSTOMER_LASTNAME_IN_RUN = 150;
   public static final int CUSTOMER_ID = 987;
   public static final int ORDER_LINE_ITEM_ID = 5987;
+
+  /**
+   * Returns a customer ID by scanning Customer table using secondary index.
+   *
+   * @param tx a {@code DistributedTransaction} object
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerLastName a {@code String} of customer last name
+   * @return a customer ID
+   * @throws TransactionException if the scan failed
+   */
+  public static int getCustomerIdBySecondaryIndex(DistributedTransaction tx,
+      int warehouseId, int districtId, String customerLastName) throws TransactionException {
+    List<Result> results = tx.scan(Customer.createScan(warehouseId, districtId, customerLastName));
+    results.sort(Customer.FIRST_NAME_COMPARATOR);
+    int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
+    return results.get(offset).getValue(Customer.KEY_ID).get().getAsInt();
+  }
+
+  /**
+   * Returns a customer ID by scanning CustomerSecondary table.
+   *
+   * @param tx a {@code DistributedTransaction} object
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerLastName a {@code String} of customer last name
+   * @return a customer ID
+   * @throws TransactionException if the scan failed
+   */
+  public static int getCustomerIdByTableIndex(DistributedTransaction tx,
+      int warehouseId, int districtId, String customerLastName) throws TransactionException {
+    List<Result> results = tx.scan(
+        CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
+    int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
+    return results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
+  }
 
   /**
    * Returns a customer ID for transaction arguments.

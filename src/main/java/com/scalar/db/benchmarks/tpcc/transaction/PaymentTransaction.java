@@ -6,13 +6,11 @@ import com.scalar.db.api.Result;
 import com.scalar.db.benchmarks.tpcc.TpccConfig;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
-import com.scalar.db.benchmarks.tpcc.table.CustomerSecondary;
 import com.scalar.db.benchmarks.tpcc.table.District;
 import com.scalar.db.benchmarks.tpcc.table.History;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.exception.transaction.TransactionException;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 public class PaymentTransaction implements TpccTransaction {
@@ -127,11 +125,13 @@ public class PaymentTransaction implements TpccTransaction {
 
       // Get and update customer
       if (byLastName) {
-        List<Result> results = tx.scan(
-            CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
-        int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
-        customerId =
-            results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
+        if (config.useTableIndex()) {
+          customerId = TpccUtil.getCustomerIdByTableIndex(
+              tx, warehouseId, districtId, customerLastName);
+        } else {
+          customerId = TpccUtil.getCustomerIdBySecondaryIndex(
+              tx, warehouseId, districtId, customerLastName);
+        }
       }
       result = tx.get(Customer.createGet(customerWarehouseId, customerDistrictId, customerId));
       if (!result.isPresent()) {

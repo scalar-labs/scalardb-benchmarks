@@ -12,6 +12,7 @@ public class TpccConfig {
   private final int numWarehouse;
   private final int backoff;
   private final boolean isNpOnly;
+  private final boolean useTableIndex;
 
   /**
    * Constructs a {@code TpccConfig} with the specified {@link TpccConfig.Builder}.
@@ -27,6 +28,7 @@ public class TpccConfig {
     this.numWarehouse = builder.numWarehouse;
     this.backoff = builder.backoff;
     this.isNpOnly = builder.isNpOnly;
+    this.useTableIndex = builder.useTableIndex;
   }
 
   public int getRateNewOrder() {
@@ -61,6 +63,10 @@ public class TpccConfig {
     return isNpOnly;
   }
 
+  public boolean useTableIndex() {
+    return useTableIndex;
+  }
+
   public static Builder newBuilder() {
     return new Builder();
   }
@@ -74,6 +80,7 @@ public class TpccConfig {
     private int numWarehouse;
     private int backoff;
     private boolean isNpOnly;
+    private boolean useTableIndex;
 
     private Builder() {
       rateNewOrder = 45;
@@ -84,6 +91,7 @@ public class TpccConfig {
       numWarehouse = 1;
       backoff = 0;
       isNpOnly = false;
+      useTableIndex = false;
     }
 
     public Builder fullMix() {
@@ -136,6 +144,11 @@ public class TpccConfig {
 
     public Builder backoff(int backoff) {
       this.backoff = backoff;
+      return this;
+    }
+
+    public Builder useTableIndex(boolean useTableIndex) {
+      this.useTableIndex = useTableIndex;
       return this;
     }
 
