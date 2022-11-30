@@ -36,6 +36,7 @@ public class TpccBench implements Callable<Integer> {
   private int numWarehouse;
 
   static class Rate {
+
     @CommandLine.Option(
         names = {"--rate-new-order"},
         paramLabel = "RATE_NEW_ORDER",
@@ -73,6 +74,7 @@ public class TpccBench implements Callable<Integer> {
   }
 
   static class Mode {
+
     @CommandLine.Option(
         names = {"--np-only"},
         paramLabel = "NP_ONLY",

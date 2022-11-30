@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class Order extends TpccRecord {
+
   public static final String TABLE_NAME = "oorder";
   public static final String COLUMN_PREFIX = "o_";
   public static final String KEY_WAREHOUSE_ID = "o_w_id";
@@ -40,9 +41,9 @@ public class Order extends TpccRecord {
    * Constructs a {@code Order} with a carrier ID for update.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param orderId an order ID
-   * @param carrierId a carrier ID
+   * @param districtId  a district ID
+   * @param orderId     an order ID
+   * @param carrierId   a carrier ID
    */
   public Order(int warehouseId, int districtId, int orderId, int carrierId) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -60,13 +61,13 @@ public class Order extends TpccRecord {
    * Constructs a {@code Order} with specified parameters for insert.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param orderId an order ID
-   * @param customerId a customer ID
-   * @param carrierId a carrier ID
-   * @param number number of order lines
-   * @param local 1 if the order includes only home order lines, 0 otherwise
-   * @param date entry date of this order
+   * @param districtId  a district ID
+   * @param orderId     an order ID
+   * @param customerId  a customer ID
+   * @param carrierId   a carrier ID
+   * @param number      number of order lines
+   * @param local       1 if the order includes only home order lines, 0 otherwise
+   * @param date        entry date of this order
    */
   public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
       int number, int local, Date date) {
@@ -89,10 +90,10 @@ public class Order extends TpccRecord {
    * Constructs a {@code Order} with data generation.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param orderId an order ID
-   * @param customerId a customer ID
-   * @param date entry date of this order
+   * @param districtId  a district ID
+   * @param orderId     an order ID
+   * @param customerId  a customer ID
+   * @param date        entry date of this order
    */
   public Order(int warehouseId, int districtId, int orderId, int customerId, Date date) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -117,7 +118,7 @@ public class Order extends TpccRecord {
 
   /**
    * Constructs a {@code Order} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public Order(CSVRecord record) throws ParseException {
@@ -144,9 +145,9 @@ public class Order extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
+   * @param districtId  a district ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
@@ -158,7 +159,7 @@ public class Order extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
-   * 
+   *
    * @param orderId an order ID
    * @return a {@code Key} object
    */
@@ -208,14 +209,14 @@ public class Order extends TpccRecord {
    * Builds a column for secondary index.
    */
   public void buildIndexColumn() {
-    int warehouseId = (int)partitionKeyMap.get(KEY_WAREHOUSE_ID);
-    int districtId = (int)partitionKeyMap.get(KEY_DISTRICT_ID);
-    int customerId = (int)valueMap.get(KEY_CUSTOMER_ID);
+    int warehouseId = (int) partitionKeyMap.get(KEY_WAREHOUSE_ID);
+    int districtId = (int) partitionKeyMap.get(KEY_DISTRICT_ID);
+    int customerId = (int) valueMap.get(KEY_CUSTOMER_ID);
     String index = createIndexString(warehouseId, districtId, customerId);
     valueMap.put(KEY_INDEX, index);
   }
 
   public int getOrderLineCount() {
-    return (Integer)valueMap.get(KEY_OL_CNT);
+    return (Integer) valueMap.get(KEY_OL_CNT);
   }
 }

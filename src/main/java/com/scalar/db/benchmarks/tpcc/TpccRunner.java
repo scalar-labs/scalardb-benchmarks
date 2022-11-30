@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TpccRunner {
+
   private final DistributedTransactionManager manager;
   private final TpccConfig config;
   private final TpccTransaction newOrder;
@@ -73,7 +74,8 @@ public class TpccRunner {
   /**
    * Runs a TPC-C transaction.
    */
-  public void run(AtomicBoolean isRunning, AtomicInteger errorCounter) throws TransactionException {
+  public void run(AtomicBoolean isRunning, AtomicInteger errorCounter)
+      throws TransactionException {
     Type type = decideType();
     TpccTransaction tx = transactionMap.get(type);
     tx.generate();

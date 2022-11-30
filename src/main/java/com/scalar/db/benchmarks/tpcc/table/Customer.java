@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class Customer extends TpccRecord {
+
   public static final String TABLE_NAME = "customer";
   public static final String COLUMN_PREFIX = "c_";
   public static final String KEY_WAREHOUSE_ID = "c_w_id";
@@ -60,13 +61,13 @@ public class Customer extends TpccRecord {
   /**
    * Constructs a {@code Customer} for payment transaction.
    *
-   * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param customerId a customer ID
-   * @param balance a balance of the customer
-   * @param ytdPayment a YTD payment amount
+   * @param warehouseId  a warehouse ID
+   * @param districtId   a district ID
+   * @param customerId   a customer ID
+   * @param balance      a balance of the customer
+   * @param ytdPayment   a YTD payment amount
    * @param paymentCount number of payments
-   * @param data customer data
+   * @param data         customer data
    */
   public Customer(int warehouseId, int districtId, int customerId,
       double balance, double ytdPayment, int paymentCount, String data) {
@@ -101,8 +102,8 @@ public class Customer extends TpccRecord {
    * Constructs a {@code Customer} with data generation.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param customerId a customer ID
+   * @param districtId  a district ID
+   * @param customerId  a customer ID
    */
   public Customer(int warehouseId, int districtId, int customerId, Date date) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -137,7 +138,7 @@ public class Customer extends TpccRecord {
 
   /**
    * Constructs a {@code Customer} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public Customer(CSVRecord record) throws ParseException {
@@ -159,7 +160,7 @@ public class Customer extends TpccRecord {
     valueMap.put(KEY_DELIVERY_CNT, Integer.parseInt(record.get(KEY_DELIVERY_CNT)));
     valueMap.put(KEY_ADDRESS,
         new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
-        record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
+            record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
     valueMap.put(KEY_PHONE, record.get(KEY_PHONE));
     valueMap.put(KEY_DATA, record.get(KEY_DATA));
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -168,10 +169,10 @@ public class Customer extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param customerId a customer ID
+   * @param districtId  a district ID
+   * @param customerId  a customer ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, int customerId) {
@@ -200,10 +201,10 @@ public class Customer extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
-   * 
+   *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param customerId a customer ID
+   * @param districtId  a district ID
+   * @param customerId  a customer ID
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int districtId, int customerId) {
@@ -227,18 +228,18 @@ public class Customer extends TpccRecord {
    * Builds a column for secondary index.
    */
   public void buildIndexColumn() {
-    int warehouseId = (int)partitionKeyMap.get(KEY_WAREHOUSE_ID);
-    int districtId = (int)partitionKeyMap.get(KEY_DISTRICT_ID);
-    String lastName = (String)valueMap.get(KEY_LAST);
+    int warehouseId = (int) partitionKeyMap.get(KEY_WAREHOUSE_ID);
+    int districtId = (int) partitionKeyMap.get(KEY_DISTRICT_ID);
+    String lastName = (String) valueMap.get(KEY_LAST);
     String index = createIndexString(warehouseId, districtId, lastName);
     valueMap.put(KEY_INDEX, index);
   }
 
   public String getFirstName() {
-    return (String)valueMap.get(KEY_FIRST);
+    return (String) valueMap.get(KEY_FIRST);
   }
 
   public String getLastName() {
-    return (String)valueMap.get(KEY_LAST);
+    return (String) valueMap.get(KEY_LAST);
   }
 }

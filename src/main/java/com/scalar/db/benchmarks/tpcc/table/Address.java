@@ -6,6 +6,7 @@ import com.scalar.db.io.Value;
 import java.util.ArrayList;
 
 public class Address {
+
   public static final String KEY_STREET_1 = "street_1";
   public static final String KEY_STREET_2 = "street_2";
   public static final String KEY_CITY = "city";
@@ -53,7 +54,7 @@ public class Address {
 
   /**
    * Creates an {@code ArrayList} of {@code Value<?>}.
-   * 
+   *
    * @return an {@code ArrayList} of {@code Value<?>}
    */
   public ArrayList<Value<?>> createValues() {

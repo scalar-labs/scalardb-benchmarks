@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.apache.commons.csv.CSVRecord;
 
 public class History extends TpccRecord {
+
   public static final String TABLE_NAME = "history";
   public static final String COLUMN_PREFIX = "h_";
   public static final String KEY_ID = "h_id";
@@ -31,15 +32,15 @@ public class History extends TpccRecord {
 
   /**
    * Constructs a {@code Customer} with specified parameters.
-   * 
-   * @param customerId a customer ID
-   * @param customerDistrictId customer's district ID
+   *
+   * @param customerId          a customer ID
+   * @param customerDistrictId  customer's district ID
    * @param customerWarehouseId customer's warehouse ID
-   * @param districtId a district ID
-   * @param warehouseId a warehouse ID
-   * @param date payment date
-   * @param amount payment amount
-   * @param data history data
+   * @param districtId          a district ID
+   * @param warehouseId         a warehouse ID
+   * @param date                payment date
+   * @param amount              payment amount
+   * @param data                history data
    */
   public History(int customerId, int customerDistrictId, int customerWarehouseId,
       int districtId, int warehouseId, Date date, double amount, String data) {
@@ -60,12 +61,12 @@ public class History extends TpccRecord {
   /**
    * Constructs a {@code History} with data generation.
    *
-   * @param customerId a customer ID
-   * @param customerDistrictId customer's district ID
+   * @param customerId          a customer ID
+   * @param customerDistrictId  customer's district ID
    * @param customerWarehouseId customer's warehouse ID
-   * @param districtId a district ID
-   * @param warehouseId a warehouse ID
-   * @param date payment date
+   * @param districtId          a district ID
+   * @param warehouseId         a warehouse ID
+   * @param date                payment date
    */
   public History(int customerId, int customerDistrictId, int customerWarehouseId,
       int districtId, int warehouseId, Date date) {
@@ -85,7 +86,7 @@ public class History extends TpccRecord {
 
   /**
    * Constructs a {@code History} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public History(CSVRecord record) throws ParseException {

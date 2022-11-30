@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class NewOrder extends TpccRecord {
+
   public static final String TABLE_NAME = "new_order";
   public static final String COLUMN_PREFIX = "no_";
 
@@ -23,8 +24,8 @@ public class NewOrder extends TpccRecord {
    * Constructs a {@code NewOrder}.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param orderId an order ID
+   * @param districtId  a district ID
+   * @param orderId     an order ID
    */
   public NewOrder(int warehouseId, int districtId, int orderId) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -37,7 +38,7 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Constructs a {@code NewOrder} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public NewOrder(CSVRecord record) {
@@ -51,9 +52,9 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
+   * @param districtId  a district ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
@@ -65,7 +66,7 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
-   * 
+   *
    * @param orderId an order ID
    * @return a {@code Key} object
    */

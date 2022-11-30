@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class OrderLine extends TpccRecord {
+
   public static final String TABLE_NAME = "order_line";
   public static final String COLUMN_PREFIX = "ol_";
   public static final String KEY_WAREHOUSE_ID = "ol_w_id";
@@ -35,10 +36,10 @@ public class OrderLine extends TpccRecord {
   /**
    * Constructs a {@code OrderLine} with delivery date for update.
    *
-   * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param orderId an order ID
-   * @param number an order-line number
+   * @param warehouseId  a warehouse ID
+   * @param districtId   a district ID
+   * @param orderId      an order ID
+   * @param number       an order-line number
    * @param deliveryDate district information
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number, Date deliveryDate) {
@@ -57,15 +58,15 @@ public class OrderLine extends TpccRecord {
   /**
    * Constructs a {@code OrderLine} with specified parameters for insert.
    *
-   * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param orderId an order ID
-   * @param number an order-line number
+   * @param warehouseId       a warehouse ID
+   * @param districtId        a district ID
+   * @param orderId           an order ID
+   * @param number            an order-line number
    * @param supplyWarehouseId a supplier warehouse ID in this order line
-   * @param amount amount for the item in this order line
-   * @param quantity quantity of the item in this order line
-   * @param itemId an item ID in this order line
-   * @param info district information
+   * @param amount            amount for the item in this order line
+   * @param quantity          quantity of the item in this order line
+   * @param itemId            an item ID in this order line
+   * @param info              district information
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number,
       int supplyWarehouseId, double amount, int quantity, int itemId, String info) {
@@ -89,13 +90,13 @@ public class OrderLine extends TpccRecord {
   /**
    * Constructs a {@code OrderLine} with data generation.
    *
-   * @param warehouseId a warehouse ID
-   * @param districtId a district ID
-   * @param orderId an order ID
-   * @param number an order-line number
+   * @param warehouseId       a warehouse ID
+   * @param districtId        a district ID
+   * @param orderId           an order ID
+   * @param number            an order-line number
    * @param supplyWarehouseId a supplier warehouse ID in this order line
-   * @param itemId an item ID in this order line
-   * @param date delivery date of this order
+   * @param itemId            an item ID in this order line
+   * @param date              delivery date of this order
    */
   public OrderLine(int warehouseId, int districtId, int orderId, int number,
       int supplyWarehouseId, int itemId, Date date) {
@@ -123,7 +124,7 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Constructs a {@code OrderLine} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public OrderLine(CSVRecord record) throws ParseException {
@@ -152,9 +153,9 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
-   * @param districtId a district ID
+   * @param districtId  a district ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {

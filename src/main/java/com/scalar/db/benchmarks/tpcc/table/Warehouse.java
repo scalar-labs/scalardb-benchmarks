@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class Warehouse extends TpccRecord {
+
   public static final String TABLE_NAME = "warehouse";
   public static final String COLUMN_PREFIX = "w_";
   public static final String KEY_ID = "w_id";
@@ -33,7 +34,7 @@ public class Warehouse extends TpccRecord {
    * Constructs a {@code Warehouse} with ytd.
    *
    * @param warehouseId a warehouse ID
-   * @param ytd a YTD balance
+   * @param ytd         a YTD balance
    */
   public Warehouse(int warehouseId, double ytd) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -45,7 +46,7 @@ public class Warehouse extends TpccRecord {
 
   /**
    * Constructs a {@code Warehouse} with data generation.
-   * 
+   *
    * @param warehouseId a warehouse ID
    */
   public Warehouse(int warehouseId) {
@@ -61,7 +62,7 @@ public class Warehouse extends TpccRecord {
 
   /**
    * Constructs a {@code Warehouse} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public Warehouse(CSVRecord record) {
@@ -72,14 +73,14 @@ public class Warehouse extends TpccRecord {
     valueMap.put(KEY_NAME, record.get(KEY_NAME));
     valueMap.put(KEY_ADDRESS,
         new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
-        record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
+            record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
     valueMap.put(KEY_TAX, Double.parseDouble(record.get(KEY_TAX)));
     valueMap.put(KEY_YTD, Double.parseDouble(record.get(KEY_TAX)));
   }
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @return a {@code Key} object
    */
@@ -89,7 +90,7 @@ public class Warehouse extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
-   * 
+   *
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId) {

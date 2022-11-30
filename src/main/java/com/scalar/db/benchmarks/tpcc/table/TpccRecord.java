@@ -12,21 +12,22 @@ import java.util.Date;
 import java.util.Map;
 
 public abstract class TpccRecord {
+
   public static final String NAMESPACE = "tpcc";
 
-  protected Map<String,Object> partitionKeyMap;
-  protected Map<String,Object> clusteringKeyMap;
-  protected Map<String,Object> valueMap;
+  protected Map<String, Object> partitionKeyMap;
+  protected Map<String, Object> clusteringKeyMap;
+  protected Map<String, Object> valueMap;
 
   private Value<?> createSingleValue(String key, Object object) {
     if (object instanceof Integer) {
-      return new IntValue(key, (Integer)object);
+      return new IntValue(key, (Integer) object);
     } else if (object instanceof Double) {
-      return new DoubleValue(key, (Double)object);
+      return new DoubleValue(key, (Double) object);
     } else if (object instanceof String) {
-      return new TextValue(key, (String)object);
+      return new TextValue(key, (String) object);
     } else if (object instanceof Date) {
-      return new BigIntValue(key, ((Date)object).getTime());
+      return new BigIntValue(key, ((Date) object).getTime());
     }
     return null;
   }
@@ -59,7 +60,7 @@ public abstract class TpccRecord {
 
   /**
    * Creates an {@code ArrayList} of {@code Value<?>}.
-   * 
+   *
    * @return an {@code ArrayList} of {@code Value<?>}
    */
   public ArrayList<Value<?>> createValues() {
@@ -67,7 +68,7 @@ public abstract class TpccRecord {
     valueMap.forEach((key, value) -> {
       if (value != null) {
         if (value instanceof Address) {
-          values.addAll(((Address)value).createValues());
+          values.addAll(((Address) value).createValues());
         } else {
           values.add(createSingleValue(key, value));
         }

@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 public class TpccUtil {
+
   private static final Random RANDOM = new Random();
 
   // for customer last name
@@ -26,9 +27,9 @@ public class TpccUtil {
   /**
    * Returns a customer ID by scanning Customer table using secondary index.
    *
-   * @param tx a {@code DistributedTransaction} object
-   * @param warehouseId a warehouse ID
-   * @param districtId a district ID
+   * @param tx               a {@code DistributedTransaction} object
+   * @param warehouseId      a warehouse ID
+   * @param districtId       a district ID
    * @param customerLastName a {@code String} of customer last name
    * @return a customer ID
    * @throws TransactionException if the scan failed
@@ -44,9 +45,9 @@ public class TpccUtil {
   /**
    * Returns a customer ID by scanning CustomerSecondary table.
    *
-   * @param tx a {@code DistributedTransaction} object
-   * @param warehouseId a warehouse ID
-   * @param districtId a district ID
+   * @param tx               a {@code DistributedTransaction} object
+   * @param warehouseId      a warehouse ID
+   * @param districtId       a district ID
    * @param customerLastName a {@code String} of customer last name
    * @return a customer ID
    * @throws TransactionException if the scan failed
@@ -82,7 +83,7 @@ public class TpccUtil {
    *
    * @param minLength minimum length of generated string
    * @param maxLength maximum length of generated string
-   * @param rate probability of including "ORIGINAL"
+   * @param rate      probability of including "ORIGINAL"
    * @return a random {@code String} including "ORIGINAL"
    */
   public static String getRandomStringWithOriginal(int minLength, int maxLength, int rate) {
