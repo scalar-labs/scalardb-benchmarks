@@ -14,6 +14,8 @@ import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TpccRunner {
   private final DistributedTransactionManager manager;
@@ -71,17 +73,28 @@ public class TpccRunner {
   /**
    * Runs a TPC-C transaction.
    */
-  public void run() throws TransactionException {
+  public void run(AtomicBoolean isRunning, AtomicInteger errorCounter) throws TransactionException {
     Type type = decideType();
     TpccTransaction tx = transactionMap.get(type);
     tx.generate();
-    while (true) {
+    while (isRunning.get()) {
       try {
         tx.execute(manager);
         break;
       } catch (CrudConflictException | CommitConflictException e) {
+        errorCounter.incrementAndGet();
         Uninterruptibles.sleepUninterruptibly(config.getBackoff(), TimeUnit.MILLISECONDS);
       }
     }
+  }
+
+  /**
+   * Runs a TPC-C transaction without retrying.
+   */
+  public void run() throws TransactionException {
+    Type type = decideType();
+    TpccTransaction tx = transactionMap.get(type);
+    tx.generate();
+    tx.execute(manager);
   }
 }

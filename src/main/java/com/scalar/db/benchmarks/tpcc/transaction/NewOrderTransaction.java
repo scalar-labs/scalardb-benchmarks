@@ -183,7 +183,7 @@ public class NewOrderTransaction implements TpccTransaction {
           stockQuantity = (stockQuantity - quantity) + 91;
         }
         String distInfo = getDistInfo(result, districtId);
-        Stock stock = new Stock(warehouseId, itemId,
+        Stock stock = new Stock(supplyWarehouseId, itemId,
             stockQuantity, stockYtd, stockOrderCount, stockRemoteCount);
         tx.put(stock.createPut());
 

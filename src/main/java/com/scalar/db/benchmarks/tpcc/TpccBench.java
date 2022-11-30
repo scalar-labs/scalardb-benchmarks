@@ -212,7 +212,7 @@ public class TpccBench implements Callable<Integer> {
         while (isRunning.get()) {
           try {
             long eachStart = System.currentTimeMillis();
-            tpcc.run();
+            tpcc.run(isRunning, errorCounter);
             long eachEnd = System.currentTimeMillis();
             counter.incrementAndGet();
             if (System.currentTimeMillis() >= start + rampUpTimeMillis) {
