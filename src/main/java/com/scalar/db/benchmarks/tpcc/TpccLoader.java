@@ -62,6 +62,20 @@ public class TpccLoader implements Callable<Integer> {
   private int numWarehouse;
 
   @CommandLine.Option(
+      names = {"--start-warehouse"},
+      paramLabel = "START_WAREHOUSE",
+      defaultValue = "1",
+      description = "The start ID of warehouse.")
+  private int startWarehouse;
+
+  @CommandLine.Option(
+      names = {"--skip-item-load"},
+      paramLabel = "SKIP_ITEM_LOAD",
+      defaultValue = "false",
+      description = "Skip item loading.")
+  private boolean skipItemLoad;
+
+  @CommandLine.Option(
       names = {"--directory"},
       paramLabel = "CSV_DIRECTORY",
       description = "A directory that contains csv files.")
@@ -149,7 +163,8 @@ public class TpccLoader implements Callable<Integer> {
   private void queueWarehouses(BlockingQueue<TpccRecord> queue, AtomicInteger counter)
       throws InterruptedException {
     Date date = new Date();
-    for (int warehouseId = 1; warehouseId <= numWarehouse; warehouseId++) {
+    for (int warehouseId = startWarehouse;
+        warehouseId <= numWarehouse + startWarehouse - 1; warehouseId++) {
       queue.put(new Warehouse(warehouseId));
       counter.incrementAndGet();
       for (int stockId = 1; stockId <= Warehouse.STOCKS; stockId++) {
@@ -293,9 +308,11 @@ public class TpccLoader implements Callable<Integer> {
       queueCsv(new File(directory, ORDER_LINE), queue, queuedCounter);
       queueCsv(new File(directory, ORDER_SECONDARY), queue, queuedCounter);
     } else {
-      for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
-        queue.put(new Item(itemId));
-        queuedCounter.incrementAndGet();
+      if (!skipItemLoad) {
+        for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
+          queue.put(new Item(itemId));
+          queuedCounter.incrementAndGet();
+        }
       }
       queueWarehouses(queue, queuedCounter);
     }
