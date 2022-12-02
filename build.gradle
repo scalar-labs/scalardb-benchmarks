@@ -14,7 +14,7 @@ ext {
     guavaVersion = '30.1-jre'
     picoCliVersion = '4.1.4'
     slf4jVersion = '1.7.25'
-    scalarDbVersion = '3.7.1'
+    scalarDbVersion = '3.7.2'
 }
 
 dependencies {
