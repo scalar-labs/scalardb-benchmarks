@@ -34,7 +34,7 @@ public class Warehouse extends TpccRecord {
    * Constructs a {@code Warehouse} with ytd.
    *
    * @param warehouseId a warehouse ID
-   * @param ytd         a YTD balance
+   * @param ytd a YTD balance
    */
   public Warehouse(int warehouseId, double ytd) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -71,9 +71,15 @@ public class Warehouse extends TpccRecord {
 
     valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, record.get(KEY_NAME));
-    valueMap.put(KEY_ADDRESS,
-        new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
-            record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
+    valueMap.put(
+        KEY_ADDRESS,
+        new Address(
+            COLUMN_PREFIX,
+            record.get(KEY_STREET_1),
+            record.get(KEY_STREET_2),
+            record.get(KEY_CITY),
+            record.get(KEY_STATE),
+            record.get(KEY_ZIP)));
     valueMap.put(KEY_TAX, Double.parseDouble(record.get(KEY_TAX)));
     valueMap.put(KEY_YTD, Double.parseDouble(record.get(KEY_TAX)));
   }

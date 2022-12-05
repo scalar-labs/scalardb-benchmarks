@@ -37,8 +37,8 @@ public class District extends TpccRecord {
    * Constructs a {@code District} with ytd.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
-   * @param ytd         a YTD balance
+   * @param districtId a district ID
+   * @param ytd a YTD balance
    */
   public District(int warehouseId, int districtId, double ytd) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -53,7 +53,7 @@ public class District extends TpccRecord {
    * Constructs a {@code District} with a next order ID.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
+   * @param districtId a district ID
    * @param nextOrderId a next order ID
    */
   public District(int warehouseId, int districtId, int nextOrderId) {
@@ -69,7 +69,7 @@ public class District extends TpccRecord {
    * Constructs a {@code District} with data generation.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
+   * @param districtId a district ID
    */
   public District(int warehouseId, int districtId) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -96,9 +96,15 @@ public class District extends TpccRecord {
 
     valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, record.get(KEY_NAME));
-    valueMap.put(KEY_ADDRESS,
-        new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
-            record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
+    valueMap.put(
+        KEY_ADDRESS,
+        new Address(
+            COLUMN_PREFIX,
+            record.get(KEY_STREET_1),
+            record.get(KEY_STREET_2),
+            record.get(KEY_CITY),
+            record.get(KEY_STATE),
+            record.get(KEY_ZIP)));
     valueMap.put(KEY_TAX, Double.parseDouble(record.get(KEY_TAX)));
     valueMap.put(KEY_YTD, Double.parseDouble(record.get(KEY_YTD)));
     valueMap.put(KEY_NEXT_O_ID, Integer.parseInt(record.get(KEY_NEXT_O_ID)));
@@ -108,7 +114,7 @@ public class District extends TpccRecord {
    * Creates a partition {@code Key}.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
+   * @param districtId a district ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
@@ -122,7 +128,7 @@ public class District extends TpccRecord {
    * Creates a {@code Get} object.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
+   * @param districtId a district ID
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int districtId) {

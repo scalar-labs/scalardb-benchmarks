@@ -15,8 +15,9 @@ public class TpccUtil {
   private static final Random RANDOM = new Random();
 
   // for customer last name
-  public static final String[] NAME_TOKENS =
-      {"BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"};
+  public static final String[] NAME_TOKENS = {
+    "BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"
+  };
 
   // for non-uniform random
   public static final int CUSTOMER_LASTNAME_IN_LOAD = 250;
@@ -27,15 +28,16 @@ public class TpccUtil {
   /**
    * Returns a customer ID by scanning Customer table using secondary index.
    *
-   * @param tx               a {@code DistributedTransaction} object
-   * @param warehouseId      a warehouse ID
-   * @param districtId       a district ID
+   * @param tx a {@code DistributedTransaction} object
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
    * @param customerLastName a {@code String} of customer last name
    * @return a customer ID
    * @throws TransactionException if the scan failed
    */
-  public static int getCustomerIdBySecondaryIndex(DistributedTransaction tx,
-      int warehouseId, int districtId, String customerLastName) throws TransactionException {
+  public static int getCustomerIdBySecondaryIndex(
+      DistributedTransaction tx, int warehouseId, int districtId, String customerLastName)
+      throws TransactionException {
     List<Result> results = tx.scan(Customer.createScan(warehouseId, districtId, customerLastName));
     results.sort(Customer.FIRST_NAME_COMPARATOR);
     int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
@@ -45,17 +47,18 @@ public class TpccUtil {
   /**
    * Returns a customer ID by scanning CustomerSecondary table.
    *
-   * @param tx               a {@code DistributedTransaction} object
-   * @param warehouseId      a warehouse ID
-   * @param districtId       a district ID
+   * @param tx a {@code DistributedTransaction} object
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
    * @param customerLastName a {@code String} of customer last name
    * @return a customer ID
    * @throws TransactionException if the scan failed
    */
-  public static int getCustomerIdByTableIndex(DistributedTransaction tx,
-      int warehouseId, int districtId, String customerLastName) throws TransactionException {
-    List<Result> results = tx.scan(
-        CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
+  public static int getCustomerIdByTableIndex(
+      DistributedTransaction tx, int warehouseId, int districtId, String customerLastName)
+      throws TransactionException {
+    List<Result> results =
+        tx.scan(CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
     int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
     return results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
   }
@@ -83,14 +86,15 @@ public class TpccUtil {
    *
    * @param minLength minimum length of generated string
    * @param maxLength maximum length of generated string
-   * @param rate      probability of including "ORIGINAL"
+   * @param rate probability of including "ORIGINAL"
    * @return a random {@code String} including "ORIGINAL"
    */
   public static String getRandomStringWithOriginal(int minLength, int maxLength, int rate) {
     int length = randomInt(minLength, maxLength);
     if (TpccUtil.randomInt(0, 99) < rate) {
       int startOriginal = TpccUtil.randomInt(2, length - 8);
-      return TpccUtil.randomAlphaString(startOriginal - 1) + "ORIGINAL"
+      return TpccUtil.randomAlphaString(startOriginal - 1)
+          + "ORIGINAL"
           + TpccUtil.randomAlphaString(length - startOriginal - 9);
     } else {
       return TpccUtil.randomAlphaString(length);

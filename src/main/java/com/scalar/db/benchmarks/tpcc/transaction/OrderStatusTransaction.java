@@ -45,9 +45,7 @@ public class OrderStatusTransaction implements TpccTransaction {
     return results.get(0).getValue(OrderSecondary.KEY_ORDER_ID).get().getAsInt();
   }
 
-  /**
-   * Generates arguments for the order-status transaction.
-   */
+  /** Generates arguments for the order-status transaction. */
   @Override
   public void generate() {
     int numWarehouse = config.getNumWarehouse();
@@ -74,11 +72,10 @@ public class OrderStatusTransaction implements TpccTransaction {
     try {
       if (byLastName) {
         if (config.useTableIndex()) {
-          customerId = TpccUtil.getCustomerIdByTableIndex(
-              tx, warehouseId, districtId, lastName);
+          customerId = TpccUtil.getCustomerIdByTableIndex(tx, warehouseId, districtId, lastName);
         } else {
-          customerId = TpccUtil.getCustomerIdBySecondaryIndex(
-              tx, warehouseId, districtId, lastName);
+          customerId =
+              TpccUtil.getCustomerIdBySecondaryIndex(tx, warehouseId, districtId, lastName);
         }
       }
 
@@ -104,13 +101,14 @@ public class OrderStatusTransaction implements TpccTransaction {
 
       // Get order-line
       List<Result> orderLines = tx.scan(OrderLine.createScan(warehouseId, districtId, orderId));
-      orderLines.forEach(line -> {
-        int supplyWarehouseId = line.getValue(OrderLine.KEY_SUPPLY_W_ID).get().getAsInt();
-        int itemId = line.getValue(OrderLine.KEY_ITEM_ID).get().getAsInt();
-        int quantity = line.getValue(OrderLine.KEY_QUANTITY).get().getAsInt();
-        double amount = line.getValue(OrderLine.KEY_AMOUNT).get().getAsDouble();
-        Date deliveryDate = new Date(line.getValue(OrderLine.KEY_DELIVERY_D).get().getAsLong());
-      });
+      orderLines.forEach(
+          line -> {
+            int supplyWarehouseId = line.getValue(OrderLine.KEY_SUPPLY_W_ID).get().getAsInt();
+            int itemId = line.getValue(OrderLine.KEY_ITEM_ID).get().getAsInt();
+            int quantity = line.getValue(OrderLine.KEY_QUANTITY).get().getAsInt();
+            double amount = line.getValue(OrderLine.KEY_AMOUNT).get().getAsDouble();
+            Date deliveryDate = new Date(line.getValue(OrderLine.KEY_DELIVERY_D).get().getAsLong());
+          });
 
       tx.commit();
     } catch (Exception e) {

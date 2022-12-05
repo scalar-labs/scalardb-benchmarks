@@ -27,11 +27,9 @@ public class Address {
   private final String state;
   private final String zip;
 
-  /**
-   * Constructs an {@code Address} with specified parameters.
-   */
-  public Address(String columnPrefix, String street1, String street2,
-      String city, String state, String zip) {
+  /** Constructs an {@code Address} with specified parameters. */
+  public Address(
+      String columnPrefix, String street1, String street2, String city, String state, String zip) {
     this.columnPrefix = columnPrefix;
     this.street1 = street1;
     this.street2 = street2;
@@ -40,9 +38,7 @@ public class Address {
     this.zip = zip;
   }
 
-  /**
-   * Constructs an {@code Address} with data generation.
-   */
+  /** Constructs an {@code Address} with data generation. */
   public Address(String columnPrefix) {
     this.columnPrefix = columnPrefix;
     this.street1 = TpccUtil.randomAlphaString(MIN_STREET, MAX_STREET);

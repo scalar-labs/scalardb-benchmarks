@@ -52,25 +52,32 @@ public class Customer extends TpccRecord {
   public static final int MAX_DATA = 500;
   public static final int PHONE_SIZE = 16;
 
-  public static final Comparator<Result> FIRST_NAME_COMPARATOR = (a, b) -> {
-    String firstNameA = a.getValue(KEY_FIRST).get().getAsString().get();
-    String firstNameB = b.getValue(KEY_FIRST).get().getAsString().get();
-    return firstNameA.compareTo(firstNameB);
-  };
+  public static final Comparator<Result> FIRST_NAME_COMPARATOR =
+      (a, b) -> {
+        String firstNameA = a.getValue(KEY_FIRST).get().getAsString().get();
+        String firstNameB = b.getValue(KEY_FIRST).get().getAsString().get();
+        return firstNameA.compareTo(firstNameB);
+      };
 
   /**
    * Constructs a {@code Customer} for payment transaction.
    *
-   * @param warehouseId  a warehouse ID
-   * @param districtId   a district ID
-   * @param customerId   a customer ID
-   * @param balance      a balance of the customer
-   * @param ytdPayment   a YTD payment amount
+   * @param warehouseId a warehouse ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
+   * @param balance a balance of the customer
+   * @param ytdPayment a YTD payment amount
    * @param paymentCount number of payments
-   * @param data         customer data
+   * @param data customer data
    */
-  public Customer(int warehouseId, int districtId, int customerId,
-      double balance, double ytdPayment, int paymentCount, String data) {
+  public Customer(
+      int warehouseId,
+      int districtId,
+      int customerId,
+      double balance,
+      double ytdPayment,
+      int paymentCount,
+      String data) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
@@ -83,11 +90,9 @@ public class Customer extends TpccRecord {
     valueMap.put(KEY_DATA, data);
   }
 
-  /**
-   * Constructs a {@code Customer} for delivery transaction.
-   */
-  public Customer(int warehouseId, int districtId, int customerId,
-      double balance, int deliveryCount) {
+  /** Constructs a {@code Customer} for delivery transaction. */
+  public Customer(
+      int warehouseId, int districtId, int customerId, double balance, int deliveryCount) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
@@ -102,8 +107,8 @@ public class Customer extends TpccRecord {
    * Constructs a {@code Customer} with data generation.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
-   * @param customerId  a customer ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
    */
   public Customer(int warehouseId, int districtId, int customerId, Date date) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -158,9 +163,15 @@ public class Customer extends TpccRecord {
     valueMap.put(KEY_YTD_PAYMENT, Double.parseDouble(record.get(KEY_YTD_PAYMENT)));
     valueMap.put(KEY_PAYMENT_CNT, Integer.parseInt(record.get(KEY_PAYMENT_CNT)));
     valueMap.put(KEY_DELIVERY_CNT, Integer.parseInt(record.get(KEY_DELIVERY_CNT)));
-    valueMap.put(KEY_ADDRESS,
-        new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
-            record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
+    valueMap.put(
+        KEY_ADDRESS,
+        new Address(
+            COLUMN_PREFIX,
+            record.get(KEY_STREET_1),
+            record.get(KEY_STREET_2),
+            record.get(KEY_CITY),
+            record.get(KEY_STATE),
+            record.get(KEY_ZIP)));
     valueMap.put(KEY_PHONE, record.get(KEY_PHONE));
     valueMap.put(KEY_DATA, record.get(KEY_DATA));
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -171,8 +182,8 @@ public class Customer extends TpccRecord {
    * Creates a partition {@code Key}.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
-   * @param customerId  a customer ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, int customerId) {
@@ -184,9 +195,7 @@ public class Customer extends TpccRecord {
   }
 
   private static String createIndexString(int warehouseId, int districtId, String lastName) {
-    return String.format("%05d", warehouseId)
-        + String.format("%03d", districtId)
-        + lastName;
+    return String.format("%05d", warehouseId) + String.format("%03d", districtId) + lastName;
   }
 
   /**
@@ -203,8 +212,8 @@ public class Customer extends TpccRecord {
    * Creates a {@code Get} object.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
-   * @param customerId  a customer ID
+   * @param districtId a district ID
+   * @param customerId a customer ID
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int districtId, int customerId) {
@@ -224,9 +233,7 @@ public class Customer extends TpccRecord {
     return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
   }
 
-  /**
-   * Builds a column for secondary index.
-   */
+  /** Builds a column for secondary index. */
   public void buildIndexColumn() {
     int warehouseId = (int) partitionKeyMap.get(KEY_WAREHOUSE_ID);
     int districtId = (int) partitionKeyMap.get(KEY_DISTRICT_ID);

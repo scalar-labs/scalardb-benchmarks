@@ -24,13 +24,13 @@ public class CustomerSecondary extends TpccRecord {
    * Constructs a {@code CustomerSecondary}.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
-   * @param last        last name of the customer
-   * @param first       first name of the customer
-   * @param customerId  a customer ID
+   * @param districtId a district ID
+   * @param last last name of the customer
+   * @param first first name of the customer
+   * @param customerId a customer ID
    */
-  public CustomerSecondary(int warehouseId, int districtId, String last, String first,
-      int customerId) {
+  public CustomerSecondary(
+      int warehouseId, int districtId, String last, String first, int customerId) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
@@ -61,8 +61,8 @@ public class CustomerSecondary extends TpccRecord {
    * Creates a partition {@code Key}.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
-   * @param lastName    a {@code String} of last name
+   * @param districtId a district ID
+   * @param lastName a {@code String} of last name
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, String lastName) {
@@ -76,7 +76,7 @@ public class CustomerSecondary extends TpccRecord {
   /**
    * Creates a clustering {@code Key}.
    *
-   * @param firstName  a {@code String} of first name
+   * @param firstName a {@code String} of first name
    * @param customerId a customer ID
    * @return a {@code Key} object
    */

@@ -33,17 +33,24 @@ public class History extends TpccRecord {
   /**
    * Constructs a {@code Customer} with specified parameters.
    *
-   * @param customerId          a customer ID
-   * @param customerDistrictId  customer's district ID
+   * @param customerId a customer ID
+   * @param customerDistrictId customer's district ID
    * @param customerWarehouseId customer's warehouse ID
-   * @param districtId          a district ID
-   * @param warehouseId         a warehouse ID
-   * @param date                payment date
-   * @param amount              payment amount
-   * @param data                history data
+   * @param districtId a district ID
+   * @param warehouseId a warehouse ID
+   * @param date payment date
+   * @param amount payment amount
+   * @param data history data
    */
-  public History(int customerId, int customerDistrictId, int customerWarehouseId,
-      int districtId, int warehouseId, Date date, double amount, String data) {
+  public History(
+      int customerId,
+      int customerDistrictId,
+      int customerWarehouseId,
+      int districtId,
+      int warehouseId,
+      Date date,
+      double amount,
+      String data) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, UUID.randomUUID().toString());
 
@@ -61,15 +68,20 @@ public class History extends TpccRecord {
   /**
    * Constructs a {@code History} with data generation.
    *
-   * @param customerId          a customer ID
-   * @param customerDistrictId  customer's district ID
+   * @param customerId a customer ID
+   * @param customerDistrictId customer's district ID
    * @param customerWarehouseId customer's warehouse ID
-   * @param districtId          a district ID
-   * @param warehouseId         a warehouse ID
-   * @param date                payment date
+   * @param districtId a district ID
+   * @param warehouseId a warehouse ID
+   * @param date payment date
    */
-  public History(int customerId, int customerDistrictId, int customerWarehouseId,
-      int districtId, int warehouseId, Date date) {
+  public History(
+      int customerId,
+      int customerDistrictId,
+      int customerWarehouseId,
+      int districtId,
+      int warehouseId,
+      Date date) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, UUID.randomUUID().toString());
 

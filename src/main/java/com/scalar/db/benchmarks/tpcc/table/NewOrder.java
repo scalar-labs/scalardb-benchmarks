@@ -24,8 +24,8 @@ public class NewOrder extends TpccRecord {
    * Constructs a {@code NewOrder}.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
-   * @param orderId     an order ID
+   * @param districtId a district ID
+   * @param orderId an order ID
    */
   public NewOrder(int warehouseId, int districtId, int orderId) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -54,7 +54,7 @@ public class NewOrder extends TpccRecord {
    * Creates a partition {@code Key}.
    *
    * @param warehouseId a warehouse ID
-   * @param districtId  a district ID
+   * @param districtId a district ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
@@ -86,18 +86,14 @@ public class NewOrder extends TpccRecord {
     return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
-  /**
-   * Creates a {@code Delete} object.
-   */
+  /** Creates a {@code Delete} object. */
   public static Delete createDelete(int warehouseId, int districtId, int orderId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key clusteringKey = createClusteringKey(orderId);
     return new Delete(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
-  /**
-   * Creates a {@code Scan} object for the oldest outstanding new-order.
-   */
+  /** Creates a {@code Scan} object for the oldest outstanding new-order. */
   public static Scan createScan(int warehouseId, int districtId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
     return new Scan(partitionKey)

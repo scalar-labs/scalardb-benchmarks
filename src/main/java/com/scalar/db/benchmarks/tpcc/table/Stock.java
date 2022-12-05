@@ -42,14 +42,14 @@ public class Stock extends TpccRecord {
    * Constructs a {@code Stock} with specified parameters for update.
    *
    * @param warehouseId a warehouse ID
-   * @param itemId      an item ID
-   * @param quantity    quantity in stock
-   * @param ytd         a YTD balance
-   * @param orderCount  number of order count
+   * @param itemId an item ID
+   * @param quantity quantity in stock
+   * @param ytd a YTD balance
+   * @param orderCount number of order count
    * @param remoteCount number of remote count
    */
-  public Stock(int warehouseId, int itemId, int quantity, double ytd, int orderCount,
-      int remoteCount) {
+  public Stock(
+      int warehouseId, int itemId, int quantity, double ytd, int orderCount, int remoteCount) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_ITEM_ID, itemId);
@@ -65,7 +65,7 @@ public class Stock extends TpccRecord {
    * Constructs a {@code Stock} with data generation.
    *
    * @param warehouseId a warehouse ID
-   * @param itemId      an item ID
+   * @param itemId an item ID
    */
   public Stock(int warehouseId, int itemId) {
     partitionKeyMap = new LinkedHashMap<>();
@@ -110,7 +110,7 @@ public class Stock extends TpccRecord {
    * Creates a partition {@code Key}.
    *
    * @param warehouseId a warehouse ID
-   * @param itemId      an item ID
+   * @param itemId an item ID
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int itemId) {
@@ -124,7 +124,7 @@ public class Stock extends TpccRecord {
    * Creates a {@code Get} object.
    *
    * @param warehouseId a warehouse ID
-   * @param itemId      an item ID
+   * @param itemId an item ID
    * @return a {@code Get} object
    */
   public static Get createGet(int warehouseId, int itemId) {

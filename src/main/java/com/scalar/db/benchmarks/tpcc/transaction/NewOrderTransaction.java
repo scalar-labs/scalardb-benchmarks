@@ -35,9 +35,7 @@ public class NewOrderTransaction implements TpccTransaction {
     config = c;
   }
 
-  /**
-   * Generates arguments for the new-order transaction.
-   */
+  /** Generates arguments for the new-order transaction. */
   @Override
   public void generate() {
     int numWarehouse = config.getNumWarehouse();
@@ -137,8 +135,16 @@ public class NewOrderTransaction implements TpccTransaction {
       tx.put(newOrder.createPut());
 
       // Insert order
-      Order order = new Order(warehouseId, districtId, orderId, customerId, 0, orderLineCount,
-          remote ? 0 : 1, date);
+      Order order =
+          new Order(
+              warehouseId,
+              districtId,
+              orderId,
+              customerId,
+              0,
+              orderLineCount,
+              remote ? 0 : 1,
+              date);
       if (!config.useTableIndex()) {
         order.buildIndexColumn();
       }
@@ -146,8 +152,8 @@ public class NewOrderTransaction implements TpccTransaction {
 
       // Insert order's secondary index
       if (!config.isNpOnly() && config.useTableIndex()) {
-        OrderSecondary orderSecondary
-            = new OrderSecondary(warehouseId, districtId, customerId, orderId);
+        OrderSecondary orderSecondary =
+            new OrderSecondary(warehouseId, districtId, customerId, orderId);
         tx.put(orderSecondary.createPut());
       }
 
@@ -184,13 +190,28 @@ public class NewOrderTransaction implements TpccTransaction {
           stockQuantity = (stockQuantity - quantity) + 91;
         }
         String distInfo = getDistInfo(result, districtId);
-        Stock stock = new Stock(supplyWarehouseId, itemId,
-            stockQuantity, stockYtd, stockOrderCount, stockRemoteCount);
+        Stock stock =
+            new Stock(
+                supplyWarehouseId,
+                itemId,
+                stockQuantity,
+                stockYtd,
+                stockOrderCount,
+                stockRemoteCount);
         tx.put(stock.createPut());
 
         // Insert order-line
-        OrderLine orderLine = new OrderLine(warehouseId, districtId, orderId, orderLineNumber,
-            supplyWarehouseId, amount, quantity, itemId, distInfo);
+        OrderLine orderLine =
+            new OrderLine(
+                warehouseId,
+                districtId,
+                orderId,
+                orderLineNumber,
+                supplyWarehouseId,
+                amount,
+                quantity,
+                itemId,
+                distInfo);
         tx.put(orderLine.createPut());
       }
 

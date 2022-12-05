@@ -26,9 +26,7 @@ public class DeliveryTransaction implements TpccTransaction {
     config = c;
   }
 
-  /**
-   * Generates arguments for the delivery transaction.
-   */
+  /** Generates arguments for the delivery transaction. */
   @Override
   public void generate() {
     int numWarehouse = config.getNumWarehouse();
@@ -86,8 +84,8 @@ public class DeliveryTransaction implements TpccTransaction {
         }
         double balance = result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + total;
         int deliveryCount = result.get().getValue(Customer.KEY_DELIVERY_CNT).get().getAsInt() + 1;
-        Customer customer
-            = new Customer(warehouseId, districtId, customerId, balance, deliveryCount);
+        Customer customer =
+            new Customer(warehouseId, districtId, customerId, balance, deliveryCount);
         tx.put(customer.createPut());
       }
 
