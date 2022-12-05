@@ -42,6 +42,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 
 @Command(name = "tpcc-loader", description = "Load tables for TPC-C benchmark.")
@@ -55,18 +56,29 @@ public class TpccLoader implements Callable<Integer> {
   private String properties;
 
   @CommandLine.Option(
-      names = {"--num-warehouse"},
-      paramLabel = "NUM_WAREHOUSE",
-      defaultValue = "1",
-      description = "The number of warehouse.")
-  private int numWarehouse;
-
-  @CommandLine.Option(
       names = {"--start-warehouse"},
       paramLabel = "START_WAREHOUSE",
       defaultValue = "1",
       description = "The start ID of warehouse.")
   private int startWarehouse;
+
+  static class Exclusive {
+
+    @CommandLine.Option(
+        names = {"--end-warehouse"},
+        paramLabel = "END_WAREHOUSE",
+        description = "The end ID of warehouse.")
+    int endWarehouse;
+
+    @CommandLine.Option(
+        names = {"--num-warehouses"},
+        paramLabel = "NUM_WAREHOUSES",
+        description = "The number of warehouses.")
+    int numWarehouses;
+  }
+
+  @ArgGroup(exclusive = true, multiplicity = "0..1")
+  private Exclusive warehouseConfig;
 
   @CommandLine.Option(
       names = {"--skip-item-load"},
@@ -145,6 +157,7 @@ public class TpccLoader implements Callable<Integer> {
       .put(STOCK, STOCK_HEADER)
       .put(WAREHOUSE, WAREHOUSE_HEADER)
       .build();
+  private int endWarehouse;
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new TpccLoader()).execute(args);
@@ -153,6 +166,13 @@ public class TpccLoader implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
+    if (warehouseConfig == null) {
+      endWarehouse = startWarehouse;
+    } else if (warehouseConfig.endWarehouse == 0) {
+      endWarehouse = startWarehouse + warehouseConfig.numWarehouses - 1;
+    } else {
+      endWarehouse = warehouseConfig.endWarehouse;
+    }
     DatabaseConfig dbConfig = new DatabaseConfig(new FileInputStream(properties));
     TransactionFactory factory = new TransactionFactory(dbConfig);
     DistributedTransactionManager manager = factory.getTransactionManager();
@@ -163,8 +183,7 @@ public class TpccLoader implements Callable<Integer> {
   private void queueWarehouses(BlockingQueue<TpccRecord> queue, AtomicInteger counter)
       throws InterruptedException {
     Date date = new Date();
-    for (int warehouseId = startWarehouse;
-        warehouseId <= numWarehouse + startWarehouse - 1; warehouseId++) {
+    for (int warehouseId = startWarehouse; warehouseId <= endWarehouse; warehouseId++) {
       queue.put(new Warehouse(warehouseId));
       counter.incrementAndGet();
       for (int stockId = 1; stockId <= Warehouse.STOCKS; stockId++) {
