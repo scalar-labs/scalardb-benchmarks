@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class StockLevelTransaction implements TpccTransaction {
+
   private final TpccConfig config;
   private int warehouseId;
   private int districtId;
@@ -39,7 +40,7 @@ public class StockLevelTransaction implements TpccTransaction {
 
   /**
    * Executes the stock-level transaction.
-   * 
+   *
    * @param manager a {@code DistributedTransactionManager} object
    */
   @Override

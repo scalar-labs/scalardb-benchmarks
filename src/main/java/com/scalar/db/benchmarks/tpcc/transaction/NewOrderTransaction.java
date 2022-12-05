@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.Optional;
 
 public class NewOrderTransaction implements TpccTransaction {
+
   private final TpccConfig config;
   private int warehouseId;
   private int districtId;
@@ -99,7 +100,7 @@ public class NewOrderTransaction implements TpccTransaction {
 
   /**
    * Executes the new-order transaction.
-   * 
+   *
    * @param manager a {@code DistributedTransactionManager} object
    */
   @Override

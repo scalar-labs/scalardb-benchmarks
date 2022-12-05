@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Optional;
 
 public class PaymentTransaction implements TpccTransaction {
+
   private final TpccConfig config;
   private int warehouseId;
   private int districtId;
@@ -91,7 +92,7 @@ public class PaymentTransaction implements TpccTransaction {
 
   /**
    * Executes the payment transaction.
-   * 
+   *
    * @param manager a {@code DistributedTransactionManager} object
    */
   @Override

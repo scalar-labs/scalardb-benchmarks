@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class OrderStatusTransaction implements TpccTransaction {
+
   private final TpccConfig config;
   private int warehouseId;
   private int districtId;
@@ -63,7 +64,7 @@ public class OrderStatusTransaction implements TpccTransaction {
 
   /**
    * Executes the order-status transaction.
-   * 
+   *
    * @param manager a {@code DistributedTransactionManager} object
    */
   @Override
