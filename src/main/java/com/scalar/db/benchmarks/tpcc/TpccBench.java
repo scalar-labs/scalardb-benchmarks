@@ -29,11 +29,11 @@ public class TpccBench implements Callable<Integer> {
   private String properties;
 
   @CommandLine.Option(
-      names = {"--num-warehouse"},
-      paramLabel = "NUM_WAREHOUSE",
+      names = {"--num-warehouses"},
+      paramLabel = "NUM_WAREHOUSES",
       defaultValue = "1",
-      description = "The number of warehouse.")
-  private int numWarehouse;
+      description = "The number of warehouses.")
+  private int numWarehouses;
 
   static class Rate {
 
@@ -164,21 +164,21 @@ public class TpccBench implements Callable<Integer> {
     TpccConfig config;
     if (mode == null) {
       config = TpccConfig.newBuilder()
-          .numWarehouse(numWarehouse)
+          .numWarehouse(numWarehouses)
           .fullMix()
           .backoff(backoff)
           .useTableIndex(useTableIndex)
           .build();
     } else if (mode.npOnly) {
       config = TpccConfig.newBuilder()
-          .numWarehouse(numWarehouse)
+          .numWarehouse(numWarehouses)
           .npOnly()
           .backoff(backoff)
           .useTableIndex(useTableIndex)
           .build();
     } else {
       config = TpccConfig.newBuilder()
-          .numWarehouse(numWarehouse)
+          .numWarehouse(numWarehouses)
           .rateNewOrder(mode.rate.newOrder)
           .ratePayment(mode.rate.payment)
           .rateOrderStatus(mode.rate.orderStatus)
