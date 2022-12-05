@@ -23,7 +23,7 @@ This benchmark requires the followings:
 
 ### Load 
 
-Before loading initial data, the tables must be defined using [ScalarDB Schema Loader](https://github.com/scalar-labs/scalardb/blob/master/docs/schema-loader.md). Get the latest schema laoder [here](https://github.com/scalar-labs/scalardb/releases) and execute it with `tpcc-schema.json`.
+Before loading initial data, the tables must be defined using [ScalarDB Schema Loader](https://github.com/scalar-labs/scalardb/blob/master/docs/schema-loader.md). Get the latest schema loader [here](https://github.com/scalar-labs/scalardb/releases) and execute it with `tpcc-schema.json`.
 
 For setting ScalarDB properties, see also the related documents [here](https://github.com/scalar-labs/scalardb#docs).
 
@@ -32,7 +32,7 @@ For setting ScalarDB properties, see also the related documents [here](https://g
 java -jar scalardb-schema-loader-<version>.jar --config /path/to/scalardb.properties -f tpcc-schema.json
 ```
 
-Then, load initial data with your preferred scale factor.
+Then, load the initial data with your preferred scale factor.
 
 ```console
 cd build/install/scalardb-benchmarks
@@ -53,9 +53,10 @@ For initial loading, you can specify the following options.
 
 | name                  | description | default |
 |:----------------------|:------------|:--------|
-| `--num-threads`       | Number of thread for loading. | 1 |
-| `--num-warehouse`     | Number of warehouse (scale factor) for loading. | 1 |
+| `--num-threads`       | Number of threads for loading. | 1 |
+| `--num-warehouses`    | Number of warehouses (scale factor) for loading. | 1 |
 | `--start-warehouse`   | Start ID of loading warehouse. This option can be useful with `--skip-item-load` when loading large scale data with multiple clients or adding additional warehouses. | 1 |
+| `--end-warehouse`     | End ID of loading warehouse. You can use either `--num-warehouses` or `--end-warehouse` to specify the number of loading warehouses. | 1 |
 | `--skip-item-load`    | Whether or not to skip loading item table | false |
 | `--use-table-index`   | Whether or not to use a generic table-based secondary index instead of ScalarDB's secondary index. | false |
 
@@ -63,8 +64,8 @@ For benchmarking, you can specify the following options.
 
 | name                  | description | default |
 |:----------------------|:------------|:--------|
-| `--num-threads`       | Number of thread for benchmarking. | 1 |
-| `--num-warehouse`     | Number of warehouse (scale factor) for benchmarking. | 1 |
+| `--num-threads`       | Number of threads for benchmarking. | 1 |
+| `--num-warehouses`    | Number of warehouses (scale factor) for benchmarking. | 1 |
 | `--duration`          | Duration of benchmark (in seconds). | 200 |
 | `--ramp-up-time`      | Duration of ramp up time before benchmark (in seconds). | 30 |
 | `--use-table-index`   | Whether or not to use a generic table-based secondary index instead of ScalarDB's secondary index. Data must be loaded using the same option. | false |
