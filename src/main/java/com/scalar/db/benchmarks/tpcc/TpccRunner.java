@@ -14,8 +14,11 @@ import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TpccRunner {
+
   private final DistributedTransactionManager manager;
   private final TpccConfig config;
   private final TpccTransaction newOrder;
@@ -33,13 +36,14 @@ public class TpccRunner {
     orderStatus = new OrderStatusTransaction(c);
     delivery = new DeliveryTransaction(c);
     stockLevel = new StockLevelTransaction(c);
-    transactionMap = ImmutableMap.<Type, TpccTransaction>builder()
-        .put(Type.NEW_ORDER, newOrder)
-        .put(Type.PAYMENT, payment)
-        .put(Type.ORDER_STATUS, orderStatus)
-        .put(Type.DELIVERY, delivery)
-        .put(Type.STOCK_LEVEL, stockLevel)
-        .build();
+    transactionMap =
+        ImmutableMap.<Type, TpccTransaction>builder()
+            .put(Type.NEW_ORDER, newOrder)
+            .put(Type.PAYMENT, payment)
+            .put(Type.ORDER_STATUS, orderStatus)
+            .put(Type.DELIVERY, delivery)
+            .put(Type.STOCK_LEVEL, stockLevel)
+            .build();
   }
 
   public enum Type {
@@ -57,31 +61,41 @@ public class TpccRunner {
       return Type.NEW_ORDER;
     } else if (x <= config.getRateNewOrder() + config.getRatePayment()) {
       return Type.PAYMENT;
-    } else if (x <= config.getRateNewOrder() + config.getRatePayment()
-        + config.getRateOrderStatus()) {
+    } else if (x
+        <= config.getRateNewOrder() + config.getRatePayment() + config.getRateOrderStatus()) {
       return Type.ORDER_STATUS;
-    } else if (x <= config.getRateNewOrder() + config.getRatePayment()
-        + config.getRateOrderStatus() + config.getRateDelivery()) {
+    } else if (x
+        <= config.getRateNewOrder()
+            + config.getRatePayment()
+            + config.getRateOrderStatus()
+            + config.getRateDelivery()) {
       return Type.DELIVERY;
     } else {
       return Type.STOCK_LEVEL;
     }
   }
 
-  /**
-   * Runs a TPC-C transaction.
-   */
-  public void run() throws TransactionException {
+  /** Runs a TPC-C transaction. */
+  public void run(AtomicBoolean isRunning, AtomicInteger errorCounter) throws TransactionException {
     Type type = decideType();
     TpccTransaction tx = transactionMap.get(type);
     tx.generate();
-    while (true) {
+    while (isRunning.get()) {
       try {
         tx.execute(manager);
         break;
       } catch (CrudConflictException | CommitConflictException e) {
+        errorCounter.incrementAndGet();
         Uninterruptibles.sleepUninterruptibly(config.getBackoff(), TimeUnit.MILLISECONDS);
       }
     }
+  }
+
+  /** Runs a TPC-C transaction without retrying. */
+  public void run() throws TransactionException {
+    Type type = decideType();
+    TpccTransaction tx = transactionMap.get(type);
+    tx.generate();
+    tx.execute(manager);
   }
 }

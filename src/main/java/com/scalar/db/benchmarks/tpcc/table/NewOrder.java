@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class NewOrder extends TpccRecord {
+
   public static final String TABLE_NAME = "new_order";
   public static final String COLUMN_PREFIX = "no_";
 
@@ -37,7 +38,7 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Constructs a {@code NewOrder} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public NewOrder(CSVRecord record) {
@@ -51,7 +52,7 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @return a {@code Key} object
@@ -65,7 +66,7 @@ public class NewOrder extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
-   * 
+   *
    * @param orderId an order ID
    * @return a {@code Key} object
    */
@@ -85,18 +86,14 @@ public class NewOrder extends TpccRecord {
     return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
-  /**
-   * Creates a {@code Delete} object.
-   */
+  /** Creates a {@code Delete} object. */
   public static Delete createDelete(int warehouseId, int districtId, int orderId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key clusteringKey = createClusteringKey(orderId);
     return new Delete(partitionKey, clusteringKey).forTable(TABLE_NAME);
   }
 
-  /**
-   * Creates a {@code Scan} object for the oldest outstanding new-order.
-   */
+  /** Creates a {@code Scan} object for the oldest outstanding new-order. */
   public static Scan createScan(int warehouseId, int districtId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
     return new Scan(partitionKey)

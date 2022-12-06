@@ -29,13 +29,14 @@ public class TpccBench implements Callable<Integer> {
   private String properties;
 
   @CommandLine.Option(
-      names = {"--num-warehouse"},
-      paramLabel = "NUM_WAREHOUSE",
+      names = {"--num-warehouses"},
+      paramLabel = "NUM_WAREHOUSES",
       defaultValue = "1",
-      description = "The number of warehouse.")
-  private int numWarehouse;
+      description = "The number of warehouses.")
+  private int numWarehouses;
 
   static class Rate {
+
     @CommandLine.Option(
         names = {"--rate-new-order"},
         paramLabel = "RATE_NEW_ORDER",
@@ -73,6 +74,7 @@ public class TpccBench implements Callable<Integer> {
   }
 
   static class Mode {
+
     @CommandLine.Option(
         names = {"--np-only"},
         paramLabel = "NP_ONLY",
@@ -161,30 +163,33 @@ public class TpccBench implements Callable<Integer> {
 
     TpccConfig config;
     if (mode == null) {
-      config = TpccConfig.newBuilder()
-          .numWarehouse(numWarehouse)
-          .fullMix()
-          .backoff(backoff)
-          .useTableIndex(useTableIndex)
-          .build();
+      config =
+          TpccConfig.newBuilder()
+              .numWarehouse(numWarehouses)
+              .fullMix()
+              .backoff(backoff)
+              .useTableIndex(useTableIndex)
+              .build();
     } else if (mode.npOnly) {
-      config = TpccConfig.newBuilder()
-          .numWarehouse(numWarehouse)
-          .npOnly()
-          .backoff(backoff)
-          .useTableIndex(useTableIndex)
-          .build();
+      config =
+          TpccConfig.newBuilder()
+              .numWarehouse(numWarehouses)
+              .npOnly()
+              .backoff(backoff)
+              .useTableIndex(useTableIndex)
+              .build();
     } else {
-      config = TpccConfig.newBuilder()
-          .numWarehouse(numWarehouse)
-          .rateNewOrder(mode.rate.newOrder)
-          .ratePayment(mode.rate.payment)
-          .rateOrderStatus(mode.rate.orderStatus)
-          .rateDelivery(mode.rate.delivery)
-          .rateStockLevel(mode.rate.stockLevel)
-          .useTableIndex(useTableIndex)
-          .backoff(backoff)
-          .build();
+      config =
+          TpccConfig.newBuilder()
+              .numWarehouse(numWarehouses)
+              .rateNewOrder(mode.rate.newOrder)
+              .ratePayment(mode.rate.payment)
+              .rateOrderStatus(mode.rate.orderStatus)
+              .rateDelivery(mode.rate.delivery)
+              .rateStockLevel(mode.rate.stockLevel)
+              .useTableIndex(useTableIndex)
+              .backoff(backoff)
+              .build();
     }
 
     if (times > 0) {
@@ -207,26 +212,27 @@ public class TpccBench implements Callable<Integer> {
     final long start = System.currentTimeMillis();
     long from = start;
     for (int i = 0; i < numThreads; ++i) {
-      executor.execute(() -> {
-        TpccRunner tpcc = new TpccRunner(manager, config);
-        while (isRunning.get()) {
-          try {
-            long eachStart = System.currentTimeMillis();
-            tpcc.run();
-            long eachEnd = System.currentTimeMillis();
-            counter.incrementAndGet();
-            if (System.currentTimeMillis() >= start + rampUpTimeMillis) {
-              totalCounter.incrementAndGet();
-              latencyTotal.addAndGet(eachEnd - eachStart);
+      executor.execute(
+          () -> {
+            TpccRunner tpcc = new TpccRunner(manager, config);
+            while (isRunning.get()) {
+              try {
+                long eachStart = System.currentTimeMillis();
+                tpcc.run(isRunning, errorCounter);
+                long eachEnd = System.currentTimeMillis();
+                counter.incrementAndGet();
+                if (System.currentTimeMillis() >= start + rampUpTimeMillis) {
+                  totalCounter.incrementAndGet();
+                  latencyTotal.addAndGet(eachEnd - eachStart);
+                }
+              } catch (TransactionException e) {
+                if (verbose) {
+                  e.printStackTrace();
+                }
+                errorCounter.incrementAndGet();
+              }
             }
-          } catch (TransactionException e) {
-            if (verbose) {
-              e.printStackTrace();
-            }
-            errorCounter.incrementAndGet();
-          }
-        }
-      });
+          });
     }
 
     long end = start + rampUpTimeMillis + durationMillis;
@@ -242,8 +248,8 @@ public class TpccBench implements Callable<Integer> {
 
       Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
     }
-    System.out
-        .println("TPS: " + (double) totalCounter.get() * 1000 / (end - start - rampUpTimeMillis));
+    System.out.println(
+        "TPS: " + (double) totalCounter.get() * 1000 / (end - start - rampUpTimeMillis));
     System.out.println("Average-Latency(ms): " + (double) latencyTotal.get() / totalCounter.get());
     System.out.println("Error-Counts: " + errorCounter.get());
 

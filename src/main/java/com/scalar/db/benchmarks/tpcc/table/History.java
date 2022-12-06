@@ -14,6 +14,7 @@ import java.util.UUID;
 import org.apache.commons.csv.CSVRecord;
 
 public class History extends TpccRecord {
+
   public static final String TABLE_NAME = "history";
   public static final String COLUMN_PREFIX = "h_";
   public static final String KEY_ID = "h_id";
@@ -31,7 +32,7 @@ public class History extends TpccRecord {
 
   /**
    * Constructs a {@code Customer} with specified parameters.
-   * 
+   *
    * @param customerId a customer ID
    * @param customerDistrictId customer's district ID
    * @param customerWarehouseId customer's warehouse ID
@@ -41,8 +42,15 @@ public class History extends TpccRecord {
    * @param amount payment amount
    * @param data history data
    */
-  public History(int customerId, int customerDistrictId, int customerWarehouseId,
-      int districtId, int warehouseId, Date date, double amount, String data) {
+  public History(
+      int customerId,
+      int customerDistrictId,
+      int customerWarehouseId,
+      int districtId,
+      int warehouseId,
+      Date date,
+      double amount,
+      String data) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, UUID.randomUUID().toString());
 
@@ -67,8 +75,13 @@ public class History extends TpccRecord {
    * @param warehouseId a warehouse ID
    * @param date payment date
    */
-  public History(int customerId, int customerDistrictId, int customerWarehouseId,
-      int districtId, int warehouseId, Date date) {
+  public History(
+      int customerId,
+      int customerDistrictId,
+      int customerWarehouseId,
+      int districtId,
+      int warehouseId,
+      Date date) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_ID, UUID.randomUUID().toString());
 
@@ -85,7 +98,7 @@ public class History extends TpccRecord {
 
   /**
    * Constructs a {@code History} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public History(CSVRecord record) throws ParseException {

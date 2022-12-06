@@ -11,11 +11,13 @@ import java.util.List;
 import java.util.Random;
 
 public class TpccUtil {
+
   private static final Random RANDOM = new Random();
 
   // for customer last name
-  public static final String[] NAME_TOKENS =
-      {"BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"};
+  public static final String[] NAME_TOKENS = {
+    "BAR", "OUGHT", "ABLE", "PRI", "PRES", "ESE", "ANTI", "CALLY", "ATION", "EING"
+  };
 
   // for non-uniform random
   public static final int CUSTOMER_LASTNAME_IN_LOAD = 250;
@@ -33,8 +35,9 @@ public class TpccUtil {
    * @return a customer ID
    * @throws TransactionException if the scan failed
    */
-  public static int getCustomerIdBySecondaryIndex(DistributedTransaction tx,
-      int warehouseId, int districtId, String customerLastName) throws TransactionException {
+  public static int getCustomerIdBySecondaryIndex(
+      DistributedTransaction tx, int warehouseId, int districtId, String customerLastName)
+      throws TransactionException {
     List<Result> results = tx.scan(Customer.createScan(warehouseId, districtId, customerLastName));
     results.sort(Customer.FIRST_NAME_COMPARATOR);
     int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
@@ -51,10 +54,11 @@ public class TpccUtil {
    * @return a customer ID
    * @throws TransactionException if the scan failed
    */
-  public static int getCustomerIdByTableIndex(DistributedTransaction tx,
-      int warehouseId, int districtId, String customerLastName) throws TransactionException {
-    List<Result> results = tx.scan(
-        CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
+  public static int getCustomerIdByTableIndex(
+      DistributedTransaction tx, int warehouseId, int districtId, String customerLastName)
+      throws TransactionException {
+    List<Result> results =
+        tx.scan(CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
     int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
     return results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
   }
@@ -89,7 +93,8 @@ public class TpccUtil {
     int length = randomInt(minLength, maxLength);
     if (TpccUtil.randomInt(0, 99) < rate) {
       int startOriginal = TpccUtil.randomInt(2, length - 8);
-      return TpccUtil.randomAlphaString(startOriginal - 1) + "ORIGINAL"
+      return TpccUtil.randomAlphaString(startOriginal - 1)
+          + "ORIGINAL"
           + TpccUtil.randomAlphaString(length - startOriginal - 9);
     } else {
       return TpccUtil.randomAlphaString(length);

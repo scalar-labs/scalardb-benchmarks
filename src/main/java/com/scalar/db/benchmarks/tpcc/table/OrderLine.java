@@ -15,6 +15,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class OrderLine extends TpccRecord {
+
   public static final String TABLE_NAME = "order_line";
   public static final String COLUMN_PREFIX = "ol_";
   public static final String KEY_WAREHOUSE_ID = "ol_w_id";
@@ -67,8 +68,16 @@ public class OrderLine extends TpccRecord {
    * @param itemId an item ID in this order line
    * @param info district information
    */
-  public OrderLine(int warehouseId, int districtId, int orderId, int number,
-      int supplyWarehouseId, double amount, int quantity, int itemId, String info) {
+  public OrderLine(
+      int warehouseId,
+      int districtId,
+      int orderId,
+      int number,
+      int supplyWarehouseId,
+      double amount,
+      int quantity,
+      int itemId,
+      String info) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
@@ -97,8 +106,14 @@ public class OrderLine extends TpccRecord {
    * @param itemId an item ID in this order line
    * @param date delivery date of this order
    */
-  public OrderLine(int warehouseId, int districtId, int orderId, int number,
-      int supplyWarehouseId, int itemId, Date date) {
+  public OrderLine(
+      int warehouseId,
+      int districtId,
+      int orderId,
+      int number,
+      int supplyWarehouseId,
+      int itemId,
+      Date date) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
@@ -123,7 +138,7 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Constructs a {@code OrderLine} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public OrderLine(CSVRecord record) throws ParseException {
@@ -141,8 +156,7 @@ public class OrderLine extends TpccRecord {
     valueMap.put(KEY_AMOUNT, Double.parseDouble(record.get(KEY_AMOUNT)));
     valueMap.put(KEY_QUANTITY, Integer.parseInt(record.get(KEY_QUANTITY)));
     valueMap.put(KEY_DIST_INFO, record.get(KEY_DIST_INFO));
-    if (!record.get(KEY_DELIVERY_D).isEmpty()
-        && !record.get(KEY_DELIVERY_D).equals("\\N")) {
+    if (!record.get(KEY_DELIVERY_D).isEmpty() && !record.get(KEY_DELIVERY_D).equals("\\N")) {
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       valueMap.put(KEY_DELIVERY_D, dateFormat.parse(record.get(KEY_DELIVERY_D)));
     } else {
@@ -152,7 +166,7 @@ public class OrderLine extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @return a {@code Key} object
@@ -164,9 +178,7 @@ public class OrderLine extends TpccRecord {
     return new Key(keys);
   }
 
-  /**
-   * Creates a clustering {@code Key}.
-   */
+  /** Creates a clustering {@code Key}. */
   public static Key createClusteringKey(int orderId, int orderLineNumber) {
     ArrayList<Value<?>> keys = new ArrayList<>();
     keys.add(new IntValue(KEY_ORDER_ID, orderId));
@@ -187,16 +199,12 @@ public class OrderLine extends TpccRecord {
     return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
-  /**
-   * Creates a {@code Scan} object for order-lines with a specified order ID.
-   */
+  /** Creates a {@code Scan} object for order-lines with a specified order ID. */
   public static Scan createScan(int warehouseId, int districtId, int orderId) {
     return createScan(warehouseId, districtId, orderId, orderId);
   }
 
-  /**
-   * Creates a {@code Scan} object for order-lines with a range of order IDs.
-   */
+  /** Creates a {@code Scan} object for order-lines with a range of order IDs. */
   public static Scan createScan(int warehouseId, int districtId, int orderIdStart, int orderIdEnd) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key start = new Key(OrderLine.KEY_ORDER_ID, orderIdStart);

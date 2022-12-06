@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class DeliveryTransaction implements TpccTransaction {
+
   private final TpccConfig config;
   private int warehouseId;
   private int carrierId;
@@ -25,9 +26,7 @@ public class DeliveryTransaction implements TpccTransaction {
     config = c;
   }
 
-  /**
-   * Generates arguments for the delivery transaction.
-   */
+  /** Generates arguments for the delivery transaction. */
   @Override
   public void generate() {
     int numWarehouse = config.getNumWarehouse();
@@ -38,7 +37,7 @@ public class DeliveryTransaction implements TpccTransaction {
 
   /**
    * Executes the delivery transaction.
-   * 
+   *
    * @param manager a {@code DistributedTransactionManager} object
    */
   @Override
@@ -77,7 +76,7 @@ public class DeliveryTransaction implements TpccTransaction {
           OrderLine newLine = new OrderLine(warehouseId, districtId, orderId, number, deliveryDate);
           tx.put(newLine.createPut());
         }
-    
+
         // Update the customer with new balance and delivery count
         result = tx.get(Customer.createGet(warehouseId, districtId, customerId));
         if (!result.isPresent()) {
@@ -85,8 +84,8 @@ public class DeliveryTransaction implements TpccTransaction {
         }
         double balance = result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + total;
         int deliveryCount = result.get().getValue(Customer.KEY_DELIVERY_CNT).get().getAsInt() + 1;
-        Customer customer
-            = new Customer(warehouseId, districtId, customerId, balance, deliveryCount);
+        Customer customer =
+            new Customer(warehouseId, districtId, customerId, balance, deliveryCount);
         tx.put(customer.createPut());
       }
 
