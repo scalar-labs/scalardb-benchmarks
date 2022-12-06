@@ -4,6 +4,7 @@ import javax.annotation.concurrent.Immutable;
 
 @Immutable
 public class TpccConfig {
+
   private final int rateNewOrder;
   private final int ratePayment;
   private final int rateOrderStatus;
@@ -72,6 +73,7 @@ public class TpccConfig {
   }
 
   public static final class Builder {
+
     private int rateNewOrder;
     private int ratePayment;
     private int rateOrderStatus;
@@ -116,7 +118,7 @@ public class TpccConfig {
       this.rateNewOrder = rateNewOrder;
       return this;
     }
-     
+
     public Builder ratePayment(int ratePayment) {
       this.ratePayment = ratePayment;
       return this;

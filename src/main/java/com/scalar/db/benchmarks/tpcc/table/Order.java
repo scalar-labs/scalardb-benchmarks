@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class Order extends TpccRecord {
+
   public static final String TABLE_NAME = "oorder";
   public static final String COLUMN_PREFIX = "o_";
   public static final String KEY_WAREHOUSE_ID = "o_w_id";
@@ -30,11 +31,12 @@ public class Order extends TpccRecord {
   public static final String KEY_ENTRY_D = "o_entry_d";
   public static final String KEY_INDEX = "o_index";
 
-  public static final Comparator<Result> ORDER_ID_COMPARATOR = (a, b) -> {
-    Integer valueA = a.getValue(KEY_ID).get().getAsInt();
-    Integer valueB = b.getValue(KEY_ID).get().getAsInt();
-    return -valueA.compareTo(valueB);
-  };
+  public static final Comparator<Result> ORDER_ID_COMPARATOR =
+      (a, b) -> {
+        Integer valueA = a.getValue(KEY_ID).get().getAsInt();
+        Integer valueB = b.getValue(KEY_ID).get().getAsInt();
+        return -valueA.compareTo(valueB);
+      };
 
   /**
    * Constructs a {@code Order} with a carrier ID for update.
@@ -68,8 +70,15 @@ public class Order extends TpccRecord {
    * @param local 1 if the order includes only home order lines, 0 otherwise
    * @param date entry date of this order
    */
-  public Order(int warehouseId, int districtId, int orderId, int customerId, int carrierId,
-      int number, int local, Date date) {
+  public Order(
+      int warehouseId,
+      int districtId,
+      int orderId,
+      int customerId,
+      int carrierId,
+      int number,
+      int local,
+      Date date) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_DISTRICT_ID, districtId);
@@ -109,15 +118,14 @@ public class Order extends TpccRecord {
     } else {
       valueMap.put(KEY_CARRIER_ID, 0);
     }
-    valueMap.put(KEY_OL_CNT,
-        TpccUtil.randomInt(OrderLine.MIN_PER_ORDER, OrderLine.MAX_PER_ORDER));
+    valueMap.put(KEY_OL_CNT, TpccUtil.randomInt(OrderLine.MIN_PER_ORDER, OrderLine.MAX_PER_ORDER));
     valueMap.put(KEY_ALL_LOCAL, 1);
     valueMap.put(KEY_ENTRY_D, date);
   }
 
   /**
    * Constructs a {@code Order} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public Order(CSVRecord record) throws ParseException {
@@ -130,8 +138,7 @@ public class Order extends TpccRecord {
 
     valueMap = new HashMap<>();
     valueMap.put(KEY_CUSTOMER_ID, Integer.parseInt(record.get(KEY_CUSTOMER_ID)));
-    if (!record.get(KEY_CARRIER_ID).isEmpty()
-        && !record.get(KEY_CARRIER_ID).equals("\\N")) {
+    if (!record.get(KEY_CARRIER_ID).isEmpty() && !record.get(KEY_CARRIER_ID).equals("\\N")) {
       valueMap.put(KEY_CARRIER_ID, Integer.parseInt(record.get(KEY_CARRIER_ID)));
     } else {
       valueMap.put(KEY_CARRIER_ID, 0);
@@ -144,7 +151,7 @@ public class Order extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @return a {@code Key} object
@@ -158,7 +165,7 @@ public class Order extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
-   * 
+   *
    * @param orderId an order ID
    * @return a {@code Key} object
    */
@@ -182,9 +189,7 @@ public class Order extends TpccRecord {
     return new Scan(key).forTable(TABLE_NAME);
   }
 
-  /**
-   * Creates a {@code Get} object.
-   */
+  /** Creates a {@code Get} object. */
   public static Get createGet(int warehouseId, int districtId, int orderId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key clusteringKey = createClusteringKey(orderId);
@@ -204,18 +209,16 @@ public class Order extends TpccRecord {
     return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
   }
 
-  /**
-   * Builds a column for secondary index.
-   */
+  /** Builds a column for secondary index. */
   public void buildIndexColumn() {
-    int warehouseId = (int)partitionKeyMap.get(KEY_WAREHOUSE_ID);
-    int districtId = (int)partitionKeyMap.get(KEY_DISTRICT_ID);
-    int customerId = (int)valueMap.get(KEY_CUSTOMER_ID);
+    int warehouseId = (int) partitionKeyMap.get(KEY_WAREHOUSE_ID);
+    int districtId = (int) partitionKeyMap.get(KEY_DISTRICT_ID);
+    int customerId = (int) valueMap.get(KEY_CUSTOMER_ID);
     String index = createIndexString(warehouseId, districtId, customerId);
     valueMap.put(KEY_INDEX, index);
   }
 
   public int getOrderLineCount() {
-    return (Integer)valueMap.get(KEY_OL_CNT);
+    return (Integer) valueMap.get(KEY_OL_CNT);
   }
 }

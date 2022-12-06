@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class Stock extends TpccRecord {
+
   public static final String TABLE_NAME = "stock";
   public static final String COLUMN_PREFIX = "s_";
   public static final String KEY_WAREHOUSE_ID = "s_w_id";
@@ -47,8 +48,8 @@ public class Stock extends TpccRecord {
    * @param orderCount number of order count
    * @param remoteCount number of remote count
    */
-  public Stock(int warehouseId, int itemId, int quantity, double ytd, int orderCount,
-      int remoteCount) {
+  public Stock(
+      int warehouseId, int itemId, int quantity, double ytd, int orderCount, int remoteCount) {
     partitionKeyMap = new LinkedHashMap<>();
     partitionKeyMap.put(KEY_WAREHOUSE_ID, warehouseId);
     partitionKeyMap.put(KEY_ITEM_ID, itemId);
@@ -85,7 +86,7 @@ public class Stock extends TpccRecord {
 
   /**
    * Constructs a {@code Stock} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public Stock(CSVRecord record) {
@@ -107,7 +108,7 @@ public class Stock extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param itemId an item ID
    * @return a {@code Key} object

@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class OrderSecondary extends TpccRecord {
+
   public static final String TABLE_NAME = "order_secondary";
   public static final String KEY_WAREHOUSE_ID = "o_w_id";
   public static final String KEY_DISTRICT_ID = "o_d_id";
@@ -19,7 +20,7 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Constructs a {@code OrderSecondary}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @param customerId a customer ID
@@ -37,7 +38,7 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Constructs a {@code OrderSecondary} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public OrderSecondary(CSVRecord record) {
@@ -52,7 +53,7 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @param customerId a customer ID
@@ -68,7 +69,7 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Creates a clustering {@code Key}.
-   * 
+   *
    * @param orderId an order ID
    * @return a {@code Key} object
    */
@@ -92,7 +93,7 @@ public class OrderSecondary extends TpccRecord {
 
   /**
    * Creates a {@code Scan} object for the last order of a customer.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @param customerId a customer ID

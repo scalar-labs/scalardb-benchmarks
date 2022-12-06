@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class District extends TpccRecord {
+
   public static final String TABLE_NAME = "district";
   public static final String COLUMN_PREFIX = "d_";
   public static final String KEY_WAREHOUSE_ID = "d_w_id";
@@ -80,12 +81,12 @@ public class District extends TpccRecord {
     valueMap.put(KEY_ADDRESS, new Address(COLUMN_PREFIX));
     valueMap.put(KEY_TAX, TpccUtil.randomDouble(0, 2000, 10000));
     valueMap.put(KEY_YTD, 30000.00);
-    valueMap.put(KEY_NEXT_O_ID, 3001);   
+    valueMap.put(KEY_NEXT_O_ID, 3001);
   }
 
   /**
    * Constructs a {@code District} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public District(CSVRecord record) {
@@ -95,9 +96,15 @@ public class District extends TpccRecord {
 
     valueMap = new HashMap<>();
     valueMap.put(KEY_NAME, record.get(KEY_NAME));
-    valueMap.put(KEY_ADDRESS,
-        new Address(COLUMN_PREFIX, record.get(KEY_STREET_1), record.get(KEY_STREET_2),
-        record.get(KEY_CITY), record.get(KEY_STATE), record.get(KEY_ZIP)));
+    valueMap.put(
+        KEY_ADDRESS,
+        new Address(
+            COLUMN_PREFIX,
+            record.get(KEY_STREET_1),
+            record.get(KEY_STREET_2),
+            record.get(KEY_CITY),
+            record.get(KEY_STATE),
+            record.get(KEY_ZIP)));
     valueMap.put(KEY_TAX, Double.parseDouble(record.get(KEY_TAX)));
     valueMap.put(KEY_YTD, Double.parseDouble(record.get(KEY_YTD)));
     valueMap.put(KEY_NEXT_O_ID, Integer.parseInt(record.get(KEY_NEXT_O_ID)));
@@ -105,7 +112,7 @@ public class District extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @return a {@code Key} object
@@ -119,7 +126,7 @@ public class District extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
-   * 
+   *
    * @param warehouseId a warehouse ID
    * @param districtId a district ID
    * @return a {@code Get} object

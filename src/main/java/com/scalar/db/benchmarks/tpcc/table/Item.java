@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
 public class Item extends TpccRecord {
+
   public static final String TABLE_NAME = "item";
   public static final String COLUMN_PREFIX = "i_";
   public static final String KEY_ID = "i_id";
@@ -44,7 +45,7 @@ public class Item extends TpccRecord {
 
   /**
    * Constructs a {@code Item} with a CSV record.
-   * 
+   *
    * @param record a {@code CSVRecord} object
    */
   public Item(CSVRecord record) {
@@ -60,7 +61,7 @@ public class Item extends TpccRecord {
 
   /**
    * Creates a partition {@code Key}.
-   * 
+   *
    * @param itemId an item ID
    * @return a {@code Key} object
    */
@@ -70,7 +71,7 @@ public class Item extends TpccRecord {
 
   /**
    * Creates a {@code Get} object.
-   * 
+   *
    * @param itemId an item ID
    * @return a {@code Get} object
    */

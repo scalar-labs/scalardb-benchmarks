@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.Optional;
 
 public class PaymentTransaction implements TpccTransaction {
+
   private final TpccConfig config;
   private int warehouseId;
   private int districtId;
@@ -29,9 +30,7 @@ public class PaymentTransaction implements TpccTransaction {
     config = c;
   }
 
-  /**
-   * Generates arguments for the payment transaction.
-   */
+  /** Generates arguments for the payment transaction. */
   @Override
   public void generate() {
     int numWarehouse = config.getNumWarehouse();
@@ -69,10 +68,28 @@ public class PaymentTransaction implements TpccTransaction {
     }
   }
 
-  private String generateCustomerData(int warehouseId, int districtId, int customerId,
-      int customerWarehouseId, int customerDistrictId, double amount, String oldData) {
-    String data = customerId + " " + customerDistrictId + " " + customerWarehouseId + " "
-        + districtId + " " + warehouseId + " " + String.format("%7.2f", amount) + " | " + oldData;
+  private String generateCustomerData(
+      int warehouseId,
+      int districtId,
+      int customerId,
+      int customerWarehouseId,
+      int customerDistrictId,
+      double amount,
+      String oldData) {
+    String data =
+        customerId
+            + " "
+            + customerDistrictId
+            + " "
+            + customerWarehouseId
+            + " "
+            + districtId
+            + " "
+            + warehouseId
+            + " "
+            + String.format("%7.2f", amount)
+            + " | "
+            + oldData;
     if (data.length() > 500) {
       data = data.substring(0, 500);
     }
@@ -91,7 +108,7 @@ public class PaymentTransaction implements TpccTransaction {
 
   /**
    * Executes the payment transaction.
-   * 
+   *
    * @param manager a {@code DistributedTransactionManager} object
    */
   @Override
@@ -126,11 +143,11 @@ public class PaymentTransaction implements TpccTransaction {
       // Get and update customer
       if (byLastName) {
         if (config.useTableIndex()) {
-          customerId = TpccUtil.getCustomerIdByTableIndex(
-              tx, warehouseId, districtId, customerLastName);
+          customerId =
+              TpccUtil.getCustomerIdByTableIndex(tx, warehouseId, districtId, customerLastName);
         } else {
-          customerId = TpccUtil.getCustomerIdBySecondaryIndex(
-              tx, warehouseId, districtId, customerLastName);
+          customerId =
+              TpccUtil.getCustomerIdBySecondaryIndex(tx, warehouseId, districtId, customerLastName);
         }
       }
       result = tx.get(Customer.createGet(customerWarehouseId, customerDistrictId, customerId));
@@ -145,17 +162,38 @@ public class PaymentTransaction implements TpccTransaction {
       final String credit = result.get().getValue(Customer.KEY_CREDIT).get().getAsString().get();
       String data = result.get().getValue(Customer.KEY_DATA).get().getAsString().get();
       if (credit.equals("BC")) {
-        data = generateCustomerData(warehouseId, districtId, customerId,
-            customerWarehouseId, customerDistrictId, paymentAmount, data);
+        data =
+            generateCustomerData(
+                warehouseId,
+                districtId,
+                customerId,
+                customerWarehouseId,
+                customerDistrictId,
+                paymentAmount,
+                data);
       }
-      Customer customer = new Customer(customerWarehouseId, customerDistrictId, customerId,
-          balance, ytdPayment, count, data);
+      Customer customer =
+          new Customer(
+              customerWarehouseId,
+              customerDistrictId,
+              customerId,
+              balance,
+              ytdPayment,
+              count,
+              data);
       tx.put(customer.createPut());
 
       // Insert history
       final History history =
-          new History(customerId, customerDistrictId, customerWarehouseId, districtId, warehouseId,
-              date, paymentAmount, generateHistoryData(warehouseName, districtName));
+          new History(
+              customerId,
+              customerDistrictId,
+              customerWarehouseId,
+              districtId,
+              warehouseId,
+              date,
+              paymentAmount,
+              generateHistoryData(warehouseName, districtName));
       tx.put(history.createPut());
 
       tx.commit();

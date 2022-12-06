@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class StockLevelTransaction implements TpccTransaction {
+
   private final TpccConfig config;
   private int warehouseId;
   private int districtId;
@@ -26,9 +27,7 @@ public class StockLevelTransaction implements TpccTransaction {
     config = c;
   }
 
-  /**
-   * Generates arguments for the stock-level transaction.
-   */
+  /** Generates arguments for the stock-level transaction. */
   @Override
   public void generate() {
     int numWarehouse = config.getNumWarehouse();
@@ -39,7 +38,7 @@ public class StockLevelTransaction implements TpccTransaction {
 
   /**
    * Executes the stock-level transaction.
-   * 
+   *
    * @param manager a {@code DistributedTransactionManager} object
    */
   @Override
@@ -55,8 +54,8 @@ public class StockLevelTransaction implements TpccTransaction {
       int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
 
       // Get order-lines of the last 20 orders
-      List<Result> orderLines = tx.scan(
-          OrderLine.createScan(warehouseId, districtId, orderId - 20, orderId - 1));
+      List<Result> orderLines =
+          tx.scan(OrderLine.createScan(warehouseId, districtId, orderId - 20, orderId - 1));
 
       // Prepare distinct items
       Set<Integer> itemSet = new HashSet<>();

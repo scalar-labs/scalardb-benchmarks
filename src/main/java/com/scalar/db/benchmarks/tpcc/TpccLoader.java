@@ -42,6 +42,7 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
 import picocli.CommandLine;
+import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Command;
 
 @Command(name = "tpcc-loader", description = "Load tables for TPC-C benchmark.")
@@ -55,11 +56,36 @@ public class TpccLoader implements Callable<Integer> {
   private String properties;
 
   @CommandLine.Option(
-      names = {"--num-warehouse"},
-      paramLabel = "NUM_WAREHOUSE",
+      names = {"--start-warehouse"},
+      paramLabel = "START_WAREHOUSE",
       defaultValue = "1",
-      description = "The number of warehouse.")
-  private int numWarehouse;
+      description = "The start ID of warehouse.")
+  private int startWarehouse;
+
+  static class Exclusive {
+
+    @CommandLine.Option(
+        names = {"--end-warehouse"},
+        paramLabel = "END_WAREHOUSE",
+        description = "The end ID of warehouse.")
+    int endWarehouse;
+
+    @CommandLine.Option(
+        names = {"--num-warehouses"},
+        paramLabel = "NUM_WAREHOUSES",
+        description = "The number of warehouses.")
+    int numWarehouses;
+  }
+
+  @ArgGroup(exclusive = true, multiplicity = "0..1")
+  private Exclusive warehouseConfig;
+
+  @CommandLine.Option(
+      names = {"--skip-item-load"},
+      paramLabel = "SKIP_ITEM_LOAD",
+      defaultValue = "false",
+      description = "Skip item loading.")
+  private boolean skipItemLoad;
 
   @CommandLine.Option(
       names = {"--directory"},
@@ -98,39 +124,44 @@ public class TpccLoader implements Callable<Integer> {
   private static final String ORDER_SECONDARY = "order_secondary.csv";
   private static final String STOCK = "stock.csv";
   private static final String WAREHOUSE = "warehouse.csv";
-  private static final String[] CUSTOMER_HEADER = "c_w_id,c_d_id,c_id,c_discount,c_credit,c_last,c_first,c_credit_lim,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,c_since,c_middle,c_data"
-      .split(",");
-  private static final String[] CUSTOMER_SECONDARY_HEADER = "c_w_id,c_d_id,c_last,c_first,c_id"
-      .split(",");
-  private static final String[] DISTRICT_HEADER = "d_w_id,d_id,d_ytd,d_tax,d_next_o_id,d_name,d_street_1,d_street_2,d_city,d_state,d_zip"
-      .split(",");
-  private static final String[] HISTORY_HEADER = "h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,h_amount,h_data"
-      .split(",");
+  private static final String[] CUSTOMER_HEADER =
+      "c_w_id,c_d_id,c_id,c_discount,c_credit,c_last,c_first,c_credit_lim,c_balance,c_ytd_payment,c_payment_cnt,c_delivery_cnt,c_street_1,c_street_2,c_city,c_state,c_zip,c_phone,c_since,c_middle,c_data"
+          .split(",");
+  private static final String[] CUSTOMER_SECONDARY_HEADER =
+      "c_w_id,c_d_id,c_last,c_first,c_id".split(",");
+  private static final String[] DISTRICT_HEADER =
+      "d_w_id,d_id,d_ytd,d_tax,d_next_o_id,d_name,d_street_1,d_street_2,d_city,d_state,d_zip"
+          .split(",");
+  private static final String[] HISTORY_HEADER =
+      "h_c_id,h_c_d_id,h_c_w_id,h_d_id,h_w_id,h_date,h_amount,h_data".split(",");
   private static final String[] ITEM_HEADER = "i_id,i_name,i_price,i_data,i_im_id".split(",");
   private static final String[] NEW_ORDER_HEADER = "no_w_id,no_d_id,no_o_id".split(",");
-  private static final String[] ORDER_HEADER = "o_w_id,o_d_id,o_id,o_c_id,o_carrier_id,o_ol_cnt,o_all_local,o_entry_d"
-      .split(",");
-  private static final String[] ORDER_LINE_HEADER = "ol_w_id,ol_d_id,ol_o_id,ol_number,ol_i_id,ol_delivery_d,ol_amount,ol_supply_w_id,ol_quantity,ol_dist_info"
-      .split(",");
-  private static final String[] ORDER_SECONDARY_HEADER = "o_w_id,o_d_id,o_c_id,o_id"
-      .split(",");
-  private static final String[] STOCK_HEADER = "s_w_id,s_i_id,s_quantity,s_ytd,s_order_cnt,s_remote_cnt,s_data,s_dist_01,s_dist_02,s_dist_03,s_dist_04,s_dist_05,s_dist_06,s_dist_07,s_dist_08,s_dist_09,s_dist_10"
-      .split(",");
-  private static final String[] WAREHOUSE_HEADER = "w_id,w_ytd,w_tax,w_name,w_street_1,w_street_2,w_city,w_state,w_zip"
-      .split(",");
-  private static final Map<String, String[]> HEADER_MAP = ImmutableMap.<String, String[]>builder()
-      .put(CUSTOMER, CUSTOMER_HEADER)
-      .put(CUSTOMER_SECONDARY, CUSTOMER_SECONDARY_HEADER)
-      .put(DISTRICT, DISTRICT_HEADER)
-      .put(HISTORY, HISTORY_HEADER)
-      .put(ITEM, ITEM_HEADER)
-      .put(NEW_ORDER, NEW_ORDER_HEADER)
-      .put(ORDER, ORDER_HEADER)
-      .put(ORDER_LINE, ORDER_LINE_HEADER)
-      .put(ORDER_SECONDARY, ORDER_SECONDARY_HEADER)
-      .put(STOCK, STOCK_HEADER)
-      .put(WAREHOUSE, WAREHOUSE_HEADER)
-      .build();
+  private static final String[] ORDER_HEADER =
+      "o_w_id,o_d_id,o_id,o_c_id,o_carrier_id,o_ol_cnt,o_all_local,o_entry_d".split(",");
+  private static final String[] ORDER_LINE_HEADER =
+      "ol_w_id,ol_d_id,ol_o_id,ol_number,ol_i_id,ol_delivery_d,ol_amount,ol_supply_w_id,ol_quantity,ol_dist_info"
+          .split(",");
+  private static final String[] ORDER_SECONDARY_HEADER = "o_w_id,o_d_id,o_c_id,o_id".split(",");
+  private static final String[] STOCK_HEADER =
+      "s_w_id,s_i_id,s_quantity,s_ytd,s_order_cnt,s_remote_cnt,s_data,s_dist_01,s_dist_02,s_dist_03,s_dist_04,s_dist_05,s_dist_06,s_dist_07,s_dist_08,s_dist_09,s_dist_10"
+          .split(",");
+  private static final String[] WAREHOUSE_HEADER =
+      "w_id,w_ytd,w_tax,w_name,w_street_1,w_street_2,w_city,w_state,w_zip".split(",");
+  private static final Map<String, String[]> HEADER_MAP =
+      ImmutableMap.<String, String[]>builder()
+          .put(CUSTOMER, CUSTOMER_HEADER)
+          .put(CUSTOMER_SECONDARY, CUSTOMER_SECONDARY_HEADER)
+          .put(DISTRICT, DISTRICT_HEADER)
+          .put(HISTORY, HISTORY_HEADER)
+          .put(ITEM, ITEM_HEADER)
+          .put(NEW_ORDER, NEW_ORDER_HEADER)
+          .put(ORDER, ORDER_HEADER)
+          .put(ORDER_LINE, ORDER_LINE_HEADER)
+          .put(ORDER_SECONDARY, ORDER_SECONDARY_HEADER)
+          .put(STOCK, STOCK_HEADER)
+          .put(WAREHOUSE, WAREHOUSE_HEADER)
+          .build();
+  private int endWarehouse;
 
   public static void main(String[] args) {
     int exitCode = new CommandLine(new TpccLoader()).execute(args);
@@ -139,6 +170,13 @@ public class TpccLoader implements Callable<Integer> {
 
   @Override
   public Integer call() throws Exception {
+    if (warehouseConfig == null) {
+      endWarehouse = startWarehouse;
+    } else if (warehouseConfig.endWarehouse == 0) {
+      endWarehouse = startWarehouse + warehouseConfig.numWarehouses - 1;
+    } else {
+      endWarehouse = warehouseConfig.endWarehouse;
+    }
     DatabaseConfig dbConfig = new DatabaseConfig(new FileInputStream(properties));
     TransactionFactory factory = new TransactionFactory(dbConfig);
     DistributedTransactionManager manager = factory.getTransactionManager();
@@ -149,7 +187,7 @@ public class TpccLoader implements Callable<Integer> {
   private void queueWarehouses(BlockingQueue<TpccRecord> queue, AtomicInteger counter)
       throws InterruptedException {
     Date date = new Date();
-    for (int warehouseId = 1; warehouseId <= numWarehouse; warehouseId++) {
+    for (int warehouseId = startWarehouse; warehouseId <= endWarehouse; warehouseId++) {
       queue.put(new Warehouse(warehouseId));
       counter.incrementAndGet();
       for (int stockId = 1; stockId <= Warehouse.STOCKS; stockId++) {
@@ -160,8 +198,9 @@ public class TpccLoader implements Callable<Integer> {
     }
   }
 
-  private void queueDistricts(BlockingQueue<TpccRecord> queue, AtomicInteger counter,
-      int warehouseId, Date date) throws InterruptedException {
+  private void queueDistricts(
+      BlockingQueue<TpccRecord> queue, AtomicInteger counter, int warehouseId, Date date)
+      throws InterruptedException {
     for (int districtId = 1; districtId <= Warehouse.DISTRICTS; districtId++) {
       queue.put(new District(warehouseId, districtId));
       counter.incrementAndGet();
@@ -170,8 +209,13 @@ public class TpccLoader implements Callable<Integer> {
     }
   }
 
-  private void queueCustomers(BlockingQueue<TpccRecord> queue, AtomicInteger counter,
-      int warehouseId, int districtId, Date date) throws InterruptedException {
+  private void queueCustomers(
+      BlockingQueue<TpccRecord> queue,
+      AtomicInteger counter,
+      int warehouseId,
+      int districtId,
+      Date date)
+      throws InterruptedException {
     for (int customerId = 1; customerId <= District.CUSTOMERS; customerId++) {
       Customer customer = new Customer(warehouseId, districtId, customerId, date);
       String last = customer.getLastName();
@@ -192,8 +236,13 @@ public class TpccLoader implements Callable<Integer> {
     }
   }
 
-  private void queueOrders(BlockingQueue<TpccRecord> queue, AtomicInteger counter, int warehouseId,
-      int districtId, Date date) throws InterruptedException {
+  private void queueOrders(
+      BlockingQueue<TpccRecord> queue,
+      AtomicInteger counter,
+      int warehouseId,
+      int districtId,
+      Date date)
+      throws InterruptedException {
     List<Integer> customers = new ArrayList<>();
     for (int customerId = 1; customerId <= District.CUSTOMERS; customerId++) {
       customers.add(customerId);
@@ -251,34 +300,38 @@ public class TpccLoader implements Callable<Integer> {
     AtomicInteger failedCounter = new AtomicInteger();
 
     for (int i = 0; i < numThreads; ++i) {
-      executor.execute(() -> {
-        while (true) {
-          TpccRecord record = queue.poll();
-          if (record == null) {
-            if (isAllQueued.get()) {
-              break;
+      executor.execute(
+          () -> {
+            while (true) {
+              TpccRecord record = queue.poll();
+              if (record == null) {
+                if (isAllQueued.get()) {
+                  break;
+                }
+                Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+                continue;
+              }
+              try {
+                insert(manager, record);
+                succeededCounter.incrementAndGet();
+              } catch (Exception e) {
+                e.printStackTrace();
+                failedCounter.incrementAndGet();
+              }
             }
-            Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
-            continue;
-          }
-          try {
-            insert(manager, record);
-            succeededCounter.incrementAndGet();
-          } catch (Exception e) {
-            e.printStackTrace();
-            failedCounter.incrementAndGet();
-          }
-        }
-      });
+          });
     }
 
-    Future<?> future = executor.submit(() -> {
-      while (!isAllQueued.get()
-          || succeededCounter.get() + failedCounter.get() < queuedCounter.get()) {
-        System.out.println(succeededCounter.get() + " succeeded, " + failedCounter + " failed");
-        Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
-      }
-    });
+    Future<?> future =
+        executor.submit(
+            () -> {
+              while (!isAllQueued.get()
+                  || succeededCounter.get() + failedCounter.get() < queuedCounter.get()) {
+                System.out.println(
+                    succeededCounter.get() + " succeeded, " + failedCounter + " failed");
+                Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
+              }
+            });
 
     if (directory != null) {
       queueCsv(new File(directory, WAREHOUSE), queue, queuedCounter);
@@ -293,9 +346,11 @@ public class TpccLoader implements Callable<Integer> {
       queueCsv(new File(directory, ORDER_LINE), queue, queuedCounter);
       queueCsv(new File(directory, ORDER_SECONDARY), queue, queuedCounter);
     } else {
-      for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
-        queue.put(new Item(itemId));
-        queuedCounter.incrementAndGet();
+      if (!skipItemLoad) {
+        for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
+          queue.put(new Item(itemId));
+          queuedCounter.incrementAndGet();
+        }
       }
       queueWarehouses(queue, queuedCounter);
     }
@@ -312,8 +367,10 @@ public class TpccLoader implements Callable<Integer> {
   }
 
   private void queueCsv(File file, BlockingQueue<TpccRecord> queue, AtomicInteger counter) {
-    CSVFormat format = CSVFormat.Builder.create(CSVFormat.DEFAULT)
-        .setHeader(HEADER_MAP.get(file.getName())).build();
+    CSVFormat format =
+        CSVFormat.Builder.create(CSVFormat.DEFAULT)
+            .setHeader(HEADER_MAP.get(file.getName()))
+            .build();
 
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(new BOMInputStream(new FileInputStream(file))))) {
