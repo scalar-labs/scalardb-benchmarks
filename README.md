@@ -29,20 +29,20 @@ For setting ScalarDB properties, see also the related documents [here](https://g
 
 
 ```console
-java -jar scalardb-schema-loader-<version>.jar --config /path/to/scalardb.properties -f tpcc-schema.json
+java -jar scalardb-schema-loader-<version>.jar --config /path/to/scalardb.properties -f tpcc-schema.json --coordinator
 ```
 
 Then, load the initial data with your preferred scale factor.
 
 ```console
 cd build/install/scalardb-benchmarks
-./bin/tpcc-loader --config /path/to/scalardb.properties --num-warehouse 1 --num-threads 32
+./bin/tpcc-loader --config /path/to/scalardb.properties --num-warehouses 1 --num-threads 32
 ```
 
 ### Run
 
 ```console
-./bin/tpcc-bench --config /path/to/scalardb.properties --num-warehouse 1 --num-threads 4
+./bin/tpcc-bench --config /path/to/scalardb.properties --num-warehouses 1 --num-threads 4
 ```
 
 If successfully done, you can get throughput and average latency.
