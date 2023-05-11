@@ -14,8 +14,9 @@ import java.util.Date;
 import java.util.Optional;
 
 public class PaymentTransaction implements TpccTransaction {
-
   private final TpccConfig config;
+  private final DistributedTransactionManager manager;
+  private DistributedTransaction transaction;
   private int warehouseId;
   private int districtId;
   private int customerId;
@@ -26,13 +27,13 @@ public class PaymentTransaction implements TpccTransaction {
   private float paymentAmount;
   private Date date;
 
-  public PaymentTransaction(TpccConfig c) {
-    config = c;
+  public PaymentTransaction(DistributedTransactionManager manager, TpccConfig config) {
+    this.manager = manager;
+    this.config = config;
+    generate();
   }
 
-  /** Generates arguments for the payment transaction. */
-  @Override
-  public void generate() {
+  private void generate() {
     int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
@@ -106,100 +107,94 @@ public class PaymentTransaction implements TpccTransaction {
     return warehouseName + "    " + districtName;
   }
 
-  /**
-   * Executes the payment transaction.
-   *
-   * @param manager a {@code DistributedTransactionManager} object
-   */
   @Override
-  public void execute(DistributedTransactionManager manager) throws TransactionException {
-    DistributedTransaction tx = manager.start();
+  public void execute() throws TransactionException {
+    transaction = manager.start();
 
-    try {
-      // Get and update warehouse
-      Optional<Result> result = tx.get(Warehouse.createGet(warehouseId));
-      if (!result.isPresent()) {
-        throw new TransactionException("Warehouse not found");
-      }
-      final String warehouseName =
-          result.get().getValue(Warehouse.KEY_NAME).get().getAsString().get();
-      final double warehouseYtd =
-          result.get().getValue(Warehouse.KEY_YTD).get().getAsDouble() + paymentAmount;
-      Warehouse warehouse = new Warehouse(warehouseId, warehouseYtd);
-      tx.put(warehouse.createPut());
-
-      // Get and update district
-      result = tx.get(District.createGet(warehouseId, districtId));
-      if (!result.isPresent()) {
-        throw new TransactionException("District not found");
-      }
-      final String districtName =
-          result.get().getValue(District.KEY_NAME).get().getAsString().get();
-      final double districtYtd =
-          result.get().getValue(District.KEY_YTD).get().getAsDouble() + paymentAmount;
-      District district = new District(warehouseId, districtId, districtYtd);
-      tx.put(district.createPut());
-
-      // Get and update customer
-      if (byLastName) {
-        if (config.useTableIndex()) {
-          customerId =
-              TpccUtil.getCustomerIdByTableIndex(tx, warehouseId, districtId, customerLastName);
-        } else {
-          customerId =
-              TpccUtil.getCustomerIdBySecondaryIndex(tx, warehouseId, districtId, customerLastName);
-        }
-      }
-      result = tx.get(Customer.createGet(customerWarehouseId, customerDistrictId, customerId));
-      if (!result.isPresent()) {
-        throw new TransactionException("Customer not found");
-      }
-      final double balance =
-          result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + paymentAmount;
-      final double ytdPayment =
-          result.get().getValue(Customer.KEY_YTD_PAYMENT).get().getAsDouble() + paymentAmount;
-      final int count = result.get().getValue(Customer.KEY_PAYMENT_CNT).get().getAsInt() + 1;
-      final String credit = result.get().getValue(Customer.KEY_CREDIT).get().getAsString().get();
-      String data = result.get().getValue(Customer.KEY_DATA).get().getAsString().get();
-      if (credit.equals("BC")) {
-        data =
-            generateCustomerData(
-                warehouseId,
-                districtId,
-                customerId,
-                customerWarehouseId,
-                customerDistrictId,
-                paymentAmount,
-                data);
-      }
-      Customer customer =
-          new Customer(
-              customerWarehouseId,
-              customerDistrictId,
-              customerId,
-              balance,
-              ytdPayment,
-              count,
-              data);
-      tx.put(customer.createPut());
-
-      // Insert history
-      final History history =
-          new History(
-              customerId,
-              customerDistrictId,
-              customerWarehouseId,
-              districtId,
-              warehouseId,
-              date,
-              paymentAmount,
-              generateHistoryData(warehouseName, districtName));
-      tx.put(history.createPut());
-
-      tx.commit();
-    } catch (Exception e) {
-      tx.abort();
-      throw e;
+    // Get and update warehouse
+    Optional<Result> result = transaction.get(Warehouse.createGet(warehouseId));
+    if (!result.isPresent()) {
+      throw new TransactionException("Warehouse not found");
     }
+    final String warehouseName =
+        result.get().getValue(Warehouse.KEY_NAME).get().getAsString().get();
+    final double warehouseYtd =
+        result.get().getValue(Warehouse.KEY_YTD).get().getAsDouble() + paymentAmount;
+    Warehouse warehouse = new Warehouse(warehouseId, warehouseYtd);
+    transaction.put(warehouse.createPut());
+
+    // Get and update district
+    result = transaction.get(District.createGet(warehouseId, districtId));
+    if (!result.isPresent()) {
+      throw new TransactionException("District not found");
+    }
+    final String districtName = result.get().getValue(District.KEY_NAME).get().getAsString().get();
+    final double districtYtd =
+        result.get().getValue(District.KEY_YTD).get().getAsDouble() + paymentAmount;
+    District district = new District(warehouseId, districtId, districtYtd);
+    transaction.put(district.createPut());
+
+    // Get and update customer
+    if (byLastName) {
+      if (config.useTableIndex()) {
+        customerId =
+            TpccUtil.getCustomerIdByTableIndex(
+                transaction, warehouseId, districtId, customerLastName);
+      } else {
+        customerId =
+            TpccUtil.getCustomerIdBySecondaryIndex(
+                transaction, warehouseId, districtId, customerLastName);
+      }
+    }
+    result =
+        transaction.get(Customer.createGet(customerWarehouseId, customerDistrictId, customerId));
+    if (!result.isPresent()) {
+      throw new TransactionException("Customer not found");
+    }
+    final double balance =
+        result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + paymentAmount;
+    final double ytdPayment =
+        result.get().getValue(Customer.KEY_YTD_PAYMENT).get().getAsDouble() + paymentAmount;
+    final int count = result.get().getValue(Customer.KEY_PAYMENT_CNT).get().getAsInt() + 1;
+    final String credit = result.get().getValue(Customer.KEY_CREDIT).get().getAsString().get();
+    String data = result.get().getValue(Customer.KEY_DATA).get().getAsString().get();
+    if (credit.equals("BC")) {
+      data =
+          generateCustomerData(
+              warehouseId,
+              districtId,
+              customerId,
+              customerWarehouseId,
+              customerDistrictId,
+              paymentAmount,
+              data);
+    }
+    Customer customer =
+        new Customer(
+            customerWarehouseId, customerDistrictId, customerId, balance, ytdPayment, count, data);
+    transaction.put(customer.createPut());
+
+    // Insert history
+    final History history =
+        new History(
+            customerId,
+            customerDistrictId,
+            customerWarehouseId,
+            districtId,
+            warehouseId,
+            date,
+            paymentAmount,
+            generateHistoryData(warehouseName, districtName));
+    transaction.put(history.createPut());
+  }
+
+  @Override
+  public void commit() throws TransactionException {
+    transaction.commit();
+  }
+
+  @Override
+  public void abort() throws TransactionException {
+    transaction.abort();
   }
 }
