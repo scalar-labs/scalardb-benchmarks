@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 
 public class StockLevelTransaction implements TpccTransaction {
+  private static final int NUM_LATEST_ORDERS = 20;
   private final TpccConfig config;
   private final DistributedTransactionManager manager;
   private DistributedTransaction transaction;
@@ -50,7 +51,9 @@ public class StockLevelTransaction implements TpccTransaction {
 
     // Get order-lines of the last 20 orders
     List<Result> orderLines =
-        transaction.scan(OrderLine.createScan(warehouseId, districtId, orderId - 20, orderId - 1));
+        transaction.scan(
+            OrderLine.createScan(
+                warehouseId, districtId, orderId - NUM_LATEST_ORDERS, orderId - 1));
 
     // Prepare distinct items
     Set<Integer> itemSet = new HashSet<>();

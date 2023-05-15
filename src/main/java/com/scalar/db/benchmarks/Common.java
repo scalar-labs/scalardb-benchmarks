@@ -6,11 +6,8 @@ import com.scalar.kelpie.exception.IllegalConfigException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Common {
-  private static final Logger LOGGER = LoggerFactory.getLogger(Common.class);
   private static final String CONFIG_NAME = "database_config";
 
   public static DatabaseConfig getDatabaseConfig(Config config) {
@@ -24,7 +21,7 @@ public class Common {
       try {
         return new DatabaseConfig(new File(configFile));
       } catch (IOException e) {
-        LOGGER.warn("failed to load the specified config file: " + configFile, e);
+        throw new RuntimeException("failed to load the specified config file: " + configFile, e);
       }
     }
 

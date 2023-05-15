@@ -41,6 +41,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -114,7 +115,7 @@ public class TpccLoader extends PreProcessor {
   private final int endWarehouse;
   private final boolean skipItemLoad;
   private final boolean useTableIndex;
-  private String directory;
+  @Nullable private String directory;
 
   public TpccLoader(Config config) {
     super(config);
@@ -398,7 +399,7 @@ public class TpccLoader extends PreProcessor {
         counter.incrementAndGet();
       }
     } catch (Exception e) {
-      throw new RuntimeException("failed to load CSV a file", e);
+      throw new RuntimeException("failed to load a CSV file: " + file.getPath(), e);
     }
   }
 }

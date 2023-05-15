@@ -68,7 +68,7 @@ java -jar scalardb-schema-loader-<version>.jar --config /path/to/scalardb.proper
    ${kelpie}/bin/kelpie --config your_config.toml
    ```
     - `${kelpie}` is a Kelpie directory, which is extracted from the archive you downloaded [above](#prerequisites).
-    - There are other options such as `--only-pre` (i.e., registering certificates and contracts and loading data) and `--only-process` (i.e., running benchmark), which run only the specified process. `--except-pre` and `--except-process` run a job without the specified process.
+    - There are other options such as `--only-pre` (i.e., loading data) and `--only-process` (i.e., running benchmark), which run only the specified process. `--except-pre` and `--except-process` run a job without the specified process.
 
 ## Common parameters
 
