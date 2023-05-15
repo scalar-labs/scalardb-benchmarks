@@ -2,7 +2,6 @@ package com.scalar.db.benchmarks;
 
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.kelpie.config.Config;
-import com.scalar.kelpie.exception.IllegalConfigException;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
@@ -12,9 +11,9 @@ public class Common {
 
   public static DatabaseConfig getDatabaseConfig(Config config) {
     String configFile;
-    try {
+    if (config.hasUserValue(CONFIG_NAME, "config_file")) {
       configFile = config.getUserString(CONFIG_NAME, "config_file");
-    } catch (IllegalConfigException e) {
+    } else {
       configFile = null;
     }
     if (configFile != null) {

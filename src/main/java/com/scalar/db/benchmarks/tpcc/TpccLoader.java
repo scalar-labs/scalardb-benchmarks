@@ -22,7 +22,6 @@ import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
-import com.scalar.kelpie.exception.IllegalConfigException;
 import com.scalar.kelpie.modules.PreProcessor;
 import java.io.BufferedReader;
 import java.io.File;
@@ -129,9 +128,9 @@ public class TpccLoader extends PreProcessor {
     this.skipItemLoad = config.getUserBoolean(CONFIG_NAME, SKIP_ITEM_LOAD, DEFAULT_SKIP_ITEM_LOAD);
     this.useTableIndex =
         config.getUserBoolean(CONFIG_NAME, USE_TABLE_INDEX, DEFAULT_USE_TABLE_INDEX);
-    try {
+    if (config.hasUserValue(CONFIG_NAME, CSV_FILE_DIRECTORY)) {
       this.directory = config.getUserString(CONFIG_NAME, CSV_FILE_DIRECTORY);
-    } catch (IllegalConfigException e) {
+    } else {
       this.directory = null;
     }
 
