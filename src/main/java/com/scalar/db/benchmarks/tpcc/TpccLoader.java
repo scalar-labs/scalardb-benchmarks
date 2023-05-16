@@ -114,7 +114,7 @@ public class TpccLoader extends PreProcessor {
   private final int endWarehouse;
   private final boolean skipItemLoad;
   private final boolean useTableIndex;
-  @Nullable private String directory;
+  @Nullable private final String directory;
 
   public TpccLoader(Config config) {
     super(config);

@@ -13,7 +13,6 @@ ext {
     guavaVersion = '30.1-jre'
     javaxJsonVersion = '1.1.4'
     kelpieVersion = '1.2.3'
-    picoCliVersion = '4.1.4'
     slf4jVersion = '1.7.25'
     scalarDbVersion = '3.7.2'
 }

@@ -39,9 +39,6 @@ public class TpccBench extends TimeBasedProcessor {
   private final DistributedTransactionManager manager;
   private final AtomicInteger abortCounter = new AtomicInteger();
   private final TpccConfig tpccConfig;
-  private final int numWarehouses;
-  private final int backoff;
-  private final boolean useTableIndex;
 
   public TpccBench(Config config) {
     super(config);
@@ -50,10 +47,10 @@ public class TpccBench extends TimeBasedProcessor {
     manager = factory.getTransactionManager();
     manager.withNamespace(TpccRecord.NAMESPACE);
 
-    this.numWarehouses =
+    int numWarehouses =
         (int) config.getUserLong(CONFIG_NAME, NUM_WAREHOUSES, DEFAULT_NUM_WAREHOUSES);
-    this.backoff = (int) config.getUserLong(CONFIG_NAME, BACKOFF, DEFAULT_BACKOFF);
-    this.useTableIndex =
+    int backoff = (int) config.getUserLong(CONFIG_NAME, BACKOFF, DEFAULT_BACKOFF);
+    boolean useTableIndex =
         config.getUserBoolean(CONFIG_NAME, USE_TABLE_INDEX, DEFAULT_USE_TABLE_INDEX);
     if (config.hasUserValue(CONFIG_NAME, NP_ONLY) && config.getUserBoolean(CONFIG_NAME, NP_ONLY)) {
       if (hasRateParameter()) {
@@ -119,7 +116,7 @@ public class TpccBench extends TimeBasedProcessor {
     manager.close();
   }
 
-  private TpccTransaction generateTpccTransaction() throws TransactionException {
+  private TpccTransaction generateTpccTransaction() {
     int x = TpccUtil.randomInt(1, 100);
     if (x <= tpccConfig.getRateNewOrder()) {
       return new NewOrderTransaction(manager, tpccConfig);
