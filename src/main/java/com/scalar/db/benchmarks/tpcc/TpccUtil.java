@@ -8,11 +8,9 @@ import com.scalar.db.benchmarks.tpcc.table.District;
 import com.scalar.db.benchmarks.tpcc.table.Item;
 import com.scalar.db.exception.transaction.TransactionException;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TpccUtil {
-
-  private static final Random RANDOM = new Random();
 
   // for customer last name
   public static final String[] NAME_TOKENS = {
@@ -157,7 +155,7 @@ public class TpccUtil {
   }
 
   public static int randomInt(int min, int max) {
-    return (int) (RANDOM.nextDouble() * (max - min + 1) + min);
+    return ThreadLocalRandom.current().nextInt(min, max + 1);
   }
 
   public static double randomDouble(int min, int max, int divider) {

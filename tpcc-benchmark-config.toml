@@ -1,0 +1,40 @@
+[modules]
+[modules.preprocessor]
+name = "com.scalar.db.benchmarks.tpcc.TpccLoader"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.processor]
+name = "com.scalar.db.benchmarks.tpcc.TpccBench"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.postprocessor]
+name = "com.scalar.db.benchmarks.tpcc.TpccReporter"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+
+[common]
+concurrency = 4
+run_for_sec = 60
+ramp_for_sec = 10
+
+[stats]
+realtime_report_enabled = true
+
+[tpcc_config]
+num_warehouses = 1
+#load_concurrency = 32
+#use_table_index = true
+#np_only = true
+#rate_new_order = 45
+#rate_payment = 43
+#rate_order_status = 4
+#rate_delivery = 4
+#rate_stock_level = 4
+
+[database_config]
+contact_points = "localhost"
+contact_port = 9042
+username = "cassandra"
+password = "cassandra"
+storage = "cassandra"
+transaction_manager = "consensus-commit"
+isolation_level = "SNAPSHOT"
+serializable_strategy = "EXTRA_READ"
+#config_file = "/path/to/scalardb.properties"

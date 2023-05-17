@@ -19,8 +19,9 @@ import java.util.Date;
 import java.util.Optional;
 
 public class NewOrderTransaction implements TpccTransaction {
-
   private final TpccConfig config;
+  private final DistributedTransactionManager manager;
+  private DistributedTransaction transaction;
   private int warehouseId;
   private int districtId;
   private int customerId;
@@ -31,13 +32,13 @@ public class NewOrderTransaction implements TpccTransaction {
   private boolean remote;
   private Date date;
 
-  public NewOrderTransaction(TpccConfig c) {
-    config = c;
+  public NewOrderTransaction(DistributedTransactionManager manager, TpccConfig config) {
+    this.manager = manager;
+    this.config = config;
+    generate();
   }
 
-  /** Generates arguments for the new-order transaction. */
-  @Override
-  public void generate() {
+  private void generate() {
     int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
@@ -96,129 +97,120 @@ public class NewOrderTransaction implements TpccTransaction {
     }
   }
 
-  /**
-   * Executes the new-order transaction.
-   *
-   * @param manager a {@code DistributedTransactionManager} object
-   */
   @Override
-  public void execute(DistributedTransactionManager manager) throws TransactionException {
-    DistributedTransaction tx = manager.start();
+  public void execute() throws TransactionException {
+    transaction = manager.start();
 
-    try {
-      // Get warehouse
-      Optional<Result> result = tx.get(Warehouse.createGet(warehouseId));
+    // Get warehouse
+    Optional<Result> result = transaction.get(Warehouse.createGet(warehouseId));
+    if (!result.isPresent()) {
+      throw new TransactionException("Warehouse not found");
+    }
+    final double warehouseTax = result.get().getValue(Warehouse.KEY_TAX).get().getAsDouble();
+
+    // Get and update district
+    result = transaction.get(District.createGet(warehouseId, districtId));
+    if (!result.isPresent()) {
+      throw new TransactionException("District not found");
+    }
+    final double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
+    final int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
+    District district = new District(warehouseId, districtId, orderId + 1);
+    transaction.put(district.createPut());
+
+    // Get customer
+    result = transaction.get(Customer.createGet(warehouseId, districtId, customerId));
+    if (!result.isPresent()) {
+      throw new TransactionException("Customer not found");
+    }
+    double discount = result.get().getValue(Customer.KEY_DISCOUNT).get().getAsDouble();
+
+    // Insert new-order
+    NewOrder newOrder = new NewOrder(warehouseId, districtId, orderId);
+    transaction.put(newOrder.createPut());
+
+    // Insert order
+    Order order =
+        new Order(
+            warehouseId, districtId, orderId, customerId, 0, orderLineCount, remote ? 0 : 1, date);
+    if (!config.useTableIndex()) {
+      order.buildIndexColumn();
+    }
+    transaction.put(order.createPut());
+
+    // Insert order's secondary index
+    if (!config.isNpOnly() && config.useTableIndex()) {
+      OrderSecondary orderSecondary =
+          new OrderSecondary(warehouseId, districtId, customerId, orderId);
+      transaction.put(orderSecondary.createPut());
+    }
+
+    // Insert order-line
+    for (int orderLineNumber = 1; orderLineNumber <= orderLineCount; orderLineNumber++) {
+      final int itemId = itemIds[orderLineNumber - 1];
+      final int supplyWarehouseId = supplierWarehouseIds[orderLineNumber - 1];
+      final int quantity = orderQuantities[orderLineNumber - 1];
+
+      // Get item
+      result = transaction.get(Item.createGet(itemId));
       if (!result.isPresent()) {
-        throw new TransactionException("Warehouse not found");
+        throw new TransactionException("Item not found");
       }
-      final double warehouseTax = result.get().getValue(Warehouse.KEY_TAX).get().getAsDouble();
+      final double itemPrice = result.get().getValue(Item.KEY_PRICE).get().getAsDouble();
+      final double amount =
+          quantity * itemPrice * (1.0 + warehouseTax + districtTax) * (1.0 - discount);
 
-      // Get and update district
-      result = tx.get(District.createGet(warehouseId, districtId));
+      // Get and update stock
+      result = transaction.get(Stock.createGet(supplyWarehouseId, itemId));
       if (!result.isPresent()) {
-        throw new TransactionException("District not found");
+        throw new TransactionException("Stock not found");
       }
-      final double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
-      final int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
-      District district = new District(warehouseId, districtId, orderId + 1);
-      tx.put(district.createPut());
-
-      // Get customer
-      result = tx.get(Customer.createGet(warehouseId, districtId, customerId));
-      if (!result.isPresent()) {
-        throw new TransactionException("Customer not found");
+      double stockYtd = result.get().getValue(Stock.KEY_YTD).get().getAsDouble() + quantity;
+      int stockOrderCount = result.get().getValue(Stock.KEY_ORDER_CNT).get().getAsInt() + 1;
+      int stockRemoteCount = result.get().getValue(Stock.KEY_REMOTE_CNT).get().getAsInt();
+      if (remote) {
+        stockRemoteCount++;
       }
-      double discount = result.get().getValue(Customer.KEY_DISCOUNT).get().getAsDouble();
+      int stockQuantity = result.get().getValue(Stock.KEY_QUANTITY).get().getAsInt();
+      if (stockQuantity > quantity + 10) {
+        stockQuantity -= quantity;
+      } else {
+        stockQuantity = (stockQuantity - quantity) + 91;
+      }
+      String distInfo = getDistInfo(result, districtId);
+      Stock stock =
+          new Stock(
+              supplyWarehouseId,
+              itemId,
+              stockQuantity,
+              stockYtd,
+              stockOrderCount,
+              stockRemoteCount);
+      transaction.put(stock.createPut());
 
-      // Insert new-order
-      NewOrder newOrder = new NewOrder(warehouseId, districtId, orderId);
-      tx.put(newOrder.createPut());
-
-      // Insert order
-      Order order =
-          new Order(
+      // Insert order-line
+      OrderLine orderLine =
+          new OrderLine(
               warehouseId,
               districtId,
               orderId,
-              customerId,
-              0,
-              orderLineCount,
-              remote ? 0 : 1,
-              date);
-      if (!config.useTableIndex()) {
-        order.buildIndexColumn();
-      }
-      tx.put(order.createPut());
-
-      // Insert order's secondary index
-      if (!config.isNpOnly() && config.useTableIndex()) {
-        OrderSecondary orderSecondary =
-            new OrderSecondary(warehouseId, districtId, customerId, orderId);
-        tx.put(orderSecondary.createPut());
-      }
-
-      // Insert order-line
-      for (int orderLineNumber = 1; orderLineNumber <= orderLineCount; orderLineNumber++) {
-        final int itemId = itemIds[orderLineNumber - 1];
-        final int supplyWarehouseId = supplierWarehouseIds[orderLineNumber - 1];
-        final int quantity = orderQuantities[orderLineNumber - 1];
-
-        // Get item
-        result = tx.get(Item.createGet(itemId));
-        if (!result.isPresent()) {
-          throw new TransactionException("Item not found");
-        }
-        final double itemPrice = result.get().getValue(Item.KEY_PRICE).get().getAsDouble();
-        final double amount =
-            quantity * itemPrice * (1.0 + warehouseTax + districtTax) * (1.0 - discount);
-
-        // Get and update stock
-        result = tx.get(Stock.createGet(supplyWarehouseId, itemId));
-        if (!result.isPresent()) {
-          throw new TransactionException("Stock not found");
-        }
-        double stockYtd = result.get().getValue(Stock.KEY_YTD).get().getAsDouble() + quantity;
-        int stockOrderCount = result.get().getValue(Stock.KEY_ORDER_CNT).get().getAsInt() + 1;
-        int stockRemoteCount = result.get().getValue(Stock.KEY_REMOTE_CNT).get().getAsInt();
-        if (remote) {
-          stockRemoteCount++;
-        }
-        int stockQuantity = result.get().getValue(Stock.KEY_QUANTITY).get().getAsInt();
-        if (stockQuantity > quantity + 10) {
-          stockQuantity -= quantity;
-        } else {
-          stockQuantity = (stockQuantity - quantity) + 91;
-        }
-        String distInfo = getDistInfo(result, districtId);
-        Stock stock =
-            new Stock(
-                supplyWarehouseId,
-                itemId,
-                stockQuantity,
-                stockYtd,
-                stockOrderCount,
-                stockRemoteCount);
-        tx.put(stock.createPut());
-
-        // Insert order-line
-        OrderLine orderLine =
-            new OrderLine(
-                warehouseId,
-                districtId,
-                orderId,
-                orderLineNumber,
-                supplyWarehouseId,
-                amount,
-                quantity,
-                itemId,
-                distInfo);
-        tx.put(orderLine.createPut());
-      }
-
-      tx.commit();
-    } catch (Exception e) {
-      tx.abort();
-      throw e;
+              orderLineNumber,
+              supplyWarehouseId,
+              amount,
+              quantity,
+              itemId,
+              distInfo);
+      transaction.put(orderLine.createPut());
     }
+  }
+
+  @Override
+  public void commit() throws TransactionException {
+    transaction.commit();
+  }
+
+  @Override
+  public void abort() throws TransactionException {
+    transaction.abort();
   }
 }

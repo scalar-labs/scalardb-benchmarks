@@ -16,16 +16,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class OrderStatusTransaction implements TpccTransaction {
-
   private final TpccConfig config;
+  private final DistributedTransactionManager manager;
+  private DistributedTransaction transaction;
   private int warehouseId;
   private int districtId;
   private int customerId;
   private boolean byLastName;
   private String lastName;
 
-  public OrderStatusTransaction(TpccConfig c) {
-    config = c;
+  public OrderStatusTransaction(DistributedTransactionManager manager, TpccConfig config) {
+    this.manager = manager;
+    this.config = config;
+    generate();
   }
 
   private int getOrderIdBySecondaryIndex(DistributedTransaction tx) throws TransactionException {
@@ -45,9 +48,7 @@ public class OrderStatusTransaction implements TpccTransaction {
     return results.get(0).getValue(OrderSecondary.KEY_ORDER_ID).get().getAsInt();
   }
 
-  /** Generates arguments for the order-status transaction. */
-  @Override
-  public void generate() {
+  private void generate() {
     int numWarehouse = config.getNumWarehouse();
     warehouseId = TpccUtil.randomInt(1, numWarehouse);
     districtId = TpccUtil.randomInt(1, Warehouse.DISTRICTS);
@@ -60,60 +61,61 @@ public class OrderStatusTransaction implements TpccTransaction {
     }
   }
 
-  /**
-   * Executes the order-status transaction.
-   *
-   * @param manager a {@code DistributedTransactionManager} object
-   */
   @Override
-  public void execute(DistributedTransactionManager manager) throws TransactionException {
-    DistributedTransaction tx = manager.start();
+  public void execute() throws TransactionException {
+    transaction = manager.start();
 
-    try {
-      if (byLastName) {
-        if (config.useTableIndex()) {
-          customerId = TpccUtil.getCustomerIdByTableIndex(tx, warehouseId, districtId, lastName);
-        } else {
-          customerId =
-              TpccUtil.getCustomerIdBySecondaryIndex(tx, warehouseId, districtId, lastName);
-        }
-      }
-
-      // Get customer
-      Optional<Result> result = tx.get(Customer.createGet(warehouseId, districtId, customerId));
-      if (!result.isPresent()) {
-        throw new TransactionException("Customer not found");
-      }
-
-      // Find the last order of the customer
-      int orderId;
+    if (byLastName) {
       if (config.useTableIndex()) {
-        orderId = getOrderIdByTableIndex(tx);
+        customerId =
+            TpccUtil.getCustomerIdByTableIndex(transaction, warehouseId, districtId, lastName);
       } else {
-        orderId = getOrderIdBySecondaryIndex(tx);
+        customerId =
+            TpccUtil.getCustomerIdBySecondaryIndex(transaction, warehouseId, districtId, lastName);
       }
-
-      // Get order
-      result = tx.get(Order.createGet(warehouseId, districtId, orderId));
-      if (!result.isPresent()) {
-        throw new TransactionException("Order not found");
-      }
-
-      // Get order-line
-      List<Result> orderLines = tx.scan(OrderLine.createScan(warehouseId, districtId, orderId));
-      orderLines.forEach(
-          line -> {
-            int supplyWarehouseId = line.getValue(OrderLine.KEY_SUPPLY_W_ID).get().getAsInt();
-            int itemId = line.getValue(OrderLine.KEY_ITEM_ID).get().getAsInt();
-            int quantity = line.getValue(OrderLine.KEY_QUANTITY).get().getAsInt();
-            double amount = line.getValue(OrderLine.KEY_AMOUNT).get().getAsDouble();
-            Date deliveryDate = new Date(line.getValue(OrderLine.KEY_DELIVERY_D).get().getAsLong());
-          });
-
-      tx.commit();
-    } catch (Exception e) {
-      tx.abort();
-      throw e;
     }
+
+    // Get customer
+    Optional<Result> result =
+        transaction.get(Customer.createGet(warehouseId, districtId, customerId));
+    if (!result.isPresent()) {
+      throw new TransactionException("Customer not found");
+    }
+
+    // Find the last order of the customer
+    int orderId;
+    if (config.useTableIndex()) {
+      orderId = getOrderIdByTableIndex(transaction);
+    } else {
+      orderId = getOrderIdBySecondaryIndex(transaction);
+    }
+
+    // Get order
+    result = transaction.get(Order.createGet(warehouseId, districtId, orderId));
+    if (!result.isPresent()) {
+      throw new TransactionException("Order not found");
+    }
+
+    // Get order-line
+    List<Result> orderLines =
+        transaction.scan(OrderLine.createScan(warehouseId, districtId, orderId));
+    orderLines.forEach(
+        line -> {
+          int supplyWarehouseId = line.getValue(OrderLine.KEY_SUPPLY_W_ID).get().getAsInt();
+          int itemId = line.getValue(OrderLine.KEY_ITEM_ID).get().getAsInt();
+          int quantity = line.getValue(OrderLine.KEY_QUANTITY).get().getAsInt();
+          double amount = line.getValue(OrderLine.KEY_AMOUNT).get().getAsDouble();
+          Date deliveryDate = new Date(line.getValue(OrderLine.KEY_DELIVERY_D).get().getAsLong());
+        });
+  }
+
+  @Override
+  public void commit() throws TransactionException {
+    transaction.commit();
+  }
+
+  @Override
+  public void abort() throws TransactionException {
+    transaction.abort();
   }
 }

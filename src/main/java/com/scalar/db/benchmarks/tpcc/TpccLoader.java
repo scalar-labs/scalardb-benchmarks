@@ -1,5 +1,7 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import static com.scalar.db.benchmarks.Common.getDatabaseConfig;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransaction;
@@ -19,6 +21,8 @@ import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
+import com.scalar.kelpie.config.Config;
+import com.scalar.kelpie.modules.PreProcessor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,89 +34,32 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.Nullable;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.io.input.BOMInputStream;
-import picocli.CommandLine;
-import picocli.CommandLine.ArgGroup;
-import picocli.CommandLine.Command;
 
-@Command(name = "tpcc-loader", description = "Load tables for TPC-C benchmark.")
-public class TpccLoader implements Callable<Integer> {
-
-  @CommandLine.Option(
-      names = {"--properties", "--config"},
-      required = true,
-      paramLabel = "PROPERTIES_FILE",
-      description = "A configuration file in properties format.")
-  private String properties;
-
-  @CommandLine.Option(
-      names = {"--start-warehouse"},
-      paramLabel = "START_WAREHOUSE",
-      defaultValue = "1",
-      description = "The start ID of warehouse.")
-  private int startWarehouse;
-
-  static class Exclusive {
-
-    @CommandLine.Option(
-        names = {"--end-warehouse"},
-        paramLabel = "END_WAREHOUSE",
-        description = "The end ID of warehouse.")
-    int endWarehouse;
-
-    @CommandLine.Option(
-        names = {"--num-warehouses"},
-        paramLabel = "NUM_WAREHOUSES",
-        description = "The number of warehouses.")
-    int numWarehouses;
-  }
-
-  @ArgGroup(exclusive = true, multiplicity = "0..1")
-  private Exclusive warehouseConfig;
-
-  @CommandLine.Option(
-      names = {"--skip-item-load"},
-      paramLabel = "SKIP_ITEM_LOAD",
-      defaultValue = "false",
-      description = "Skip item loading.")
-  private boolean skipItemLoad;
-
-  @CommandLine.Option(
-      names = {"--directory"},
-      paramLabel = "CSV_DIRECTORY",
-      description = "A directory that contains csv files.")
-  private String directory;
-
-  @CommandLine.Option(
-      names = {"--num-threads"},
-      paramLabel = "NUM_THREADS",
-      defaultValue = "1",
-      description = "The number of threads to run.")
-  private int numThreads;
-
-  @CommandLine.Option(
-      names = {"--use-table-index"},
-      paramLabel = "USE_TABLE_INDEX",
-      defaultValue = "false",
-      description = "Use table-based secondary index.")
-  private boolean useTableIndex;
-
-  @CommandLine.Option(
-      names = {"-h", "--help"},
-      usageHelp = true,
-      description = "display the help message.")
-  private boolean helpRequested;
-
+public class TpccLoader extends PreProcessor {
+  private static final String CONFIG_NAME = "tpcc_config";
+  private static final String LOAD_CONCURRENCY = "load_concurrency";
+  private static final String NUM_WAREHOUSES = "num_warehouses";
+  private static final String START_WAREHOUSE = "load_start_warehouse";
+  private static final String END_WAREHOUSE = "load_end_warehouse";
+  private static final String SKIP_ITEM_LOAD = "skip_item_load";
+  private static final String USE_TABLE_INDEX = "use_table_index";
+  private static final String CSV_FILE_DIRECTORY = "csv_file_directory";
+  private static final long DEFAULT_LOAD_CONCURRENCY = 1;
+  private static final long DEFAULT_START_WAREHOUSE = 1;
+  private static final boolean DEFAULT_SKIP_ITEM_LOAD = false;
+  private static final boolean DEFAULT_USE_TABLE_INDEX = false;
+  private static final int QUEUE_SIZE = 10000;
   private static final String CUSTOMER = "customer.csv";
   private static final String CUSTOMER_SECONDARY = "customer_secondary.csv";
   private static final String DISTRICT = "district.csv";
@@ -161,27 +108,134 @@ public class TpccLoader implements Callable<Integer> {
           .put(STOCK, STOCK_HEADER)
           .put(WAREHOUSE, WAREHOUSE_HEADER)
           .build();
-  private int endWarehouse;
+  private final DistributedTransactionManager manager;
+  private final int concurrency;
+  private final int startWarehouse;
+  private final int endWarehouse;
+  private final boolean skipItemLoad;
+  private final boolean useTableIndex;
+  @Nullable private final String directory;
 
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new TpccLoader()).execute(args);
-    System.exit(exitCode);
+  public TpccLoader(Config config) {
+    super(config);
+    DatabaseConfig dbConfig = getDatabaseConfig(config);
+    TransactionFactory factory = new TransactionFactory(dbConfig);
+    manager = factory.getTransactionManager();
+    manager.withNamespace(TpccRecord.NAMESPACE);
+
+    this.concurrency =
+        (int) config.getUserLong(CONFIG_NAME, LOAD_CONCURRENCY, DEFAULT_LOAD_CONCURRENCY);
+    this.skipItemLoad = config.getUserBoolean(CONFIG_NAME, SKIP_ITEM_LOAD, DEFAULT_SKIP_ITEM_LOAD);
+    this.useTableIndex =
+        config.getUserBoolean(CONFIG_NAME, USE_TABLE_INDEX, DEFAULT_USE_TABLE_INDEX);
+    if (config.hasUserValue(CONFIG_NAME, CSV_FILE_DIRECTORY)) {
+      this.directory = config.getUserString(CONFIG_NAME, CSV_FILE_DIRECTORY);
+    } else {
+      this.directory = null;
+    }
+
+    if (config.hasUserValue(CONFIG_NAME, END_WAREHOUSE)
+        && config.hasUserValue(CONFIG_NAME, NUM_WAREHOUSES)) {
+      throw new RuntimeException(
+          END_WAREHOUSE + " and " + NUM_WAREHOUSES + " cannot be specified simultaneously");
+    }
+
+    this.startWarehouse =
+        (int) config.getUserLong(CONFIG_NAME, START_WAREHOUSE, DEFAULT_START_WAREHOUSE);
+    if (!config.hasUserValue(CONFIG_NAME, END_WAREHOUSE)
+        && !config.hasUserValue(CONFIG_NAME, NUM_WAREHOUSES)) {
+      this.endWarehouse = this.startWarehouse;
+    } else if (config.hasUserValue(CONFIG_NAME, NUM_WAREHOUSES)) {
+      this.endWarehouse =
+          this.startWarehouse + (int) config.getUserLong(CONFIG_NAME, NUM_WAREHOUSES) - 1;
+    } else {
+      this.endWarehouse = (int) config.getUserLong(CONFIG_NAME, END_WAREHOUSE);
+    }
   }
 
   @Override
-  public Integer call() throws Exception {
-    if (warehouseConfig == null) {
-      endWarehouse = startWarehouse;
-    } else if (warehouseConfig.endWarehouse == 0) {
-      endWarehouse = startWarehouse + warehouseConfig.numWarehouses - 1;
-    } else {
-      endWarehouse = warehouseConfig.endWarehouse;
+  public void execute() {
+    ExecutorService executor = Executors.newFixedThreadPool(concurrency + 1);
+    BlockingQueue<TpccRecord> queue = new ArrayBlockingQueue<>(QUEUE_SIZE);
+    AtomicBoolean isAllQueued = new AtomicBoolean();
+    AtomicInteger queuedCounter = new AtomicInteger();
+    AtomicInteger succeededCounter = new AtomicInteger();
+    AtomicInteger failedCounter = new AtomicInteger();
+
+    for (int i = 0; i < concurrency; ++i) {
+      executor.execute(
+          () -> {
+            while (true) {
+              TpccRecord record = queue.poll();
+              if (record == null) {
+                if (isAllQueued.get()) {
+                  break;
+                }
+                Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+                continue;
+              }
+              try {
+                insert(manager, record);
+                succeededCounter.incrementAndGet();
+              } catch (Exception e) {
+                e.printStackTrace();
+                failedCounter.incrementAndGet();
+              }
+            }
+          });
     }
-    DatabaseConfig dbConfig = new DatabaseConfig(new FileInputStream(properties));
-    TransactionFactory factory = new TransactionFactory(dbConfig);
-    DistributedTransactionManager manager = factory.getTransactionManager();
-    load(manager);
-    return 0;
+
+    Future<?> future =
+        executor.submit(
+            () -> {
+              while (!isAllQueued.get()
+                  || succeededCounter.get() + failedCounter.get() < queuedCounter.get()) {
+                logInfo(succeededCounter.get() + " succeeded, " + failedCounter + " failed");
+                Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
+              }
+            });
+
+    if (directory != null) {
+      queueCsv(new File(directory, WAREHOUSE), queue, queuedCounter);
+      queueCsv(new File(directory, ITEM), queue, queuedCounter);
+      queueCsv(new File(directory, STOCK), queue, queuedCounter);
+      queueCsv(new File(directory, DISTRICT), queue, queuedCounter);
+      queueCsv(new File(directory, CUSTOMER), queue, queuedCounter);
+      queueCsv(new File(directory, CUSTOMER_SECONDARY), queue, queuedCounter);
+      queueCsv(new File(directory, HISTORY), queue, queuedCounter);
+      queueCsv(new File(directory, ORDER), queue, queuedCounter);
+      queueCsv(new File(directory, NEW_ORDER), queue, queuedCounter);
+      queueCsv(new File(directory, ORDER_LINE), queue, queuedCounter);
+      queueCsv(new File(directory, ORDER_SECONDARY), queue, queuedCounter);
+    } else {
+      try {
+        if (!skipItemLoad) {
+          for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
+            queue.put(new Item(itemId));
+            queuedCounter.incrementAndGet();
+          }
+        }
+        queueWarehouses(queue, queuedCounter);
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    isAllQueued.set(true);
+
+    try {
+      future.get();
+      executor.shutdown();
+      Uninterruptibles.awaitTerminationUninterruptibly(executor);
+    } catch (java.util.concurrent.ExecutionException | InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    logInfo("all records have been inserted");
+  }
+
+  @Override
+  public void close() {
+    manager.close();
   }
 
   private void queueWarehouses(BlockingQueue<TpccRecord> queue, AtomicInteger counter)
@@ -291,81 +345,6 @@ public class TpccLoader implements Callable<Integer> {
     }
   }
 
-  private void load(DistributedTransactionManager manager) throws InterruptedException {
-    ExecutorService executor = Executors.newFixedThreadPool(numThreads + 1);
-    BlockingQueue<TpccRecord> queue = new ArrayBlockingQueue<>(10000);
-    AtomicBoolean isAllQueued = new AtomicBoolean();
-    AtomicInteger queuedCounter = new AtomicInteger();
-    AtomicInteger succeededCounter = new AtomicInteger();
-    AtomicInteger failedCounter = new AtomicInteger();
-
-    for (int i = 0; i < numThreads; ++i) {
-      executor.execute(
-          () -> {
-            while (true) {
-              TpccRecord record = queue.poll();
-              if (record == null) {
-                if (isAllQueued.get()) {
-                  break;
-                }
-                Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
-                continue;
-              }
-              try {
-                insert(manager, record);
-                succeededCounter.incrementAndGet();
-              } catch (Exception e) {
-                e.printStackTrace();
-                failedCounter.incrementAndGet();
-              }
-            }
-          });
-    }
-
-    Future<?> future =
-        executor.submit(
-            () -> {
-              while (!isAllQueued.get()
-                  || succeededCounter.get() + failedCounter.get() < queuedCounter.get()) {
-                System.out.println(
-                    succeededCounter.get() + " succeeded, " + failedCounter + " failed");
-                Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
-              }
-            });
-
-    if (directory != null) {
-      queueCsv(new File(directory, WAREHOUSE), queue, queuedCounter);
-      queueCsv(new File(directory, ITEM), queue, queuedCounter);
-      queueCsv(new File(directory, STOCK), queue, queuedCounter);
-      queueCsv(new File(directory, DISTRICT), queue, queuedCounter);
-      queueCsv(new File(directory, CUSTOMER), queue, queuedCounter);
-      queueCsv(new File(directory, CUSTOMER_SECONDARY), queue, queuedCounter);
-      queueCsv(new File(directory, HISTORY), queue, queuedCounter);
-      queueCsv(new File(directory, ORDER), queue, queuedCounter);
-      queueCsv(new File(directory, NEW_ORDER), queue, queuedCounter);
-      queueCsv(new File(directory, ORDER_LINE), queue, queuedCounter);
-      queueCsv(new File(directory, ORDER_SECONDARY), queue, queuedCounter);
-    } else {
-      if (!skipItemLoad) {
-        for (int itemId = 1; itemId <= Item.ITEMS; itemId++) {
-          queue.put(new Item(itemId));
-          queuedCounter.incrementAndGet();
-        }
-      }
-      queueWarehouses(queue, queuedCounter);
-    }
-    isAllQueued.set(true);
-
-    try {
-      future.get();
-    } catch (java.util.concurrent.ExecutionException e) {
-      e.printStackTrace();
-    }
-
-    executor.shutdown();
-    executor.awaitTermination(10, TimeUnit.SECONDS);
-  }
-
   private void queueCsv(File file, BlockingQueue<TpccRecord> queue, AtomicInteger counter) {
     CSVFormat format =
         CSVFormat.Builder.create(CSVFormat.DEFAULT)
@@ -419,7 +398,7 @@ public class TpccLoader implements Callable<Integer> {
         counter.incrementAndGet();
       }
     } catch (Exception e) {
-      e.printStackTrace();
+      throw new RuntimeException("failed to load a CSV file: " + file.getPath(), e);
     }
   }
 }

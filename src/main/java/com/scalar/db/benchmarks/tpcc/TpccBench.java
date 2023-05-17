@@ -1,262 +1,156 @@
 package com.scalar.db.benchmarks.tpcc;
 
+import static com.scalar.db.benchmarks.Common.getDatabaseConfig;
+
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.benchmarks.tpcc.table.TpccRecord;
+import com.scalar.db.benchmarks.tpcc.transaction.DeliveryTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.NewOrderTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.OrderStatusTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.PaymentTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.StockLevelTransaction;
+import com.scalar.db.benchmarks.tpcc.transaction.TpccTransaction;
 import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.exception.transaction.CommitConflictException;
+import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
-import java.io.FileInputStream;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import com.scalar.kelpie.config.Config;
+import com.scalar.kelpie.modules.TimeBasedProcessor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import picocli.CommandLine;
-import picocli.CommandLine.ArgGroup;
-import picocli.CommandLine.Command;
+import javax.json.Json;
 
-@Command(name = "tpcc-bench", description = "Execute TPC-C benchmark.")
-public class TpccBench implements Callable<Integer> {
+public class TpccBench extends TimeBasedProcessor {
+  private static final String CONFIG_NAME = "tpcc_config";
+  private static final String NUM_WAREHOUSES = "num_warehouses";
+  private static final String BACKOFF = "backoff";
+  private static final String USE_TABLE_INDEX = "use_table_index";
+  private static final String NP_ONLY = "np_only";
+  private static final String RATE_NEW_ORDER = "rate_new_order";
+  private static final String RATE_PAYMENT = "rate_payment";
+  private static final String RATE_ORDER_STATUS = "rate_order_status";
+  private static final String RATE_DELIVERY = "rate_delivery";
+  private static final String RATE_STOCK_LEVEL = "rate_stock_level";
+  private static final long DEFAULT_NUM_WAREHOUSES = 1;
+  private static final long DEFAULT_BACKOFF = 0;
+  private static final boolean DEFAULT_USE_TABLE_INDEX = false;
+  private final DistributedTransactionManager manager;
+  private final AtomicInteger abortCounter = new AtomicInteger();
+  private final TpccConfig tpccConfig;
 
-  @CommandLine.Option(
-      names = {"--properties", "--config"},
-      required = true,
-      paramLabel = "PROPERTIES_FILE",
-      description = "A configuration file in properties format.")
-  private String properties;
-
-  @CommandLine.Option(
-      names = {"--num-warehouses"},
-      paramLabel = "NUM_WAREHOUSES",
-      defaultValue = "1",
-      description = "The number of warehouses.")
-  private int numWarehouses;
-
-  static class Rate {
-
-    @CommandLine.Option(
-        names = {"--rate-new-order"},
-        paramLabel = "RATE_NEW_ORDER",
-        required = true,
-        description = "The percentage of new-order transaction.")
-    int newOrder;
-
-    @CommandLine.Option(
-        names = {"--rate-payment"},
-        paramLabel = "RATE_PAYMENT",
-        required = true,
-        description = "The percentage of payment transaction.")
-    int payment;
-
-    @CommandLine.Option(
-        names = {"--rate-order-status"},
-        paramLabel = "RATE_ORDER_STATUS",
-        required = true,
-        description = "The percentage of order-status transaction.")
-    int orderStatus;
-
-    @CommandLine.Option(
-        names = {"--rate-delivery"},
-        paramLabel = "RATE_DELIVERY",
-        required = true,
-        description = "The percentage of delivery transaction.")
-    int delivery;
-
-    @CommandLine.Option(
-        names = {"--rate-stock-level"},
-        paramLabel = "RATE_STOCK_LEVEL",
-        required = true,
-        description = "The percentage of stock-level transaction.")
-    int stockLevel;
-  }
-
-  static class Mode {
-
-    @CommandLine.Option(
-        names = {"--np-only"},
-        paramLabel = "NP_ONLY",
-        defaultValue = "false",
-        description = "Run with TPC-C NP-only mode.")
-    boolean npOnly;
-
-    @CommandLine.ArgGroup(exclusive = false)
-    Rate rate;
-  }
-
-  @ArgGroup(exclusive = true, multiplicity = "0..1")
-  private Mode mode;
-
-  @CommandLine.Option(
-      names = {"--num-threads"},
-      paramLabel = "NUM_THREADS",
-      defaultValue = "1",
-      description = "The number of threads to run.")
-  private int numThreads;
-
-  @CommandLine.Option(
-      names = {"--duration"},
-      paramLabel = "DURATION",
-      defaultValue = "200",
-      description = "The duration of benchmark in seconds")
-  private int duration;
-
-  @CommandLine.Option(
-      names = {"--ramp-up-time"},
-      paramLabel = "RAMP_UP_TIME",
-      defaultValue = "60",
-      description = "The ramp up time in seconds.")
-  private int rampUpTime;
-
-  @CommandLine.Option(
-      names = {"--times"},
-      paramLabel = "TIMES",
-      defaultValue = "0",
-      description = "The number of serial execution for testing.")
-  private int times;
-
-  @CommandLine.Option(
-      names = {"--backoff"},
-      paramLabel = "BACKOFF",
-      defaultValue = "0",
-      description = "The milliseconds of backoff when retrying.")
-  private int backoff;
-
-  @CommandLine.Option(
-      names = {"--use-table-index"},
-      paramLabel = "USE_TABLE_INDEX",
-      defaultValue = "false",
-      description = "Use table-based secondary index.")
-  private boolean useTableIndex;
-
-  @CommandLine.Option(
-      names = {"--verbose"},
-      paramLabel = "VERBOSE",
-      defaultValue = "false",
-      description = "Show verbose error messages.")
-  boolean verbose;
-
-  @CommandLine.Option(
-      names = {"-h", "--help"},
-      usageHelp = true,
-      description = "display the help message.")
-  private boolean helpRequested;
-
-  private final AtomicInteger counter = new AtomicInteger();
-  private final AtomicInteger totalCounter = new AtomicInteger();
-  private final AtomicLong latencyTotal = new AtomicLong();
-  private final AtomicInteger errorCounter = new AtomicInteger();
-
-  public static void main(String[] args) {
-    int exitCode = new CommandLine(new TpccBench()).execute(args);
-    System.exit(exitCode);
-  }
-
-  @Override
-  public Integer call() throws Exception {
-    DatabaseConfig dbConfig = new DatabaseConfig(new FileInputStream(properties));
+  public TpccBench(Config config) {
+    super(config);
+    DatabaseConfig dbConfig = getDatabaseConfig(config);
     TransactionFactory factory = new TransactionFactory(dbConfig);
-    DistributedTransactionManager manager = factory.getTransactionManager();
+    manager = factory.getTransactionManager();
     manager.withNamespace(TpccRecord.NAMESPACE);
 
-    TpccConfig config;
-    if (mode == null) {
-      config =
-          TpccConfig.newBuilder()
-              .numWarehouse(numWarehouses)
-              .fullMix()
-              .backoff(backoff)
-              .useTableIndex(useTableIndex)
-              .build();
-    } else if (mode.npOnly) {
-      config =
+    int numWarehouses =
+        (int) config.getUserLong(CONFIG_NAME, NUM_WAREHOUSES, DEFAULT_NUM_WAREHOUSES);
+    int backoff = (int) config.getUserLong(CONFIG_NAME, BACKOFF, DEFAULT_BACKOFF);
+    boolean useTableIndex =
+        config.getUserBoolean(CONFIG_NAME, USE_TABLE_INDEX, DEFAULT_USE_TABLE_INDEX);
+    if (config.hasUserValue(CONFIG_NAME, NP_ONLY) && config.getUserBoolean(CONFIG_NAME, NP_ONLY)) {
+      if (hasRateParameter()) {
+        throw new RuntimeException(
+            NP_ONLY + " and rate parameters cannot be specified simultaneously");
+      }
+      tpccConfig =
           TpccConfig.newBuilder()
               .numWarehouse(numWarehouses)
               .npOnly()
               .backoff(backoff)
               .useTableIndex(useTableIndex)
               .build();
-    } else {
-      config =
+    } else if (hasRateParameter()) {
+      if (!hasAllRateParameters()) {
+        throw new RuntimeException(
+            "specify all rate parameters to run the benchmark with your own mix");
+      }
+      tpccConfig =
           TpccConfig.newBuilder()
               .numWarehouse(numWarehouses)
-              .rateNewOrder(mode.rate.newOrder)
-              .ratePayment(mode.rate.payment)
-              .rateOrderStatus(mode.rate.orderStatus)
-              .rateDelivery(mode.rate.delivery)
-              .rateStockLevel(mode.rate.stockLevel)
+              .rateNewOrder((int) config.getUserLong(CONFIG_NAME, RATE_NEW_ORDER))
+              .ratePayment((int) config.getUserLong(CONFIG_NAME, RATE_PAYMENT))
+              .rateOrderStatus((int) config.getUserLong(CONFIG_NAME, RATE_ORDER_STATUS))
+              .rateDelivery((int) config.getUserLong(CONFIG_NAME, RATE_DELIVERY))
+              .rateStockLevel((int) config.getUserLong(CONFIG_NAME, RATE_STOCK_LEVEL))
               .useTableIndex(useTableIndex)
               .backoff(backoff)
               .build();
+    } else {
+      tpccConfig =
+          TpccConfig.newBuilder()
+              .numWarehouse(numWarehouses)
+              .fullMix()
+              .backoff(backoff)
+              .useTableIndex(useTableIndex)
+              .build();
     }
+  }
 
-    if (times > 0) {
-      TpccRunner tpcc = new TpccRunner(manager, config);
-      for (int i = 0; i < times; ++i) {
-        try {
-          tpcc.run();
-        } catch (TransactionException e) {
-          e.printStackTrace();
-        }
-      }
-      return 0;
-    }
-
-    long durationMillis = duration * 1000L;
-    long rampUpTimeMillis = rampUpTime * 1000L;
-
-    AtomicBoolean isRunning = new AtomicBoolean(true);
-    ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-    final long start = System.currentTimeMillis();
-    long from = start;
-    for (int i = 0; i < numThreads; ++i) {
-      executor.execute(
-          () -> {
-            TpccRunner tpcc = new TpccRunner(manager, config);
-            while (isRunning.get()) {
-              try {
-                long eachStart = System.currentTimeMillis();
-                tpcc.run(isRunning, errorCounter);
-                long eachEnd = System.currentTimeMillis();
-                counter.incrementAndGet();
-                if (System.currentTimeMillis() >= start + rampUpTimeMillis) {
-                  totalCounter.incrementAndGet();
-                  latencyTotal.addAndGet(eachEnd - eachStart);
-                }
-              } catch (TransactionException e) {
-                if (verbose) {
-                  e.printStackTrace();
-                }
-                errorCounter.incrementAndGet();
-              }
-            }
-          });
-    }
-
-    long end = start + rampUpTimeMillis + durationMillis;
+  @Override
+  public void executeEach() throws TransactionException {
+    TpccTransaction transaction = generateTpccTransaction();
     while (true) {
-      long to = System.currentTimeMillis();
-      if (to >= end) {
-        isRunning.set(false);
+      try {
+        transaction.execute();
+        transaction.commit();
         break;
+      } catch (CrudConflictException | CommitConflictException e) {
+        transaction.abort();
+        abortCounter.incrementAndGet();
+        Uninterruptibles.sleepUninterruptibly(tpccConfig.getBackoff(), TimeUnit.MILLISECONDS);
+      } catch (Exception e) {
+        transaction.abort();
+        throw e;
       }
-      System.out.println(((double) counter.get() * 1000 / (to - from)) + " tps");
-      counter.set(0);
-      from = System.currentTimeMillis();
-
-      Uninterruptibles.sleepUninterruptibly(1000, TimeUnit.MILLISECONDS);
     }
-    System.out.println(
-        "TPS: " + (double) totalCounter.get() * 1000 / (end - start - rampUpTimeMillis));
-    System.out.println("Average-Latency(ms): " + (double) latencyTotal.get() / totalCounter.get());
-    System.out.println("Error-Counts: " + errorCounter.get());
+  }
 
-    executor.shutdown();
-    executor.awaitTermination(10, TimeUnit.SECONDS);
+  @Override
+  public void close() {
+    setState(Json.createObjectBuilder().add("abort_count", abortCounter.toString()).build());
     manager.close();
+  }
 
-    return 0;
+  private TpccTransaction generateTpccTransaction() {
+    int x = TpccUtil.randomInt(1, 100);
+    if (x <= tpccConfig.getRateNewOrder()) {
+      return new NewOrderTransaction(manager, tpccConfig);
+    } else if (x <= tpccConfig.getRateNewOrder() + tpccConfig.getRatePayment()) {
+      return new PaymentTransaction(manager, tpccConfig);
+    } else if (x
+        <= tpccConfig.getRateNewOrder()
+            + tpccConfig.getRatePayment()
+            + tpccConfig.getRateOrderStatus()) {
+      return new OrderStatusTransaction(manager, tpccConfig);
+    } else if (x
+        <= tpccConfig.getRateNewOrder()
+            + tpccConfig.getRatePayment()
+            + tpccConfig.getRateOrderStatus()
+            + tpccConfig.getRateDelivery()) {
+      return new DeliveryTransaction(manager, tpccConfig);
+    } else {
+      return new StockLevelTransaction(manager, tpccConfig);
+    }
+  }
+
+  private boolean hasRateParameter() {
+    return config.hasUserValue(CONFIG_NAME, RATE_NEW_ORDER)
+        || config.hasUserValue(CONFIG_NAME, RATE_PAYMENT)
+        || config.hasUserValue(CONFIG_NAME, RATE_ORDER_STATUS)
+        || config.hasUserValue(CONFIG_NAME, RATE_DELIVERY)
+        || config.hasUserValue(CONFIG_NAME, RATE_STOCK_LEVEL);
+  }
+
+  private boolean hasAllRateParameters() {
+    return config.hasUserValue(CONFIG_NAME, RATE_NEW_ORDER)
+        && config.hasUserValue(CONFIG_NAME, RATE_PAYMENT)
+        && config.hasUserValue(CONFIG_NAME, RATE_ORDER_STATUS)
+        && config.hasUserValue(CONFIG_NAME, RATE_DELIVERY)
+        && config.hasUserValue(CONFIG_NAME, RATE_STOCK_LEVEL);
   }
 }
