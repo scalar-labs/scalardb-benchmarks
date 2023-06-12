@@ -89,14 +89,12 @@ public class TpccUtil {
    */
   public static String getRandomStringWithOriginal(int minLength, int maxLength, int rate) {
     int length = randomInt(minLength, maxLength);
+    StringBuilder builder = new StringBuilder(TpccUtil.randomAlphaString(length));
     if (TpccUtil.randomInt(0, 99) < rate) {
-      int startOriginal = TpccUtil.randomInt(2, length - 8);
-      return TpccUtil.randomAlphaString(startOriginal - 1)
-          + "ORIGINAL"
-          + TpccUtil.randomAlphaString(length - startOriginal - 9);
-    } else {
-      return TpccUtil.randomAlphaString(length);
+      int startOriginal = TpccUtil.randomInt(0, length - 8);
+      builder.replace(startOriginal, startOriginal + 8, "ORIGINAL");
     }
+    return builder.toString();
   }
 
   /**
