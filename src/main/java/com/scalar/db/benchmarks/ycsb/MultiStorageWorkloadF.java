@@ -54,13 +54,10 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
     char[] payload = new char[payloadSize];
     for (int i = 0; i < opsPerTx; ++i) {
       primaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      secondaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
 
       YcsbCommon.randomFastChars(ThreadLocalRandom.current(), payload);
-      payloads.add(new String(payload));
-    }
-    for (int i = 0; i < opsPerTx; ++i) {
-      secondaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
-      // use same payload for secondary
+      payloads.add(new String(payload)); // use same payload for primary and secondary
     }
 
     while (true) {
@@ -89,8 +86,13 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
   }
 
   @Override
-  public void close() throws Exception {
-    manager.close();
+  public void close() {
+    try {
+      manager.close();
+    } catch (Exception e) {
+      logWarn("Failed to close the transaction manager", e);
+    }
+
     setState(
         Json.createObjectBuilder()
             .add("transaction-retry-count", transactionRetryCount.toString())

@@ -45,8 +45,6 @@ public class MultiStorageWorkloadC extends TimeBasedProcessor {
     List<Integer> secondaryIds = new ArrayList<>(opsPerTx);
     for (int i = 0; i < opsPerTx; ++i) {
       primaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
-    }
-    for (int i = 0; i < opsPerTx; ++i) {
       secondaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
     }
 
@@ -72,8 +70,13 @@ public class MultiStorageWorkloadC extends TimeBasedProcessor {
   }
 
   @Override
-  public void close() throws Exception {
-    manager.close();
+  public void close() {
+    try {
+      manager.close();
+    } catch (Exception e) {
+      logWarn("Failed to close the transaction manager", e);
+    }
+
     setState(
         Json.createObjectBuilder()
             .add("transaction-retry-count", transactionRetryCount.toString())
