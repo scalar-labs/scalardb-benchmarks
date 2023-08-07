@@ -5,6 +5,10 @@ This repository contains benchmark programs for ScalarDB.
 ## Available workloads
 
 - TPC-C
+- YCSB (Workload A, C, and F)
+- Multi-storage YCSB (Workload C and F)
+  - A YCSB-variant benchmark using a multi-storage environment of ScalarDB.
+  - Workers in multi-storage YCSB execute the same number of read/write operations in two namespaces (`ycsb_primary` and `ycsb_secondary`).
 
 ## Prerequisites
 
@@ -33,6 +37,7 @@ This benchmark requires the followings:
 Before loading initial data, the tables must be defined using [ScalarDB Schema Loader](https://github.com/scalar-labs/scalardb/blob/master/docs/schema-loader.md). Get the latest schema loader [here](https://github.com/scalar-labs/scalardb/releases) and execute it with the workload-specific schema file. For setting ScalarDB properties, see also the related documents [here](https://github.com/scalar-labs/scalardb#docs).
 
 For example, execute the following command with `tpcc-schema.json` to create tables for TPC-C benchmark.
+For YCSB and multi-storage YCSB, use `ycsb-schema.json` and `ycsb-multi-storage-schema.json`, respectively.
 
 ```console
 java -jar scalardb-schema-loader-<version>.jar --config /path/to/scalardb.properties -f tpcc-schema.json --coordinator
@@ -62,7 +67,10 @@ java -jar scalardb-schema-loader-<version>.jar --config /path/to/scalardb.proper
       storage = "cassandra"
       #config_file = "/path/to/scalardb.properties"
       ```
-    - You can define static parameters to pass to modules in the file. For details, see example configuration files such as `tpcc-benchmark-config.toml` and available parameters in [the following section](#common-parameters).
+    - You can define static parameters to pass to modules in the file. For details, see the sample configuration files below and available parameters in [the following section](#common-parameters).
+      - TPC-C: `tpcc-benchmark-config.toml`
+      - YCSB: `ycsb-benchmark-config.toml`
+      - Multi-storage YCSB: `ycsb-multi-storage-benchmark-config.toml`
 2. Run a benchmark
    ```
    ${kelpie}/bin/kelpie --config your_config.toml
@@ -97,3 +105,17 @@ java -jar scalardb-schema-loader-<version>.jar --config /path/to/scalardb.proper
 | `rate_delivery`        | Percentage of delivery transaction. Specify all the rate parameters to use your own mix.                                                                              | N/A     |
 | `rate_stock_level`     | Percentage of stock-level transaction. Specify all the rate parameters to use your own mix.                                                                           | N/A     |
 | `backoff`              | Sleep time in milliseconds inserted after a transaction is aborted due to a conflict.                                                                                 | 0       |
+
+### YCSB and multi-storage YCSB
+
+| name                    | description                                                                       | default                                   |
+|:------------------------|:----------------------------------------------------------------------------------|:------------------------------------------|
+| `load_concurrency`      | Number of threads for loading.                                                    | 1                                         |
+| `load_batch_size`       | Number of put records in a single loading transaction.                            | 1                                         |
+| `load_overwrite`        | Whether or not to overwrite when loading records.                                 | false                                     |
+| `ops_per_tx`            | Number of operations in a single transaction.                                     | 2 (Workload A and C) <br> 1 (Workload F)  |
+| `record_count`          | Number of records in the target table.                                            | 1000                                      |
+| `use_read_modify_write` | Whether or not to use read-modify-writes instead of blind writes in Workload A.   | false[^rmw]                               |
+
+[^rmw]: The default value is `false` for `use_read_modify_write` since Workload A does not assume the transaction reads the original record first.
+However, you need to set `true` if you use the consensus commit for the transaction manager because ScalarDB does not allow a blind write for the existing record.

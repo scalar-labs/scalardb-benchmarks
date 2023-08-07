@@ -1,13 +1,20 @@
 package com.scalar.db.benchmarks;
 
+import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryConfig;
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Properties;
 
 public class Common {
   private static final String CONFIG_NAME = "database_config";
+  private static final int WAIT_MILLS = 1000;
+  private static final int MAX_RETRIES = 10;
 
   public static DatabaseConfig getDatabaseConfig(Config config) {
     String configFile;
@@ -47,5 +54,25 @@ public class Common {
     props.setProperty("scalar.db.consensus_commit.isolation_level", isolationLevel);
     props.setProperty("scalar.db.consensus_commit.serializable_strategy", serializableStrategy);
     return new DatabaseConfig(props);
+  }
+
+  public static DistributedTransactionManager getTransactionManager(Config config) {
+    DatabaseConfig dbConfig = getDatabaseConfig(config);
+    TransactionFactory factory = TransactionFactory.create(dbConfig.getProperties());
+    return factory.getTransactionManager();
+  }
+
+  public static Retry getRetryWithFixedWaitDuration(String name) {
+    return getRetryWithFixedWaitDuration(name, MAX_RETRIES, WAIT_MILLS);
+  }
+
+  public static Retry getRetryWithFixedWaitDuration(String name, int maxRetries, int waitMillis) {
+    RetryConfig retryConfig =
+        RetryConfig.custom()
+            .maxAttempts(maxRetries)
+            .waitDuration(Duration.ofMillis(waitMillis))
+            .build();
+
+    return Retry.of(name, retryConfig);
   }
 }
