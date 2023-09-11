@@ -4,6 +4,7 @@ import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Result;
 import com.scalar.db.benchmarks.tpcc.TpccConfig;
+import com.scalar.db.benchmarks.tpcc.TpccRollbackException;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.benchmarks.tpcc.table.Customer;
 import com.scalar.db.benchmarks.tpcc.table.District;
@@ -70,7 +71,7 @@ public class NewOrderTransaction implements TpccTransaction {
     }
   }
 
-  private String getDistInfo(Optional<Result> stock, int districtId) throws TransactionException {
+  private String getDistInfo(Optional<Result> stock) {
     switch (districtId) {
       case 1:
         return stock.get().getValue(Stock.KEY_DISTRICT01).get().getAsString().get();
@@ -93,25 +94,30 @@ public class NewOrderTransaction implements TpccTransaction {
       case 10:
         return stock.get().getValue(Stock.KEY_DISTRICT10).get().getAsString().get();
       default:
-        throw new TransactionException("No such district ID");
+        throw new IllegalStateException(
+            String.format(
+                "No such district ID: warehouse: %d, district: %d", warehouseId, districtId));
     }
   }
 
   @Override
-  public void execute() throws TransactionException {
+  public void execute() throws TransactionException, TpccRollbackException {
     transaction = manager.start();
 
     // Get warehouse
     Optional<Result> result = transaction.get(Warehouse.createGet(warehouseId));
     if (!result.isPresent()) {
-      throw new TransactionException("Warehouse not found");
+      throw new IllegalStateException(
+          String.format("Warehouse not found: warehouse: %d", warehouseId));
     }
     final double warehouseTax = result.get().getValue(Warehouse.KEY_TAX).get().getAsDouble();
 
     // Get and update district
     result = transaction.get(District.createGet(warehouseId, districtId));
     if (!result.isPresent()) {
-      throw new TransactionException("District not found");
+      throw new IllegalStateException(
+          String.format(
+              "District not found: warehouse: %d, district: %d", warehouseId, districtId));
     }
     final double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
     final int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
@@ -121,7 +127,10 @@ public class NewOrderTransaction implements TpccTransaction {
     // Get customer
     result = transaction.get(Customer.createGet(warehouseId, districtId, customerId));
     if (!result.isPresent()) {
-      throw new TransactionException("Customer not found");
+      throw new IllegalStateException(
+          String.format(
+              "Customer not found: warehouse: %d, district: %d, customer: %d",
+              warehouseId, districtId, customerId));
     }
     double discount = result.get().getValue(Customer.KEY_DISCOUNT).get().getAsDouble();
 
@@ -154,7 +163,10 @@ public class NewOrderTransaction implements TpccTransaction {
       // Get item
       result = transaction.get(Item.createGet(itemId));
       if (!result.isPresent()) {
-        throw new TransactionException("Item not found");
+        throw new TpccRollbackException(
+            String.format(
+                "Item not found: warehouse: %d, district: %d, item: %d",
+                warehouseId, districtId, itemId));
       }
       final double itemPrice = result.get().getValue(Item.KEY_PRICE).get().getAsDouble();
       final double amount =
@@ -163,7 +175,10 @@ public class NewOrderTransaction implements TpccTransaction {
       // Get and update stock
       result = transaction.get(Stock.createGet(supplyWarehouseId, itemId));
       if (!result.isPresent()) {
-        throw new TransactionException("Stock not found");
+        throw new IllegalStateException(
+            String.format(
+                "Stock not found: warehouse: %d, district: %d, supplier warehouse: %d, item: %d",
+                warehouseId, districtId, supplyWarehouseId, itemId));
       }
       double stockYtd = result.get().getValue(Stock.KEY_YTD).get().getAsDouble() + quantity;
       int stockOrderCount = result.get().getValue(Stock.KEY_ORDER_CNT).get().getAsInt() + 1;
@@ -177,7 +192,7 @@ public class NewOrderTransaction implements TpccTransaction {
       } else {
         stockQuantity = (stockQuantity - quantity) + 91;
       }
-      String distInfo = getDistInfo(result, districtId);
+      String distInfo = getDistInfo(result);
       Stock stock =
           new Stock(
               supplyWarehouseId,

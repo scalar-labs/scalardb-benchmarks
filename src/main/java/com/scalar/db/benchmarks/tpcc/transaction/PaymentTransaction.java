@@ -114,7 +114,8 @@ public class PaymentTransaction implements TpccTransaction {
     // Get and update warehouse
     Optional<Result> result = transaction.get(Warehouse.createGet(warehouseId));
     if (!result.isPresent()) {
-      throw new TransactionException("Warehouse not found");
+      throw new IllegalStateException(
+          String.format("Warehouse not found: warehouse: %d", warehouseId));
     }
     final String warehouseName =
         result.get().getValue(Warehouse.KEY_NAME).get().getAsString().get();
@@ -126,7 +127,9 @@ public class PaymentTransaction implements TpccTransaction {
     // Get and update district
     result = transaction.get(District.createGet(warehouseId, districtId));
     if (!result.isPresent()) {
-      throw new TransactionException("District not found");
+      throw new IllegalStateException(
+          String.format(
+              "District not found: warehouse: %d, district: %d", warehouseId, districtId));
     }
     final String districtName = result.get().getValue(District.KEY_NAME).get().getAsString().get();
     final double districtYtd =
@@ -149,7 +152,10 @@ public class PaymentTransaction implements TpccTransaction {
     result =
         transaction.get(Customer.createGet(customerWarehouseId, customerDistrictId, customerId));
     if (!result.isPresent()) {
-      throw new TransactionException("Customer not found");
+      throw new IllegalStateException(
+          String.format(
+              "Customer not found: warehouse: %d, district: %d, customer: %d",
+              warehouseId, districtId, customerId));
     }
     final double balance =
         result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + paymentAmount;

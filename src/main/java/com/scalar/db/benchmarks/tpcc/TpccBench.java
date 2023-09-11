@@ -92,12 +92,18 @@ public class TpccBench extends TimeBasedProcessor {
   }
 
   @Override
-  public void executeEach() throws TransactionException {
+  public void executeEach() throws TransactionException, TpccRollbackException {
     TpccTransaction transaction = generateTpccTransaction();
     while (true) {
       try {
         transaction.execute();
         transaction.commit();
+        break;
+      } catch (TpccRollbackException e) {
+        transaction.abort();
+        logDebug(e.getMessage());
+        // do not count the abort since this is application-level one defined in the spec, and we
+        // would like to count the system aborts only.
         break;
       } catch (CrudConflictException | CommitConflictException e) {
         transaction.abort();

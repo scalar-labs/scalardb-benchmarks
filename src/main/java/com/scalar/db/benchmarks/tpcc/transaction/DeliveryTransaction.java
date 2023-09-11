@@ -44,7 +44,9 @@ public class DeliveryTransaction implements TpccTransaction {
       // Get the oldest outstanding new-order
       List<Result> newOrders = transaction.scan(NewOrder.createScan(warehouseId, districtId));
       if (newOrders.size() != 1) {
-        throw new TransactionException("Invalid scan on new-order");
+        throw new IllegalStateException(
+            String.format(
+                "Invalid scan on new-order: warehouse %d, district: %d", warehouseId, districtId));
       }
       int orderId = newOrders.get(0).getValue(NewOrder.KEY_ORDER_ID).get().getAsInt();
 
@@ -54,7 +56,10 @@ public class DeliveryTransaction implements TpccTransaction {
       // Get the customer of the new-order
       Optional<Result> result = transaction.get(Order.createGet(warehouseId, districtId, orderId));
       if (!result.isPresent()) {
-        throw new TransactionException("Order not found");
+        throw new IllegalStateException(
+            String.format(
+                "Order not found: warehouse %d, district: %d, order: %d",
+                warehouseId, districtId, orderId));
       }
       int customerId = result.get().getValue(Order.KEY_CUSTOMER_ID).get().getAsInt();
 
@@ -76,7 +81,10 @@ public class DeliveryTransaction implements TpccTransaction {
       // Update the customer with new balance and delivery count
       result = transaction.get(Customer.createGet(warehouseId, districtId, customerId));
       if (!result.isPresent()) {
-        throw new TransactionException("Customer not found");
+        throw new IllegalStateException(
+            String.format(
+                "Customer not found: warehouse %d, district: %d, customer: %d",
+                warehouseId, districtId, customerId));
       }
       double balance = result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + total;
       int deliveryCount = result.get().getValue(Customer.KEY_DELIVERY_CNT).get().getAsInt() + 1;

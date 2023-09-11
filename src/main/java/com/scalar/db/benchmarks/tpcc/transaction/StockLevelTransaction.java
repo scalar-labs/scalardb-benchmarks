@@ -45,7 +45,9 @@ public class StockLevelTransaction implements TpccTransaction {
     // Get next order ID in the district
     Optional<Result> result = transaction.get(District.createGet(warehouseId, districtId));
     if (!result.isPresent()) {
-      throw new TransactionException("District not found");
+      throw new IllegalStateException(
+          String.format(
+              "District not found: warehouse: %d, district: %d", warehouseId, districtId));
     }
     int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
 
@@ -69,7 +71,10 @@ public class StockLevelTransaction implements TpccTransaction {
     for (int itemId : itemSet) {
       Optional<Result> stock = transaction.get(Stock.createGet(warehouseId, itemId));
       if (!stock.isPresent()) {
-        throw new TransactionException("Stock not found");
+        throw new IllegalStateException(
+            String.format(
+                "Stock not found: warehouse: %d, district: %d, item: %d",
+                warehouseId, districtId, itemId));
       }
       int quantity = stock.get().getValue(Stock.KEY_QUANTITY).get().getAsInt();
       if (quantity < threshold) {

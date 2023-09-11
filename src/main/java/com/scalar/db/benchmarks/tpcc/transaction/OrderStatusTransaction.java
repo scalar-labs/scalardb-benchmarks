@@ -34,7 +34,10 @@ public class OrderStatusTransaction implements TpccTransaction {
   private int getOrderIdBySecondaryIndex(DistributedTransaction tx) throws TransactionException {
     List<Result> results = tx.scan(Order.createScan(warehouseId, districtId, customerId));
     if (results.size() < 1) {
-      throw new TransactionException("Invalid scan on order-secondary");
+      throw new IllegalStateException(
+          String.format(
+              "Invalid scan on order-secondary: warehouse %d, district: %d, customer: %d",
+              warehouseId, districtId, customerId));
     }
     results.sort(Order.ORDER_ID_COMPARATOR);
     return results.get(0).getValue(Order.KEY_ID).get().getAsInt();
@@ -43,7 +46,10 @@ public class OrderStatusTransaction implements TpccTransaction {
   private int getOrderIdByTableIndex(DistributedTransaction tx) throws TransactionException {
     List<Result> results = tx.scan(OrderSecondary.createScan(warehouseId, districtId, customerId));
     if (results.size() != 1) {
-      throw new TransactionException("Invalid scan on order-secondary");
+      throw new IllegalStateException(
+          String.format(
+              "Invalid scan on order-secondary: warehouse %d, district: %d, customer: %d",
+              warehouseId, districtId, customerId));
     }
     return results.get(0).getValue(OrderSecondary.KEY_ORDER_ID).get().getAsInt();
   }
@@ -79,7 +85,10 @@ public class OrderStatusTransaction implements TpccTransaction {
     Optional<Result> result =
         transaction.get(Customer.createGet(warehouseId, districtId, customerId));
     if (!result.isPresent()) {
-      throw new TransactionException("Customer not found");
+      throw new IllegalStateException(
+          String.format(
+              "Customer not found: warehouse %d, district: %d, customer: %d",
+              warehouseId, districtId, customerId));
     }
 
     // Find the last order of the customer
@@ -93,7 +102,10 @@ public class OrderStatusTransaction implements TpccTransaction {
     // Get order
     result = transaction.get(Order.createGet(warehouseId, districtId, orderId));
     if (!result.isPresent()) {
-      throw new TransactionException("Order not found");
+      throw new IllegalStateException(
+          String.format(
+              "Order not found: warehouse %d, district: %d, order: %d",
+              warehouseId, districtId, orderId));
     }
 
     // Get order-line
