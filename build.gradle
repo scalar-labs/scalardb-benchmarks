@@ -5,6 +5,14 @@ plugins {
 
 repositories {
     mavenCentral()
+
+    maven {
+        url = uri("https://maven.pkg.github.com/scalar-labs/scalardb-cluster")
+        credentials {
+            username = project.findProperty("gpr.user") ?: System.getenv("GPR_USERNAME")
+            password = project.findProperty("gpr.key") ?: System.getenv("GPR_PASSWORD")
+        }
+    }
 }
 
 ext {
@@ -21,7 +29,7 @@ ext {
 dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: "${guavaVersion}"
     implementation group: 'com.scalar-labs', name: 'kelpie', version: "${kelpieVersion}"
-    implementation group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
+    implementation group: 'com.scalar-labs', name: 'scalardb-cluster-client', version: "${scalarDbVersion}"
     implementation group: 'commons-io', name: 'commons-io', version: "${commonsIoVersion}"
     implementation group: 'io.github.resilience4j', name: 'resilience4j-retry', version: "${resilience4jRetryVersion}"
     implementation group: 'javax.json', name: 'javax.json-api', version: "${javaxJsonVersion}"
