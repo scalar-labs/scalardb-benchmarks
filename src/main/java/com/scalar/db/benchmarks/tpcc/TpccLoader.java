@@ -19,6 +19,8 @@ import com.scalar.db.benchmarks.tpcc.table.Stock;
 import com.scalar.db.benchmarks.tpcc.table.TpccRecord;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
 import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.exception.transaction.CommitConflictException;
+import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
@@ -174,12 +176,19 @@ public class TpccLoader extends PreProcessor {
                 Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
                 continue;
               }
-              try {
-                insert(manager, record);
-                succeededCounter.incrementAndGet();
-              } catch (Exception e) {
-                e.printStackTrace();
-                failedCounter.incrementAndGet();
+              while (true) {
+                try {
+                  insert(manager, record);
+                  succeededCounter.incrementAndGet();
+                  break;
+                } catch (CrudConflictException | CommitConflictException e) {
+                  logInfo("insertion failed due to retryable exception", e);
+                  Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+                } catch (Exception e) {
+                  e.printStackTrace();
+                  failedCounter.incrementAndGet();
+                  break;
+                }
               }
             }
           });
