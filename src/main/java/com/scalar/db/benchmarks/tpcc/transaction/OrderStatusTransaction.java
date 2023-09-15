@@ -128,6 +128,8 @@ public class OrderStatusTransaction implements TpccTransaction {
 
   @Override
   public void abort() throws TransactionException {
-    transaction.abort();
+    if (transaction != null) {
+      transaction.abort();
+    }
   }
 }

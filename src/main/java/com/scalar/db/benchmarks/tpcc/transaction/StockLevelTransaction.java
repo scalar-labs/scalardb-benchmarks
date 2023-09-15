@@ -90,6 +90,8 @@ public class StockLevelTransaction implements TpccTransaction {
 
   @Override
   public void abort() throws TransactionException {
-    transaction.abort();
+    if (transaction != null) {
+      transaction.abort();
+    }
   }
 }

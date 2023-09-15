@@ -15,6 +15,7 @@ import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
+import com.scalar.db.exception.transaction.TransactionNotFoundException;
 import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
 import com.scalar.kelpie.modules.TimeBasedProcessor;
@@ -109,6 +110,10 @@ public class TpccBench extends TimeBasedProcessor {
         transaction.abort();
         abortCounter.incrementAndGet();
         Uninterruptibles.sleepUninterruptibly(tpccConfig.getBackoff(), TimeUnit.MILLISECONDS);
+      } catch (TransactionNotFoundException e) {
+        // maybe cluster in overloading
+        logInfo("transaction not found", e);
+        Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
       } catch (Exception e) {
         transaction.abort();
         throw e;

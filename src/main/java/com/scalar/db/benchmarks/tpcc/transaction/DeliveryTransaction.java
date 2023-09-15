@@ -100,6 +100,8 @@ public class DeliveryTransaction implements TpccTransaction {
 
   @Override
   public void abort() throws TransactionException {
-    transaction.abort();
+    if (transaction != null) {
+      transaction.abort();
+    }
   }
 }

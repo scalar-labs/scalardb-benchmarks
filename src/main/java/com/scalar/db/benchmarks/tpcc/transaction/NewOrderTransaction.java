@@ -226,6 +226,8 @@ public class NewOrderTransaction implements TpccTransaction {
 
   @Override
   public void abort() throws TransactionException {
-    transaction.abort();
+    if (transaction != null) {
+      transaction.abort();
+    }
   }
 }
