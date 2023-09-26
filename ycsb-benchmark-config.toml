@@ -3,7 +3,7 @@
 name = "com.scalar.db.benchmarks.ycsb.Loader"
 path = "./build/libs/scalardb-benchmarks-all.jar"
 [modules.processor]
-name = "com.scalar.db.benchmarks.ycsb.WorkloadF"
+name = "com.scalar.db.benchmarks.ycsb.WorkloadFWithDeleteAndReinsert"
 path = "./build/libs/scalardb-benchmarks-all.jar"
 [modules.postprocessor]
 name = "com.scalar.db.benchmarks.ycsb.YcsbReporter"
@@ -11,7 +11,7 @@ path = "./build/libs/scalardb-benchmarks-all.jar"
 
 [common]
 concurrency = 32
-run_for_sec = 30
+run_for_sec = 40
 ramp_for_sec = 10
 
 [stats]
@@ -19,7 +19,7 @@ realtime_report_enabled = true
 
 [ycsb_config]
 ops_per_tx = 1
-record_count = 100
+record_count = 20000
 load_concurrency = 32
 #load_batch_size = 10
 #load_overwrite = true
