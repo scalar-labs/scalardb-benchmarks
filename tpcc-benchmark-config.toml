@@ -19,7 +19,7 @@ realtime_report_enabled = true
 
 [tpcc_config]
 num_warehouses = 1
-#load_concurrency = 32
+load_concurrency = 64
 #use_table_index = true
 #np_only = true
 #rate_new_order = 45
@@ -29,12 +29,13 @@ num_warehouses = 1
 #rate_stock_level = 4
 
 [database_config]
-contact_points = "localhost"
-contact_port = 9042
-username = "cassandra"
-password = "cassandra"
-storage = "cassandra"
-transaction_manager = "consensus-commit"
-isolation_level = "SNAPSHOT"
-serializable_strategy = "EXTRA_READ"
+# contact_points = "localhost"
+# contact_port = 9042
+# username = "cassandra"
+# password = "cassandra"
+# storage = "cassandra"
+# transaction_manager = "consensus-commit"
+# isolation_level = "SNAPSHOT"
+# serializable_strategy = "EXTRA_READ"
 #config_file = "/path/to/scalardb.properties"
+config_file = "/Users/mitsunorikomatsu/tmp/local-pg.properties"
