@@ -32,7 +32,7 @@ public class MultiStorageLoader extends PreProcessor {
             i -> {
               CompletableFuture<Void> future =
                   CompletableFuture.runAsync(
-                      () -> new LoadRunner(config, i).runForMultiStorage(), executorService);
+                      () -> new LoadRunner(config, manager, i).runForMultiStorage(), executorService);
               futures.add(future);
             });
 
