@@ -35,9 +35,9 @@ public class LoadRunner {
   private final int batchSize;
   private final boolean overwrite;
 
-  public LoadRunner(Config config, int threadId) {
+  public LoadRunner(Config config, DistributedTransactionManager manager, int threadId) {
     this.id = threadId;
-    manager = Common.getTransactionManager(config);
+    this.manager = manager;
     concurrency = getLoadConcurrency(config);
     batchSize = getLoadBatchSize(config);
     recordCount = getRecordCount(config);

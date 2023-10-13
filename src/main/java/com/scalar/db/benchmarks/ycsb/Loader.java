@@ -32,7 +32,7 @@ public class Loader extends PreProcessor {
             i -> {
               CompletableFuture<Void> future =
                   CompletableFuture.runAsync(
-                      () -> new LoadRunner(config, i).run(), executorService);
+                      () -> new LoadRunner(config, manager, i).run(), executorService);
               futures.add(future);
             });
 
