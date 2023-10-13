@@ -14,7 +14,6 @@ import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.benchmarks.Common;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
@@ -42,7 +41,8 @@ public class WorkloadFWithDeleteAndReinsert extends TimeBasedProcessor {
 
   public WorkloadFWithDeleteAndReinsert(Config config) {
     super(config);
-    this.manager = Common.getTransactionManager(config);
+    // [dirty hack] Use a single shared manager...
+    this.manager = Loader.manager;
     this.recordCount = getRecordCount(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
     this.payloadSize = getPayloadSize(config);
@@ -103,7 +103,8 @@ public class WorkloadFWithDeleteAndReinsert extends TimeBasedProcessor {
   @Override
   public void close() {
     try {
-      manager.close();
+      // [dirty hack] Avoid closing the shared manager
+      // manager.close();
     } catch (Exception e) {
       logWarn("Failed to close the transaction manager", e);
     }
