@@ -14,16 +14,12 @@ import java.util.concurrent.Executors;
 import java.util.stream.IntStream;
 
 public class Loader extends PreProcessor {
-  public static DistributedTransactionManager manager;
+  private final DistributedTransactionManager manager;
   private final int concurrency;
 
   public Loader(Config config) {
     super(config);
-    synchronized (Loader.class) {
-      if (manager == null) {
-        manager = Common.getTransactionManager(config);
-      }
-    }
+    manager = Common.getTransactionManager(config);
     concurrency = getLoadConcurrency(config);
   }
 
@@ -46,6 +42,6 @@ public class Loader extends PreProcessor {
 
   @Override
   public void close() throws Exception {
-//    manager.close();
+    manager.close();
   }
 }
