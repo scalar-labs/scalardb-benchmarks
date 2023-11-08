@@ -216,11 +216,11 @@ Select a workload to see its available parameters.
 | `skip_item_load`       | Whether or not to skip loading item table.                                                                                                                            | `false`   |
 | `use_table_index`      | Whether or not to use a generic table-based secondary index instead of ScalarDB's secondary index.                                                                    | `false`   |
 | `np_only`              | Run benchmark with only new-order and payment transactions (50% each).                                                                                                | `false`   |
-| `rate_new_order`       | Percentage of new-order transactions. Specify all the rate parameters to use your own mix.                                                                            | `N/A`     |
-| `rate_payment`         | Percentage of payment transactions. Specify all the rate parameters to use your own mix.                                                                              | `N/A`     |
-| `rate_order_status`    | Percentage of order-status transactions. Specify all the rate parameters to use your own mix.                                                                         | `N/A`     |
-| `rate_delivery`        | Percentage of delivery transactions. Specify all the rate parameters to use your own mix.                                                                             | `N/A`     |
-| `rate_stock_level`     | Percentage of stock-level transactions. Specify all the rate parameters to use your own mix.                                                                          | `N/A`     |
+| `rate_new_order`       | Percentage of new-order transactions. Specify all the rate parameters to use your own mix.                                                                            | N/A       |
+| `rate_payment`         | Percentage of payment transactions. Specify all the rate parameters to use your own mix.                                                                              | N/A       |
+| `rate_order_status`    | Percentage of order-status transactions. Specify all the rate parameters to use your own mix.                                                                         | N/A       |
+| `rate_delivery`        | Percentage of delivery transactions. Specify all the rate parameters to use your own mix.                                                                             | N/A       |
+| `rate_stock_level`     | Percentage of stock-level transactions. Specify all the rate parameters to use your own mix.                                                                          | N/A       |
 | `backoff`              | Sleep time in milliseconds inserted after a transaction is aborted due to a conflict.                                                                                 | `0`       |
 
 </div>
@@ -231,7 +231,7 @@ Select a workload to see its available parameters.
 | `load_concurrency`      | Number of threads for loading.                                                    | `1`                                           |
 | `load_batch_size`       | Number of put records in a single loading transaction.                            | `1`                                           |
 | `load_overwrite`        | Whether or not to overwrite when loading records.                                 | `false`                                       |
-| `ops_per_tx`            | Number of operations in a single transaction.                                     | `2` (Workload A and C) <br> `1` (Workload F)  |
+| `ops_per_tx`            | Number of operations in a single transaction.                                     | `2` (Workloads A and C) <br> `1` (Workload F)  |
 | `record_count`          | Number of records in the target table.                                            | `1000`                                        |
 | `use_read_modify_write` | Whether or not to use read-modify-writes instead of blind writes in Workload A.   | `false`[^rmw]                                 |
 
