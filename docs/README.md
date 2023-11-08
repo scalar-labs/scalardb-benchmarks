@@ -5,7 +5,7 @@ This tutorial describes how to set up and run benchmarking tools for ScalarDB.
 ## Available workloads
 
 - TPC-C
-- Yahoo! Cloud Serving Benchmark (YCSB) (Workloads A, C, and F)
+- YCSB (Workloads A, C, and F)
 - Multi-storage YCSB (Workloads C and F)
   - This YCSB variant is for a multi-storage environment that uses ScalarDB.
   - Workers in a multi-storage YCSB execute the same number of read and write operations in two namespaces: `ycsb_primary` and `ycsb_secondary`.
