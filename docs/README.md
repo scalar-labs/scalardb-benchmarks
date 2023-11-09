@@ -2,7 +2,7 @@
 
 This tutorial describes how to set up and run benchmarking tools for ScalarDB.
 
-## Available workloads
+## Available benchmark workloads
 
 - TPC-C
 - YCSB (Workloads A, C, and F)
@@ -61,7 +61,7 @@ To build the benchmarking tools, run the following command:
 $ ./gradlew shadowJar
 ```
 
-### Create tables
+### Load the schema
 
 Before loading the initial data, the tables must be defined by using the [ScalarDB Schema Loader](https://github.com/scalar-labs/scalardb/blob/master/docs/schema-loader.md). To apply the schema, go to the [ScalarDB Releases](https://github.com/scalar-labs/scalardb/releases) page and download the ScalarDB Schema Loader that matches the version of ScalarDB that you are using to the `scalardb-benchmarks` root folder.
 
@@ -81,7 +81,7 @@ After applying the schema and configuring the properties file, select a benchmar
 To create tables for TPC-C benchmarking ([`tpcc-schema.json`](https://github.com/scalar-labs/scalardb-benchmarks/blob/master/tpcc-schema.json)), run the following command, replacing the contents in the angle brackets as described:
 
 ```console
-$ java -jar scalardb-schema-loader-<VERSION>.jar --config /<PATH_TO>/scalardb.properties -f tpcc-schema.json --coordinator
+$ java -jar scalardb-schema-loader-<VERSION>.jar --config <PATH_TO_SCALARDB_PROPERTIES_FILE> -f tpcc-schema.json --coordinator
 ```
 </div>
 <div id="YCSB_1" class="tabcontent" markdown="1">
@@ -89,7 +89,7 @@ $ java -jar scalardb-schema-loader-<VERSION>.jar --config /<PATH_TO>/scalardb.pr
 To create tables for YCSB benchmarking ([`ycsb-schema.json`](https://github.com/scalar-labs/scalardb-benchmarks/blob/master/ycsb-schema.json)), run the following command, replacing the contents in the angle brackets as described:
 
 ```console
-$ java -jar scalardb-schema-loader-<VERSION>.jar --config /<PATH_TO>/scalardb.properties -f ycsb-schema.json --coordinator
+$ java -jar scalardb-schema-loader-<VERSION>.jar --config <PATH_TO_SCALARDB_PROPERTIES_FILE> -f ycsb-schema.json --coordinator
 ```
 </div>
 <div id="multi-storage_YCSB_1" class="tabcontent" markdown="1">
@@ -97,7 +97,7 @@ $ java -jar scalardb-schema-loader-<VERSION>.jar --config /<PATH_TO>/scalardb.pr
 To create tables for multi-storage YCSB benchmarking ([`ycsb-multi-storage-schema.json`](https://github.com/scalar-labs/scalardb-benchmarks/blob/master/ycsb-multi-storage-schema.json)), run the following command, replacing the contents in the angle brackets as described:
 
 ```console
-$ java -jar scalardb-schema-loader-<VERSION>.jar --config /<PATH_TO>/scalardb.properties -f ycsb-multi-storage-schema.json --coordinator
+$ java -jar scalardb-schema-loader-<VERSION>.jar --config <PATH_TO_SCALARDB_PROPERTIES_FILE> -f ycsb-multi-storage-schema.json --coordinator
 ```
 </div>
 </div>
@@ -134,10 +134,10 @@ contact_port = 9042
 username = "cassandra"
 password = "cassandra"
 storage = "cassandra"
-#config_file = "/<PATH_TO>/scalardb.properties"
+#config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
 ```
 
-You can define static parameters to pass to modules in the configuration file. For details, see the sample configuration files below and available parameters in [Common parameters](#common-parameters):
+You can define parameters to pass to modules in the configuration file. For details, see the sample configuration files below and available parameters in [Common parameters](#common-parameters):
 
 - **TPC-C:** [`tpcc-benchmark-config.toml`](https://github.com/scalar-labs/scalardb-benchmarks/blob/master/tpcc-benchmark-config.toml)
 - **YCSB:** [`ycsb-benchmark-config.toml`](https://github.com/scalar-labs/scalardb-benchmarks/blob/master/ycsb-benchmark-config.toml)
