@@ -106,12 +106,12 @@ $ java -jar scalardb-schema-loader-<VERSION>.jar --config <PATH_TO_SCALARDB_PROP
 
 To run a benchmark, you must first prepare a benchmarking configuration file. The configuration file requires at least the locations of the workload modules to run and the database configuration. 
 
-The following is an example configuration for running the TPC-C benchmark. The configurations under `database_config` should match the [benchmarking environment that you previously set up](#set-up-your-environment).
+The following is an example configuration for running the TPC-C benchmark. The ScalarDB properties file specified for `config_file` should be the properties file for the [benchmarking environment that you previously set up](#set-up-your-environment).
 
 {% capture notice--info %}
 **Note**
 
-Alternatively, instead of using the ScalarDB properties file, you can specify each database configuration item in the `.toml` file. If `config_file` is specified, all other configurations under `database_config` will be ignored even if they are not commented out.
+Alternatively, instead of using the ScalarDB properties file, you can specify each database configuration item in the `.toml` file. If `config_file` is specified, all other configurations under `[database_config]` will be ignored even if they are uncommented.
 {% endcapture %}
 
 <div class="notice--info">{{ notice--info | markdownify }}</div>
