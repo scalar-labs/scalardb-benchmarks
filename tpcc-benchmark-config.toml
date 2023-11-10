@@ -29,12 +29,12 @@ num_warehouses = 1
 #rate_stock_level = 4
 
 [database_config]
-contact_points = "localhost"
-contact_port = 9042
-username = "cassandra"
-password = "cassandra"
-storage = "cassandra"
-transaction_manager = "consensus-commit"
-isolation_level = "SNAPSHOT"
-serializable_strategy = "EXTRA_READ"
-#config_file = "/path/to/scalardb.properties"
+config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
+#contact_points = "localhost"
+#contact_port = 9042
+#username = "cassandra"
+#password = "cassandra"
+#storage = "cassandra"
+#transaction_manager = "consensus-commit"
+#isolation_level = "SNAPSHOT"
+#serializable_strategy = "EXTRA_READ"

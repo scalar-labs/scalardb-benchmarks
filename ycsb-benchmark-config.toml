@@ -26,12 +26,12 @@ load_concurrency = 4
 #use_read_modify_write = true
 
 [database_config]
-contact_points = "jdbc:mysql://localhost/"
+config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
+#contact_points = "jdbc:mysql://localhost/"
 #contact_port =
-username = "root"
-password = "mysql"
-storage = "jdbc"
-transaction_manager = "consensus-commit"
-isolation_level = "SERIALIZABLE"
-serializable_strategy = "EXTRA_READ"
-#config_file = "/path/to/scalardb.properties"
+#username = "root"
+#password = "mysql"
+#storage = "jdbc"
+#transaction_manager = "consensus-commit"
+#isolation_level = "SERIALIZABLE"
+#serializable_strategy = "EXTRA_READ"
