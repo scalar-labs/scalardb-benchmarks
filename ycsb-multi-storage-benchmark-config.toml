@@ -25,4 +25,4 @@ load_concurrency = 4
 #load_overwrite = true
 
 [database_config]
-config_file = "/path/to/multi-storage-scalardb.properties"
+config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
