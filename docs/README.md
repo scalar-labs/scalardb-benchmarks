@@ -111,7 +111,7 @@ The following is an example configuration for running the TPC-C benchmark. The c
 {% capture notice--info %}
 **Note**
 
-Alternatively, instead of specifying each database configuration item in the `.toml` file, you can use the ScalarDB properties file. If `config_file` is specified (commented out below), all other configurations under `database_config` will be ignored.
+Alternatively, instead of using the ScalarDB properties file, you can specify each database configuration item in the `.toml` file. If `config_file` is specified, all other configurations under `database_config` will be ignored even if they are not commented out.
 {% endcapture %}
 
 <div class="notice--info">{{ notice--info | markdownify }}</div>
@@ -129,12 +129,12 @@ name = "com.scalar.db.benchmarks.tpcc.TpccReporter"
 path = "./build/libs/scalardb-benchmarks-all.jar"
 
 [database_config]
-contact_points = "localhost"
-contact_port = 9042
-username = "cassandra"
-password = "cassandra"
-storage = "cassandra"
-#config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
+config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
+#contact_points = "localhost"
+#contact_port = 9042
+#username = "cassandra"
+#password = "cassandra"
+#storage = "cassandra"
 ```
 
 You can define parameters to pass to modules in the configuration file. For details, see the sample configuration files below and available parameters in [Common parameters](#common-parameters):
@@ -207,21 +207,21 @@ Select a workload to see its available parameters.
 
 <div id="TPC-C_3" class="tabcontent" markdown="1">
 
-| Name                   | Description                                                                                                                                                           | Default   |
-|:-----------------------|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------|
-| `num_warehouses`       | Number of warehouses (scale factor) for benchmarking.                                                                                                                 | `1`       |
-| `load_concurrency`     | Number of threads for loading.                                                                                                                                        | `1`       |
-| `load_start_warehouse` | Start ID of loading warehouse. This option can be useful with `--skip-item-load` when loading large-scale data with multiple clients or adding additional warehouses. | `1`       |
-| `load_end_warehouse`   | End ID of loading warehouse. You can use either `--num-warehouses` or `--end-warehouse` to specify the number of loading warehouses.                                  | `1`       |
-| `skip_item_load`       | Whether or not to skip loading item table.                                                                                                                            | `false`   |
-| `use_table_index`      | Whether or not to use a generic table-based secondary index instead of ScalarDB's secondary index.                                                                    | `false`   |
-| `np_only`              | Run benchmark with only new-order and payment transactions (50% each).                                                                                                | `false`   |
-| `rate_new_order`       | Percentage of new-order transactions. Specify all the rate parameters to use your own mix.                                                                            | N/A       |
-| `rate_payment`         | Percentage of payment transactions. Specify all the rate parameters to use your own mix.                                                                              | N/A       |
-| `rate_order_status`    | Percentage of order-status transactions. Specify all the rate parameters to use your own mix.                                                                         | N/A       |
-| `rate_delivery`        | Percentage of delivery transactions. Specify all the rate parameters to use your own mix.                                                                             | N/A       |
-| `rate_stock_level`     | Percentage of stock-level transactions. Specify all the rate parameters to use your own mix.                                                                          | N/A       |
-| `backoff`              | Sleep time in milliseconds inserted after a transaction is aborted due to a conflict.                                                                                 | `0`       |
+| Name                   | Description                                                                                                                                                                                                                          | Default   |
+|:-----------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|:----------|
+| `num_warehouses`       | Number of warehouses (scale factor) for benchmarking.                                                                                                                                                                                | `1`       |
+| `load_concurrency`     | Number of threads for loading.                                                                                                                                                                                                       | `1`       |
+| `load_start_warehouse` | Start ID of loading warehouse. This option can be useful with `--skip-item-load` when loading large-scale data with multiple clients or adding additional warehouses.                                                                | `1`       |
+| `load_end_warehouse`   | End ID of loading warehouse. You can use either `--num-warehouses` or `--end-warehouse` to specify the number of loading warehouses.                                                                                                 | `1`       |
+| `skip_item_load`       | Whether or not to skip loading item table.                                                                                                                                                                                           | `false`   |
+| `use_table_index`      | Whether or not to use a generic table-based secondary index instead of ScalarDB's secondary index.                                                                                                                                   | `false`   |
+| `np_only`              | Run benchmark with only new-order and payment transactions (50% each).                                                                                                                                                               | `false`   |
+| `rate_new_order`       | Percentage of new-order transactions. When specifying this percentage based on your needs, you must specify the percentages for all other rate parameters. In that case, the total of all rate parameters must equal 100 percent.    | N/A       |
+| `rate_payment`         | Percentage of payment transactions. When specifying this percentage based on your needs, you must specify the percentages for all other rate parameters. In that case, the total of all rate parameters must equal 100 percent.      | N/A       |
+| `rate_order_status`    | Percentage of order-status transactions. When specifying this percentage based on your needs, you must specify the percentages for all other rate parameters. In that case, the total of all rate parameters must equal 100 percent. | N/A       |
+| `rate_delivery`        | Percentage of delivery transactions. When specifying this percentage based on your needs, you must specify the percentages for all other rate parameters. In that case, the total of all rate parameters must equal 100 percent.     | N/A       |
+| `rate_stock_level`     | Percentage of stock-level transactions. When specifying this percentage based on your needs, you must specify the percentages for all other rate parameters. In that case, the total of all rate parameters must equal 100 percent.  | N/A       |
+| `backoff`              | Sleep time in milliseconds inserted after a transaction is aborted due to a conflict.                                                                                                                                                | `0`       |
 
 </div>
 <div id="YCSB_and_multi-storage_YCSB" class="tabcontent" markdown="1">
@@ -231,7 +231,7 @@ Select a workload to see its available parameters.
 | `load_concurrency`      | Number of threads for loading.                                                    | `1`                                           |
 | `load_batch_size`       | Number of put records in a single loading transaction.                            | `1`                                           |
 | `load_overwrite`        | Whether or not to overwrite when loading records.                                 | `false`                                       |
-| `ops_per_tx`            | Number of operations in a single transaction.                                     | `2` (Workloads A and C) <br> `1` (Workload F)  |
+| `ops_per_tx`            | Number of operations in a single transaction.                                     | `2` (Workloads A and C) <br> `1` (Workload F) |
 | `record_count`          | Number of records in the target table.                                            | `1000`                                        |
 | `use_read_modify_write` | Whether or not to use read-modify-writes instead of blind writes in Workload A.   | `false`[^rmw]                                 |
 
