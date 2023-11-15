@@ -1,8 +1,8 @@
-# ScalarDB Benchmarks
+# ScalarDB Benchmarking Tools
 
-This tutorial describes how to set up and run benchmarking tools for ScalarDB.
+This tutorial describes how to run benchmarking tools for ScalarDB. Database benchmarking is helpful for evaluating how databases perform against a set of standards.
 
-## Available benchmark workloads
+## Benchmark workloads
 
 - TPC-C
 - YCSB (Workloads A, C, and F)
@@ -18,6 +18,9 @@ This tutorial describes how to set up and run benchmarking tools for ScalarDB.
 - Gradle
 - [Kelpie](https://github.com/scalar-labs/kelpie)
   - Kelpie is a framework for performing end-to-end testing, such as system benchmarking and verification. Get the latest version from [Kelpie Releases](https://github.com/scalar-labs/kelpie), and unzip the archive file.
+- A client to run the benchmarking tools
+- A target database
+  - For a list of databases that ScalarDB supports, see [Supported Databases](https://github.com/scalar-labs/scalardb/blob/master/docs/scalardb-supported-databases.md).
 
 {% capture notice--info %}
 **Note**
@@ -26,14 +29,6 @@ Currently, only JDK 8 can be used when running the benchmarking tools.
 {% endcapture %}
 
 <div class="notice--info">{{ notice--info | markdownify }}</div>
-
-## Set up your environment
-
-The benchmarking tools require the following:
-
-- A client to run the benchmarking tools
-- A target database
-  - For a list of databases that ScalarDB supports, see [Supported Databases](https://github.com/scalar-labs/scalardb/blob/master/docs/scalardb-supported-databases.md).
 
 ## Set up the benchmarking tools
 
@@ -197,7 +192,7 @@ In addition, the following options are available:
 
 ## Workload-specific parameters
 
-Select a workload to see its available parameters.
+Select a benchmark to see its available workload parameters.
 
 <div id="tabset-3">
 <div class="tab">
