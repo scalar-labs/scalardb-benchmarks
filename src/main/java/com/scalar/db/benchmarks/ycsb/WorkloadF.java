@@ -17,6 +17,8 @@ import com.scalar.kelpie.config.Config;
 import com.scalar.kelpie.modules.TimeBasedProcessor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.LongAdder;
 import javax.json.Json;
@@ -32,6 +34,7 @@ public class WorkloadF extends TimeBasedProcessor {
   private final int payloadSize;
 
   private final LongAdder transactionRetryCount = new LongAdder();
+  private final Set<String> inflightTxIds = new CopyOnWriteArraySet<>();
 
   public WorkloadF(Config config) {
     super(config);
@@ -39,6 +42,15 @@ public class WorkloadF extends TimeBasedProcessor {
     this.recordCount = getRecordCount(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
     this.payloadSize = getPayloadSize(config);
+
+    Runtime.getRuntime().addShutdownHook(
+        new Thread() {
+          @Override
+          public synchronized void run() {
+            System.out.println("INFLIGHT-TXIDS: " + inflightTxIds);
+          }
+        }
+    );
   }
 
   @Override
@@ -56,21 +68,36 @@ public class WorkloadF extends TimeBasedProcessor {
     while (true) {
       DistributedTransaction transaction = manager.start();
       try {
+inflightTxIds.add(transaction.getId());
         for (int i = 0; i < userIds.size(); i++) {
           int userId = userIds.get(i);
           transaction.get(prepareGet(userId));
           transaction.put(preparePut(userId, payloads.get(i)));
         }
         transaction.commit();
+removeFromInflightTxIds(transaction.getId());
         break;
       } catch (CrudConflictException | CommitConflictException e) {
+System.out.println("CONFLICT!!!!");
+e.printStackTrace();
         transaction.abort();
+removeFromInflightTxIds(transaction.getId());
         transactionRetryCount.increment();
-      } catch (Exception e) {
+      } catch (Throwable e) {
+System.out.println("EXCEPTION!!!!");
         transaction.abort();
+removeFromInflightTxIds(transaction.getId());
         throw e;
       }
     }
+  }
+
+  private void removeFromInflightTxIds(String id) {
+    String[] parts = id.split(":");
+    if (parts.length == 2) {
+      inflightTxIds.remove(parts[1]);
+    }
+    inflightTxIds.remove(id);
   }
 
   @Override
@@ -84,6 +111,7 @@ public class WorkloadF extends TimeBasedProcessor {
     setState(
         Json.createObjectBuilder()
             .add("transaction-retry-count", transactionRetryCount.toString())
+            .add("inflight-tx-ids", inflightTxIds.toString())
             .build());
   }
 }
