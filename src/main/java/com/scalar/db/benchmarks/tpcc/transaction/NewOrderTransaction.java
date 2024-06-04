@@ -70,7 +70,7 @@ public class NewOrderTransaction implements TpccTransaction {
     }
   }
 
-  private String getDistInfo(Optional<Result> stock, int districtId) throws TransactionException {
+  private String getDistInfo(Optional<Result> stock, int districtId, String transactionId) throws TransactionException {
     switch (districtId) {
       case 1:
         return stock.get().getValue(Stock.KEY_DISTRICT01).get().getAsString().get();
@@ -93,7 +93,7 @@ public class NewOrderTransaction implements TpccTransaction {
       case 10:
         return stock.get().getValue(Stock.KEY_DISTRICT10).get().getAsString().get();
       default:
-        throw new TransactionException("No such district ID");
+        throw new TransactionException("No such district ID", transactionId);
     }
   }
 
@@ -104,14 +104,14 @@ public class NewOrderTransaction implements TpccTransaction {
     // Get warehouse
     Optional<Result> result = transaction.get(Warehouse.createGet(warehouseId));
     if (!result.isPresent()) {
-      throw new TransactionException("Warehouse not found");
+      throw new TransactionException("Warehouse not found", transaction.getId());
     }
     final double warehouseTax = result.get().getValue(Warehouse.KEY_TAX).get().getAsDouble();
 
     // Get and update district
     result = transaction.get(District.createGet(warehouseId, districtId));
     if (!result.isPresent()) {
-      throw new TransactionException("District not found");
+      throw new TransactionException("District not found", transaction.getId());
     }
     final double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
     final int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
@@ -121,7 +121,7 @@ public class NewOrderTransaction implements TpccTransaction {
     // Get customer
     result = transaction.get(Customer.createGet(warehouseId, districtId, customerId));
     if (!result.isPresent()) {
-      throw new TransactionException("Customer not found");
+      throw new TransactionException("Customer not found", transaction.getId());
     }
     double discount = result.get().getValue(Customer.KEY_DISCOUNT).get().getAsDouble();
 
@@ -154,7 +154,7 @@ public class NewOrderTransaction implements TpccTransaction {
       // Get item
       result = transaction.get(Item.createGet(itemId));
       if (!result.isPresent()) {
-        throw new TransactionException("Item not found");
+        throw new TransactionException("Item not found", transaction.getId());
       }
       final double itemPrice = result.get().getValue(Item.KEY_PRICE).get().getAsDouble();
       final double amount =
@@ -163,7 +163,7 @@ public class NewOrderTransaction implements TpccTransaction {
       // Get and update stock
       result = transaction.get(Stock.createGet(supplyWarehouseId, itemId));
       if (!result.isPresent()) {
-        throw new TransactionException("Stock not found");
+        throw new TransactionException("Stock not found", transaction.getId());
       }
       double stockYtd = result.get().getValue(Stock.KEY_YTD).get().getAsDouble() + quantity;
       int stockOrderCount = result.get().getValue(Stock.KEY_ORDER_CNT).get().getAsInt() + 1;
@@ -177,7 +177,7 @@ public class NewOrderTransaction implements TpccTransaction {
       } else {
         stockQuantity = (stockQuantity - quantity) + 91;
       }
-      String distInfo = getDistInfo(result, districtId);
+      String distInfo = getDistInfo(result, districtId, transaction.getId());
       Stock stock =
           new Stock(
               supplyWarehouseId,
