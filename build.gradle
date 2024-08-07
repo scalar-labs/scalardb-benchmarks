@@ -23,7 +23,7 @@ dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: "${guavaVersion}"
     implementation group: 'com.scalar-labs', name: 'kelpie', version: "${kelpieVersion}"
     implementation group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
-    implementation group: 'com.scalar-labs', name: 'scalardb-cluster-java-client-sdk', version: "${scalarDbVersion}"
+    // implementation group: 'com.scalar-labs', name: 'scalardb-cluster-java-client-sdk', version: "${scalarDbVersion}"
     implementation group: 'commons-io', name: 'commons-io', version: "${commonsIoVersion}"
     implementation group: 'io.github.resilience4j', name: 'resilience4j-retry', version: "${resilience4jRetryVersion}"
     implementation group: 'javax.json', name: 'javax.json-api', version: "${javaxJsonVersion}"
