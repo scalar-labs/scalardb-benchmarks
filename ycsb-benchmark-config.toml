@@ -28,7 +28,7 @@ load_concurrency = 128
 
 [database_config]
 #config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
-config_file = "/Users/mitsunorikomatsu/tmp/local-pg.properties"
+config_file = "/Users/mitsunorikomatsu/tmp/primary-pg.properties"
 #contact_points = "jdbc:mysql://localhost/"
 #contact_port =
 #username = "root"
