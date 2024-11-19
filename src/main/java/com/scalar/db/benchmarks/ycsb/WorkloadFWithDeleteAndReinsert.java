@@ -14,11 +14,14 @@ import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.Common;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
+import com.scalar.db.io.IntColumn;
 import com.scalar.db.io.Key;
+import com.scalar.db.io.TextColumn;
 import com.scalar.kelpie.config.Config;
 import com.scalar.kelpie.modules.TimeBasedProcessor;
 import java.util.ArrayList;
@@ -76,7 +79,19 @@ public class WorkloadFWithDeleteAndReinsert extends TimeBasedProcessor {
           }
           else {
             // Normal Read-Modify-Write or Reinsert
-            transaction.put(preparePut(userId, payloads.get(i)));
+            switch (ThreadLocalRandom.current().nextInt(3)) {
+              case 0:
+                transaction.put(preparePut(userId, payloads.get(i)));
+                break;
+              case 1:
+                transaction.put(preparePutOnlyWithPayload(userId, payloads.get(i)));
+                break;
+              case 2:
+                transaction.put(preparePutOnlyWithAge(userId, ThreadLocalRandom.current().nextInt(100)));
+                break;
+              default:
+                throw new AssertionError();
+            }
           }
         }
         transaction.commit();
@@ -96,6 +111,26 @@ public class WorkloadFWithDeleteAndReinsert extends TimeBasedProcessor {
         .namespace(NAMESPACE)
         .table(TABLE)
         .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .consistency(Consistency.LINEARIZABLE)
+        .build();
+  }
+
+  public static Put preparePutOnlyWithPayload(int key, String payload) {
+    return Put.newBuilder()
+        .namespace(NAMESPACE)
+        .table(TABLE)
+        .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .value(TextColumn.of(YcsbCommon.PAYLOAD, payload))
+        .consistency(Consistency.LINEARIZABLE)
+        .build();
+  }
+
+  public static Put preparePutOnlyWithAge(int key, int age) {
+    return Put.newBuilder()
+        .namespace(NAMESPACE)
+        .table(TABLE)
+        .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .value(IntColumn.of(YcsbCommon.AGE, age))
         .consistency(Consistency.LINEARIZABLE)
         .build();
   }

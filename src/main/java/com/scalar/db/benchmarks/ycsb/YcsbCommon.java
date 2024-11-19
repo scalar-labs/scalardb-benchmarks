@@ -3,10 +3,12 @@ package com.scalar.db.benchmarks.ycsb;
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.io.IntColumn;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
 import com.scalar.kelpie.config.Config;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class YcsbCommon {
   static final long DEFAULT_LOAD_CONCURRENCY = 1;
@@ -19,6 +21,7 @@ public class YcsbCommon {
   static final String TABLE = "usertable";
   static final String YCSB_KEY = "ycsb_key";
   static final String PAYLOAD = "payload";
+  static final String AGE = "age";
   static final String CONFIG_NAME = "ycsb_config";
   static final String LOAD_CONCURRENCY = "load_concurrency";
   static final String LOAD_BATCH_SIZE = "load_batch_size";
@@ -75,11 +78,16 @@ public class YcsbCommon {
   }
 
   public static Put preparePut(String namespace, String table, int key, String payload) {
+    return preparePut(namespace, table, key, payload, ThreadLocalRandom.current().nextInt(100));
+  }
+
+  public static Put preparePut(String namespace, String table, int key, String payload, int age) {
     return Put.newBuilder()
         .namespace(namespace)
         .table(table)
         .partitionKey(Key.ofInt(YCSB_KEY, key))
         .value(TextColumn.of(PAYLOAD, payload))
+        .value(IntColumn.of(AGE, age))
         .consistency(Consistency.LINEARIZABLE)
         .build();
   }
