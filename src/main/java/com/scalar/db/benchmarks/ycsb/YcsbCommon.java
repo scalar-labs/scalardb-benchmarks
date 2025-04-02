@@ -85,6 +85,23 @@ public class YcsbCommon {
         .build();
   }
 
+  public static Scan prepareScanAll() {
+    return prepareScanAll(NAMESPACE, TABLE);
+  }
+
+  public static Scan prepareScanAll(String namespace) {
+    return prepareScanAll(namespace, TABLE);
+  }
+
+  public static Scan prepareScanAll(String namespace, String table) {
+    return Scan.newBuilder()
+        .namespace(namespace)
+        .table(table)
+        .all()
+        .consistency(Consistency.LINEARIZABLE)
+        .build();
+  }
+
   public static Put preparePut(int key, String payload) {
     return preparePut(NAMESPACE, TABLE, key, payload);
   }
