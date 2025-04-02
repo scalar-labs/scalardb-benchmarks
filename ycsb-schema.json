@@ -4,8 +4,12 @@
     "partition-key": [
       "ycsb_key"
     ],
+    "clustering-key": [
+      "ycsb_clustering_key"
+    ],
     "columns": {
       "ycsb_key": "INT",
+      "ycsb_clustering_key": "INT",
       "payload": "TEXT"
     }
   }

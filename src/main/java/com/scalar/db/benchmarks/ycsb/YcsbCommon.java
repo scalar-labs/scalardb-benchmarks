@@ -18,6 +18,7 @@ public class YcsbCommon {
   static final String NAMESPACE_SECONDARY = "ycsb_secondary"; // for multi-storage mode
   static final String TABLE = "usertable";
   static final String YCSB_KEY = "ycsb_key";
+  static final String YCSB_CLUSTERING_KEY = "ycsb_clustering_key";
   static final String PAYLOAD = "payload";
   static final String CONFIG_NAME = "ycsb_config";
   static final String LOAD_CONCURRENCY = "load_concurrency";
@@ -29,13 +30,6 @@ public class YcsbCommon {
   private static final int CHAR_START = 32; // [space]
   private static final int CHAR_STOP = 126; // [~]
   private static final char[] CHAR_SYMBOLS = new char[1 + CHAR_STOP - CHAR_START];
-
-  static {
-    for (int i = 0; i < CHAR_SYMBOLS.length; i++) {
-      CHAR_SYMBOLS[i] = (char) (CHAR_START + i);
-    }
-  }
-
   private static final int[] FAST_MASKS = {
     554189328, // 10000
     277094664, // 01000
@@ -49,6 +43,12 @@ public class YcsbCommon {
     658099827, // 10011
   };
 
+  static {
+    for (int i = 0; i < CHAR_SYMBOLS.length; i++) {
+      CHAR_SYMBOLS[i] = (char) (CHAR_START + i);
+    }
+  }
+
   public static Get prepareGet(int key) {
     return prepareGet(NAMESPACE, TABLE, key);
   }
@@ -61,7 +61,8 @@ public class YcsbCommon {
     return Get.newBuilder()
         .namespace(namespace)
         .table(table)
-        .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .partitionKey(Key.ofInt(YCSB_KEY, 0))
+        .clusteringKey(Key.ofInt(YCSB_CLUSTERING_KEY, key))
         .consistency(Consistency.LINEARIZABLE)
         .build();
   }
@@ -78,7 +79,8 @@ public class YcsbCommon {
     return Put.newBuilder()
         .namespace(namespace)
         .table(table)
-        .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .partitionKey(Key.ofInt(YCSB_KEY, 0))
+        .clusteringKey(Key.ofInt(YCSB_CLUSTERING_KEY, key))
         .value(TextColumn.of(PAYLOAD, payload))
         .consistency(Consistency.LINEARIZABLE)
         .build();
