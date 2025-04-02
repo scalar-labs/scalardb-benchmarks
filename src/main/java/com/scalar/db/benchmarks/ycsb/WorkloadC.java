@@ -4,6 +4,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareScan;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
@@ -45,9 +46,7 @@ public class WorkloadC extends TimeBasedProcessor {
     while (true) {
       DistributedTransaction transaction = manager.start();
       try {
-        for (Integer userId : userIds) {
-          transaction.get(prepareGet(userId));
-        }
+        transaction.scan(prepareScan());
         transaction.commit();
         break;
       } catch (CrudConflictException | CommitConflictException e) {
