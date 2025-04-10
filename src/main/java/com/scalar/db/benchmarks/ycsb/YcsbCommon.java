@@ -5,6 +5,7 @@ import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
+import com.scalar.db.storage.objectstorage.ObjectStorageUtils;
 import com.scalar.kelpie.config.Config;
 import java.util.Random;
 
@@ -48,6 +49,10 @@ public class YcsbCommon {
     935194491, // 11011
     658099827, // 10011
   };
+
+  public static String prepareObjectKey(int key) {
+    return ObjectStorageUtils.getObjectKey(NAMESPACE, TABLE, String.valueOf(key));
+  }
 
   public static Get prepareGet(int key) {
     return prepareGet(NAMESPACE, TABLE, key);

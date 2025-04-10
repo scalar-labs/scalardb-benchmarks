@@ -3,6 +3,9 @@ package com.scalar.db.benchmarks;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.service.TransactionFactory;
+import com.scalar.db.storage.objectstorage.ObjectStorageConfig;
+import com.scalar.db.storage.objectstorage.ObjectStorageUtils;
+import com.scalar.db.storage.objectstorage.ObjectStorageWrapper;
 import com.scalar.kelpie.config.Config;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -60,6 +63,11 @@ public class Common {
     DatabaseConfig dbConfig = getDatabaseConfig(config);
     TransactionFactory factory = TransactionFactory.create(dbConfig.getProperties());
     return factory.getTransactionManager();
+  }
+
+  public static ObjectStorageWrapper getObjectStorageWrapper(Config config) {
+    DatabaseConfig dbConfig = getDatabaseConfig(config);
+    return ObjectStorageUtils.getObjectStorageWrapper(new ObjectStorageConfig(dbConfig));
   }
 
   public static Retry getRetryWithFixedWaitDuration(String name) {
