@@ -8,6 +8,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadOverwrite;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareObjectKey;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.randomFastChars;
 
@@ -18,6 +19,7 @@ import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.Common;
 import com.scalar.db.exception.transaction.AbortException;
 import com.scalar.db.exception.transaction.TransactionException;
+import com.scalar.db.storage.objectstorage.ObjectStorageWrapper;
 import com.scalar.kelpie.config.Config;
 import io.github.resilience4j.retry.Retry;
 import java.util.concurrent.ThreadLocalRandom;
@@ -27,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class LoadRunner {
   private static final Logger LOGGER = LoggerFactory.getLogger(LoadRunner.class);
-  private final DistributedTransactionManager manager;
+  private final ObjectStorageWrapper wrapper;
   private final int id;
   private final int concurrency;
   private final int recordCount;
@@ -37,7 +39,7 @@ public class LoadRunner {
 
   public LoadRunner(Config config, DistributedTransactionManager manager, int threadId) {
     this.id = threadId;
-    this.manager = manager;
+    this.wrapper = Common.getObjectStorageWrapper(config);
     concurrency = getLoadConcurrency(config);
     batchSize = getLoadBatchSize(config);
     recordCount = getRecordCount(config);
@@ -69,28 +71,9 @@ public class LoadRunner {
   private void populateWithTx(int startId, int endId, boolean forMultiStorage) {
     Runnable populate =
         () -> {
-          DistributedTransaction transaction = null;
-          try {
-            transaction = manager.start();
-            for (int i = startId; i < endId; ++i) {
-              randomFastChars(ThreadLocalRandom.current(), payload);
-              if (forMultiStorage) {
-                putForMultiStorage(transaction, i, new String(payload));
-              } else {
-                putForSingleStorage(transaction, i, new String(payload));
-              }
-            }
-            transaction.commit();
-          } catch (Exception e) {
-            if (transaction != null) {
-              try {
-                transaction.abort();
-              } catch (AbortException ex) {
-                LOGGER.warn("Abort failed", ex);
-              }
-            }
-            LOGGER.warn("Load failed", e);
-            throw new RuntimeException("Load failed", e);
+          for (int i = startId; i < endId; ++i) {
+            randomFastChars(ThreadLocalRandom.current(), payload);
+            wrapper.upsert(prepareObjectKey(i), new String(payload));
           }
         };
 
