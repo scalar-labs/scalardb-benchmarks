@@ -6,6 +6,15 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getUserCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.LongAdder;
+
+import javax.json.Json;
+
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.benchmarks.Common;
@@ -16,13 +25,6 @@ import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
 import com.scalar.kelpie.modules.TimeBasedProcessor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.LongAdder;
-import javax.json.Json;
 
 /**
  * マルチユーザーモードのWorkload C: 複数ユーザー（スレッド）による並列読み取り。
@@ -69,11 +71,16 @@ public class MultiUserWorkloadC extends TimeBasedProcessor {
 
     /**
      * 各ユーザー用のトランザクションマネージャーを作成します。
+     * ScalarDB設定プロパティを用いて認証情報を渡します。
      */
     private void createUserManagers(Config config) {
         // ScalarDBの設定を取得
         DatabaseConfig dbConfig = Common.getDatabaseConfig(config);
         Properties baseProps = dbConfig.getProperties();
+
+        // 接続情報をログ出力
+        String contactPoints = baseProps.getProperty("scalar.db.contact_points", "");
+        logInfo("Creating user managers for endpoint: " + contactPoints);
 
         // 各ユーザー用のトランザクションマネージャーを作成
         for (int i = 0; i < userCount; i++) {
@@ -83,13 +90,14 @@ public class MultiUserWorkloadC extends TimeBasedProcessor {
             try {
                 // ユーザー固有の認証情報でプロパティを作成
                 Properties userProps = new Properties();
-                // userProps.putAll(baseProps);
-                // userProps.setProperty("scalar.db.username", username);
-                // userProps.setProperty("scalar.db.password", password);
+                userProps.putAll(baseProps);
+                userProps.setProperty("scalar.db.username", username);
+                userProps.setProperty("scalar.db.password", password);
 
-                // トランザクションマネージャー作成
+                // トランザクションマネージャーの作成（標準的なTransactionFactory経由）
                 TransactionFactory factory = TransactionFactory.create(userProps);
-                userManagers.add(factory.getTransactionManager());
+                DistributedTransactionManager userManager = factory.getTransactionManager();
+                userManagers.add(userManager);
 
                 logInfo("Created transaction manager for user: " + username);
             } catch (Exception e) {

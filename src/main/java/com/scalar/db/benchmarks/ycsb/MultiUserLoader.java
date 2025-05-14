@@ -9,9 +9,22 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getUserCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.randomFastChars;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.json.Json;
+
 import com.scalar.db.api.DistributedTransaction;
+import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
+import com.scalar.db.api.AuthAdmin.Privilege;
 import com.scalar.db.benchmarks.Common;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.transaction.CrudException;
@@ -19,22 +32,6 @@ import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
 import com.scalar.kelpie.modules.PreProcessor;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import javax.json.Json;
 
 /**
  * プリプロセッサ：レコードをロードし、ScalarDBユーザーを作成します
@@ -92,10 +89,9 @@ public class MultiUserLoader extends PreProcessor {
     private void createScalarDbUsers() throws Exception {
         logInfo("Creating ScalarDB users: " + userCount);
 
-        // ScalarDB管理コマンドを使用してユーザーを作成
-        // 管理者として接続
+        // AdminインターフェースからScalarDBユーザーを作成
         TransactionFactory factory = TransactionFactory.create(dbConfig.getProperties());
-        DistributedTransactionManager adminManager = factory.getTransactionManager();
+        DistributedTransactionAdmin admin = factory.getTransactionAdmin();
 
         try {
             // 各ユーザーを作成
@@ -104,52 +100,42 @@ public class MultiUserLoader extends PreProcessor {
                 String password = PASSWORD_BASE + i;
 
                 try {
-                    // CREATE USER SQLを実行
-                    DistributedTransaction tx = adminManager.start();
+                    // 既存ユーザーを削除（存在しない場合のエラーは無視）
+                    logInfo("Dropping existing user: " + username);
                     try {
-                        // 既存ユーザーを削除してから作成（存在しない場合のエラーは無視）
-                        String dropUserSql = "DROP USER IF EXISTS " + username;
-                        logInfo("Dropping existing user with SQL: " + dropUserSql);
-
-                        // ScalarDB SQLでCREATE USER文を実行
-                        String createUserSql = "CREATE USER " + username + " WITH PASSWORD '" + password + "'";
-                        logInfo("Creating user with SQL: " + createUserSql);
-
-                        // 注：実際の環境ではここでSQLを実行する方法が必要
-                        // ScalarDB Clusterの場合、REST API経由で実行するコードを追加
-
-                        // ユーザーに権限を付与（実際には適切なSQL実行方法が必要）
-                        String grantTableSql = "GRANT SELECT, INSERT, UPDATE ON " + NAMESPACE + "." + TABLE + " TO "
-                                + username;
-                        logInfo("Granting table privileges with SQL: " + grantTableSql);
-
-                        // 名前空間にも権限を付与
-                        String grantNamespaceSql = "GRANT SELECT ON NAMESPACE " + NAMESPACE + " TO " + username;
-                        logInfo("Granting namespace privileges with SQL: " + grantNamespaceSql);
-
-                        // 仮のコミット（実際は上記のSQL実行コードが必要）
-                        tx.commit();
-                        logInfo("Created user: " + username);
+                        admin.dropUser(username);
                     } catch (Exception e) {
-                        tx.abort();
-                        // ユーザーがすでに存在する可能性もあるため、エラーは警告として記録
-                        logWarn("Error creating user " + username + ": " + e.getMessage());
+                        // ユーザーが存在しない場合は無視
+                        logInfo("User " + username + " might not exist, proceeding to create it");
                     }
+
+                    // ユーザー作成 - createUserメソッドを直接使用
+                    logInfo("Creating user: " + username);
+                    admin.createUser(username, password);
+
+                    // テーブルへの権限付与
+                    logInfo("Granting table privileges to " + username + " on " + NAMESPACE + "." + TABLE);
+                    admin.grant(username, NAMESPACE, TABLE, Privilege.READ, Privilege.WRITE);
+
+                    logInfo("Successfully created user: " + username + " with all required permissions");
                 } catch (Exception e) {
                     logWarn("Failed to create user " + username + ": " + e.getMessage());
+                    throw new RuntimeException("Failed to create user " + username, e);
                 }
             }
         } finally {
+            // 管理者リソースを閉じる
             try {
-                adminManager.close();
+                admin.close();
             } catch (Exception e) {
                 logWarn("Error closing admin manager: " + e.getMessage());
             }
         }
 
-        // ユーザーリストの確認（実際の環境ではSHOW USERS相当のコマンドを実行）
         logInfo("Created " + userCount + " ScalarDB users");
     }
+
+    // モックメソッドを削除（実際のAPIを直接使用するようになったため）
 
     private void loadRecords(ExecutorService es) {
         logInfo("Loading " + recordCount + " records with concurrency " + loadConcurrency);
@@ -285,6 +271,12 @@ public class MultiUserLoader extends PreProcessor {
             }
         } catch (Exception e) {
             throw new RuntimeException("Error loading data for thread " + threadId, e);
+        } finally {
+            try {
+                manager.close();
+            } catch (Exception e) {
+                logWarn("Failed to close transaction manager for thread " + threadId);
+            }
         }
     }
 }
