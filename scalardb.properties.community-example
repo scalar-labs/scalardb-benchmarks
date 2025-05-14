@@ -1,0 +1,10 @@
+scalar.db.storage=jdbc
+scalar.db.contact_points=jdbc:mysql://localhost:3306/scalardb
+scalar.db.username=root
+scalar.db.password=mysql
+scalar.db.jdbc.connection_pool.min_idle=5
+scalar.db.jdbc.connection_pool.max_idle=10
+scalar.db.jdbc.connection_pool.max_total=20
+scalar.db.transaction_manager=consensus-commit
+scalar.db.consensus_commit.isolation_level=SERIALIZABLE
+scalar.db.authentication=true

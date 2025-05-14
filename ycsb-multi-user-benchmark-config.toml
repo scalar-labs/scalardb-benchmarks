@@ -1,0 +1,46 @@
+[modules]
+[modules.preprocessor]
+name = "com.scalar.db.benchmarks.ycsb.MultiUserLoader"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.processor]
+name = "com.scalar.db.benchmarks.ycsb.MultiUserWorkloadC"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.postprocessor]
+name = "com.scalar.db.benchmarks.ycsb.YcsbReporter"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+
+[common]
+# concurrencyは全体の並列実行スレッド数を制御します
+# Kelpieのスレッドプールサイズを指定します
+concurrency = 4
+run_for_sec = 60
+ramp_for_sec = 10
+
+[stats]
+realtime_report_enabled = true
+
+[ycsb_config]
+# 各スレッドが同時に読み込むレコード数
+ops_per_tx = 1
+# テーブル内の総レコード数
+# 各スレッドにはこの範囲からキーが割り当てられます
+record_count = 10000
+# マルチユーザーモード専用設定: 並行ユーザー数（スレッド数）
+# この値を指定すると、YcsbCommon.getUserCount()で取得できます
+# 設定しない場合はcommonブロックのconcurrency値が使用されます
+user_count = 4
+load_concurrency = 4
+#load_batch_size = 10
+#load_overwrite = true
+#use_read_modify_write = true
+
+[database_config]
+config_file = "scalardb.properties"
+#contact_points = "jdbc:mysql://localhost/"
+#contact_port =
+#username = "root"
+#password = "mysql"
+#storage = "jdbc"
+#transaction_manager = "consensus-commit"
+#isolation_level = "SERIALIZABLE"
+#serializable_strategy = "EXTRA_READ"
