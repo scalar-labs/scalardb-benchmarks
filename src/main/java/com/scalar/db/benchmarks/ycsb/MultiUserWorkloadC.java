@@ -2,8 +2,10 @@ package com.scalar.db.benchmarks.ycsb;
 
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPassword;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getUserCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getUserName;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 
 import java.util.ArrayList;
@@ -40,7 +42,7 @@ public class MultiUserWorkloadC extends TimeBasedProcessor {
 
     private final LongAdder transactionRetryCount = new LongAdder();
 
-    private static final String PASSWORD_BASE = "password";
+    // PASSWORD_BASE定数はYcsbCommonに移動しました
     // 作成したユーザーごとにトランザクションマネージャーを保持
     private final List<DistributedTransactionManager> userManagers = new ArrayList<>();
     private final ThreadLocal<Integer> threadLocalUserId;
@@ -84,8 +86,8 @@ public class MultiUserWorkloadC extends TimeBasedProcessor {
 
         // 各ユーザー用のトランザクションマネージャーを作成
         for (int i = 0; i < userCount; i++) {
-            String username = "user" + i;
-            String password = PASSWORD_BASE + i;
+            String username = getUserName(i);
+            String password = getPassword(i);
 
             try {
                 // ユーザー固有の認証情報でプロパティを作成

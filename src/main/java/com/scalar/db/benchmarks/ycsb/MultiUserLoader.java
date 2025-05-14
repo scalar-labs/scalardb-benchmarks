@@ -4,8 +4,10 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.NAMESPACE;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.TABLE;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadConcurrency;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadOverwrite;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPassword;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getUserCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getUserName;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.randomFastChars;
 
@@ -20,11 +22,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.json.Json;
 
+import com.scalar.db.api.AuthAdmin.Privilege;
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionAdmin;
 import com.scalar.db.api.DistributedTransactionManager;
 import com.scalar.db.api.Get;
-import com.scalar.db.api.AuthAdmin.Privilege;
 import com.scalar.db.benchmarks.Common;
 import com.scalar.db.config.DatabaseConfig;
 import com.scalar.db.exception.transaction.CrudException;
@@ -38,7 +40,7 @@ import com.scalar.kelpie.modules.PreProcessor;
  */
 public class MultiUserLoader extends PreProcessor {
     private static final int REPORTING_INTERVAL = 10000;
-    private static final String PASSWORD_BASE = "password";
+    // PASSWORD_BASE定数はYcsbCommonに移動しました
     private final DatabaseConfig dbConfig;
     private final int recordCount;
     private final int loadConcurrency;
@@ -96,8 +98,8 @@ public class MultiUserLoader extends PreProcessor {
         try {
             // 各ユーザーを作成
             for (int i = 0; i < userCount; i++) {
-                String username = "user" + i;
-                String password = PASSWORD_BASE + i;
+                String username = getUserName(i);
+                String password = getPassword(i);
 
                 try {
                     // 既存ユーザーを削除（存在しない場合のエラーは無視）

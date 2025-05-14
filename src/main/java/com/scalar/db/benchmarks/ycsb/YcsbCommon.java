@@ -1,12 +1,13 @@
 package com.scalar.db.benchmarks.ycsb;
 
+import java.util.Random;
+
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
 import com.scalar.kelpie.config.Config;
-import java.util.Random;
 
 public class YcsbCommon {
   static final long DEFAULT_LOAD_CONCURRENCY = 1;
@@ -27,6 +28,8 @@ public class YcsbCommon {
   static final String PAYLOAD_SIZE = "payload_size";
   static final String OPS_PER_TX = "ops_per_tx";
   static final String USER_COUNT = "user_count"; // 新規追加: ユーザー数設定パラメータ
+  // マルチユーザー認証用の共通パスワードベース
+  static final String PASSWORD_BASE = "password";
   private static final int CHAR_START = 32; // [space]
   private static final int CHAR_STOP = 126; // [~]
   private static final char[] CHAR_SYMBOLS = new char[1 + CHAR_STOP - CHAR_START];
@@ -113,6 +116,26 @@ public class YcsbCommon {
       userCount = config.getConcurrency();
     }
     return (int) userCount;
+  }
+
+  /**
+   * 指定されたインデックスに対するユーザー名を生成します。
+   * 
+   * @param index ユーザーインデックス
+   * @return ユーザー名
+   */
+  public static String getUserName(int index) {
+    return "user" + index;
+  }
+
+  /**
+   * 指定されたインデックスに対するパスワードを生成します。
+   * 
+   * @param index ユーザーインデックス
+   * @return パスワード
+   */
+  public static String getPassword(int index) {
+    return PASSWORD_BASE + index;
   }
 
   // This method is taken from benchbase.
