@@ -14,6 +14,7 @@
 
 ### 利用ライブラリ
 - **ScalarDB Java API**: トランザクション処理のため
+- **ScalarDB Admin API**: ユーザー作成・権限管理のため（マルチユーザーモード）
 - **resilience4j-retry**: リトライ処理のため
 - **javax.json**: JSON処理のため
 - **guava**: ユーティリティ機能のため
@@ -49,6 +50,11 @@
 ### Kelpie依存性
 - Kelpieフレームワークのインターフェースに準拠する必要がある
 - モジュール間のデータやり取りはKelpieの仕組みに則る
+
+### マルチユーザーモードの制約
+- ユーザー作成と権限管理にはScalarDB Cluster環境が必要
+- ScalarDB Communityでは管理者権限で実行される
+- ユーザー数はレコード数以下である必要がある
 
 ## 依存関係
 
@@ -134,6 +140,38 @@ ramp_for_sec = 60
 num_warehouses = 10
 ```
 
+### マルチユーザーモード設定例
+```toml
+[modules]
+[modules.preprocessor]
+name = "com.scalar.db.benchmarks.ycsb.MultiUserLoader"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.processor]
+name = "com.scalar.db.benchmarks.ycsb.MultiUserWorkloadC"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.postprocessor]
+name = "com.scalar.db.benchmarks.ycsb.YcsbReporter"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+
+[common]
+concurrency = 4
+run_for_sec = 30
+ramp_for_sec = 5
+
+[stats]
+realtime_report_enabled = true
+
+[ycsb_config]
+# マルチユーザーモードの設定
+user_count = 4           # 並行ユーザー数（スレッド数）
+record_count = 10000     # テーブル全体のレコード数 - キー範囲の計算に使用
+ops_per_tx = 1           # トランザクションあたりの操作数
+load_concurrency = 4     # データロード時の並列度
+
+[database_config]
+config_file = "scalardb.properties"
+```
+
 ## コード規約とパターン
 
 ### パッケージ構造
@@ -154,6 +192,8 @@ com.scalar.db.benchmarks
     ├── WorkloadF.java
     ├── MultiStorageWorkloadC.java
     ├── MultiStorageWorkloadF.java
+    ├── MultiUserLoader.java
+    ├── MultiUserWorkloadC.java
     ├── YcsbCommon.java
     └── YcsbReporter.java
 ```
@@ -162,3 +202,4 @@ com.scalar.db.benchmarks
 - トランザクション競合の適切なリトライ
 - スレッドの割込みへの対応
 - 適切なロギング
+- ユーザー作成・権限付与の失敗に対する適切な処理

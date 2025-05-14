@@ -15,6 +15,7 @@ This tutorial describes how to run benchmarking tools for ScalarDB. Database ben
 - Multi-user YCSB (Workload C)
   - This YCSB variant runs multiple user threads that read different records concurrently.
   - Each thread is assigned a specific range of keys to prevent overlap and hotspots.
+  - **Note**: The full functionality of Multi-user mode (user creation and permission management) requires ScalarDB Cluster Edition (paid). When using ScalarDB Community Edition, Multi-user mode will fall back to using the admin connection for all operations.
 - Multi-storage YCSB (Workloads C and F)
   - This YCSB variant is for a multi-storage environment that uses ScalarDB.
   - Workers in a multi-storage YCSB execute the same number of read and write operations in two namespaces: `ycsb_primary` and `ycsb_secondary`.
@@ -156,6 +157,7 @@ Select a benchmark, and follow the instructions to run the benchmark.
 <div class="tab">
   <button class="tablinks" onclick="openTab(event, 'TPC-C_2', 'tabset-2')" id="defaultOpen-2">TPC-C</button>
   <button class="tablinks" onclick="openTab(event, 'YCSB_2', 'tabset-2')">YCSB</button>
+  <button class="tablinks" onclick="openTab(event, 'multi-user_YCSB_2', 'tabset-2')">Multi-user YCSB</button>
   <button class="tablinks" onclick="openTab(event, 'multi-storage_YCSB_2', 'tabset-2')">Multi-storage YCSB</button>
 </div>
 
@@ -174,6 +176,22 @@ To run the YCSB benchmark, run the following command, replacing `<PATH_TO_KELPIE
 ```console
 $ /<PATH_TO_KELPIE>/bin/kelpie --config ycsb-benchmark-config.toml
 ```
+</div>
+<div id="multi-user_YCSB_2" class="tabcontent" markdown="1">
+
+To run the multi-user YCSB benchmark, run the following command, replacing `<PATH_TO_KELPIE>` with the path to the Kelpie directory:
+
+```console
+$ /<PATH_TO_KELPIE>/bin/kelpie --config ycsb-multi-user-benchmark-config.toml
+```
+
+{% capture notice--warning %}
+**Important**
+
+The full functionality of Multi-user YCSB mode, including user creation and permission management, requires ScalarDB Cluster Edition (paid). When using ScalarDB Community Edition, the benchmark will fall back to using the admin connection for all operations.
+{% endcapture %}
+
+<div class="notice--warning">{{ notice--warning | markdownify }}</div>
 </div>
 <div id="multi-storage_YCSB_2" class="tabcontent" markdown="1">
 
