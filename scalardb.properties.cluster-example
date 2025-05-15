@@ -1,0 +1,9 @@
+scalar.db.transaction_manager=cluster
+scalar.db.contact_points=indirect:<SCALARDB_CLUSTER_ENDPOINT_HOST>
+scalar.db.contact_port=<SCALARDB_CLUSTER_ENDPOINT_PORT>
+scalar.db.cluster.tls.enabled=true
+scalar.db.cluster.tls.ca_root_cert_pem=-----BEGIN CERTIFICATE-----\n <CERTIFICATE PEM> \n-----END CERTIFICATE-----\n
+scalar.db.cluster.tls.override_authority=<SCALARDB_CLUSTER_ENDPOINT_HOST>
+scalar.db.cluster.auth.enabled=true
+scalar.db.username=admin
+scalar.db.password=admin

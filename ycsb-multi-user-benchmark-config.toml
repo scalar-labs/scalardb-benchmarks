@@ -1,0 +1,29 @@
+[modules]
+[modules.preprocessor]
+name = "com.scalar.db.benchmarks.ycsb.MultiUserLoader"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.processor]
+name = "com.scalar.db.benchmarks.ycsb.MultiUserWorkloadC"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+[modules.postprocessor]
+name = "com.scalar.db.benchmarks.ycsb.YcsbReporter"
+path = "./build/libs/scalardb-benchmarks-all.jar"
+
+[common]
+concurrency = 4
+run_for_sec = 30
+ramp_for_sec = 5
+
+[stats]
+realtime_report_enabled = true
+
+[ycsb_config]
+# マルチユーザーモードの設定
+user_count = 4           # 並行ユーザー数（スレッド数）- 0の場合はconcurrencyと同じ値を使用
+record_count = 10000     # テーブル全体のレコード数 - キー範囲の計算に使用
+ops_per_tx = 1           # トランザクションあたりの操作数
+load_concurrency = 4     # データロード時の並列度
+# load_overwrite = true  # 既存レコードを上書きするかどうか
+
+[database_config]
+config_file = "scalardb.properties"

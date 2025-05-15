@@ -1,12 +1,13 @@
 package com.scalar.db.benchmarks.ycsb;
 
+import java.util.Random;
+
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
 import com.scalar.kelpie.config.Config;
-import java.util.Random;
 
 public class YcsbCommon {
   static final long DEFAULT_LOAD_CONCURRENCY = 1;
@@ -26,6 +27,9 @@ public class YcsbCommon {
   static final String RECORD_COUNT = "record_count";
   static final String PAYLOAD_SIZE = "payload_size";
   static final String OPS_PER_TX = "ops_per_tx";
+  static final String USER_COUNT = "user_count"; // 新規追加: ユーザー数設定パラメータ
+  // マルチユーザー認証用の共通パスワードベース
+  static final String PASSWORD_BASE = "password";
   private static final int CHAR_START = 32; // [space]
   private static final int CHAR_STOP = 126; // [~]
   private static final char[] CHAR_SYMBOLS = new char[1 + CHAR_STOP - CHAR_START];
@@ -37,16 +41,16 @@ public class YcsbCommon {
   }
 
   private static final int[] FAST_MASKS = {
-    554189328, // 10000
-    277094664, // 01000
-    138547332, // 00100
-    69273666, // 00010
-    34636833, // 00001
-    346368330, // 01010
-    727373493, // 10101
-    588826161, // 10001
-    935194491, // 11011
-    658099827, // 10011
+      554189328, // 10000
+      277094664, // 01000
+      138547332, // 00100
+      69273666, // 00010
+      34636833, // 00001
+      346368330, // 01010
+      727373493, // 10101
+      588826161, // 10001
+      935194491, // 11011
+      658099827, // 10011
   };
 
   public static Get prepareGet(int key) {
@@ -102,6 +106,36 @@ public class YcsbCommon {
 
   public static int getPayloadSize(Config config) {
     return (int) config.getUserLong(CONFIG_NAME, PAYLOAD_SIZE, DEFAULT_PAYLOAD_SIZE);
+  }
+
+  // 新規追加: ユーザー数（スレッド数）取得メソッド
+  public static int getUserCount(Config config) {
+    long userCount = config.getUserLong(CONFIG_NAME, USER_COUNT, 0L);
+    if (userCount <= 0) {
+      // user_countが指定されていない場合は、concurrencyを使用
+      userCount = config.getConcurrency();
+    }
+    return (int) userCount;
+  }
+
+  /**
+   * 指定されたインデックスに対するユーザー名を生成します。
+   * 
+   * @param index ユーザーインデックス
+   * @return ユーザー名
+   */
+  public static String getUserName(int index) {
+    return "user" + index;
+  }
+
+  /**
+   * 指定されたインデックスに対するパスワードを生成します。
+   * 
+   * @param index ユーザーインデックス
+   * @return パスワード
+   */
+  public static String getPassword(int index) {
+    return PASSWORD_BASE + index;
   }
 
   // This method is taken from benchbase.
