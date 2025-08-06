@@ -5,10 +5,9 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 
-import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Get;
 import com.scalar.db.benchmarks.Common;
-import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
 import com.scalar.kelpie.config.Config;
@@ -43,19 +42,16 @@ public class WorkloadC extends TimeBasedProcessor {
     }
 
     while (true) {
-      DistributedTransaction transaction = manager.start();
       try {
+        List<Get> gets = new ArrayList<>();
         for (Integer userId : userIds) {
-          transaction.get(prepareGet(userId));
+          gets.add(prepareGet(userId));
         }
-        transaction.commit();
+        manager.batch(gets);
         break;
-      } catch (CrudConflictException | CommitConflictException e) {
-        transaction.abort();
+      } catch (CrudConflictException e) {
+        logWarn("An error occurred during the transaction. Retrying...", e);
         transactionRetryCount.increment();
-      } catch (Exception e) {
-        transaction.abort();
-        throw e;
       }
     }
   }

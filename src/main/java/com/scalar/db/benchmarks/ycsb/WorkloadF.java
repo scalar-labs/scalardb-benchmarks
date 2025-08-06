@@ -9,6 +9,8 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
+import com.scalar.db.api.Get;
+import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.Common;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudConflictException;
@@ -56,14 +58,20 @@ public class WorkloadF extends TimeBasedProcessor {
     while (true) {
       DistributedTransaction transaction = manager.start();
       try {
+        List<Get> gets = new ArrayList<>();
+        List<Put> puts = new ArrayList<>();
         for (int i = 0; i < userIds.size(); i++) {
-          int userId = userIds.get(i);
-          transaction.get(prepareGet(userId));
-          transaction.put(preparePut(userId, payloads.get(i)));
+          Integer userId = userIds.get(i);
+          gets.add(prepareGet(userId));
+          puts.add(preparePut(userId, payloads.get(i)));
         }
+
+        transaction.batch(gets);
+        transaction.mutate(puts);
         transaction.commit();
         break;
       } catch (CrudConflictException | CommitConflictException e) {
+        logWarn("An error occurred during the transaction. Retrying...", e);
         transaction.abort();
         transactionRetryCount.increment();
       } catch (Exception e) {
