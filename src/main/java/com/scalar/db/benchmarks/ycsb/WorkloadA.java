@@ -23,7 +23,10 @@ import javax.json.Json;
 
 /**
  * Workload A: Update heavy workload. This workload has a mix of 50/50 reads and writes. The writes
- * can be changed to read-modify-write if "use_read_modify_write" is set to true.
+ * in the original Workload A are blind writes. However, ScalarDB doesn't allow a blind write for an
+ * existing record when you're using the default transaction manager, Consensus Commit. So, we use
+ * read-modify-write operations instead. You can change them to the blind writes by setting
+ * "use_read_modify_write" to false.
  */
 public class WorkloadA extends TimeBasedProcessor {
   private static final long DEFAULT_OPS_PER_TX = 2; // one read operation and one write operation
