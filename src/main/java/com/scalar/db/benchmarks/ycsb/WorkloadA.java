@@ -45,7 +45,7 @@ public class WorkloadA extends TimeBasedProcessor {
     if (opsPerTx % 2 != 0) {
       throw new IllegalArgumentException(OPS_PER_TX + " must be a multiple of 2.");
     }
-    useReadModifyWrite = config.getUserBoolean(CONFIG_NAME, USE_READ_MODIFY_WRITE, false);
+    useReadModifyWrite = config.getUserBoolean(CONFIG_NAME, USE_READ_MODIFY_WRITE, true);
   }
 
   @Override
