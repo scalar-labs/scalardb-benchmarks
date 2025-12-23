@@ -32,6 +32,7 @@ dependencies {
 
 shadowJar {
     mergeServiceFiles()
+    zip64 = true
 }
 
 sourceCompatibility = 1.8
