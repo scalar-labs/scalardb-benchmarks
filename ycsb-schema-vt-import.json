@@ -1,0 +1,5 @@
+{
+  "ycsb.usertable_vt": {
+    "transaction-metadata-decoupling": true
+  }
+}

@@ -4,6 +4,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -15,14 +16,15 @@ ext {
     kelpieVersion = '1.2.3'
     resilience4jRetryVersion = '1.7.1'
     slf4jVersion = '2.0.17'
-    scalarDbVersion = '3.15.3'
+    //scalarDbVersion = '3.17.1'
+    scalarDbVersion = '3.17.0-SNAPSHOT'
 }
 
 dependencies {
     implementation group: 'com.google.guava', name: 'guava', version: "${guavaVersion}"
     implementation group: 'com.scalar-labs', name: 'kelpie', version: "${kelpieVersion}"
     implementation group: 'com.scalar-labs', name: 'scalardb', version: "${scalarDbVersion}"
-    implementation group: 'com.scalar-labs', name: 'scalardb-cluster-java-client-sdk', version: "${scalarDbVersion}"
+    //implementation group: 'com.scalar-labs', name: 'scalardb-cluster-java-client-sdk', version: "${scalarDbVersion}"
     implementation group: 'commons-io', name: 'commons-io', version: "${commonsIoVersion}"
     implementation group: 'io.github.resilience4j', name: 'resilience4j-retry', version: "${resilience4jRetryVersion}"
     implementation group: 'javax.json', name: 'javax.json-api', version: "${javaxJsonVersion}"

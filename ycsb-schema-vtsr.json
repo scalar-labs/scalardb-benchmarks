@@ -1,0 +1,22 @@
+{
+  "ycsb.usertable_vtsr_app": {
+    "transaction": true,
+    "partition-key": [
+      "ycsb_key"
+    ],
+    "columns": {
+      "ycsb_key": "INT",
+      "payload": "TEXT"
+    }
+  },
+  "ycsb.usertable_vtsr_meta": {
+    "transaction": true,
+    "partition-key": [
+      "ycsb_key"
+    ],
+    "columns": {
+      "ycsb_key": "INT",
+      "payload": "TEXT"
+    }
+  }
+}

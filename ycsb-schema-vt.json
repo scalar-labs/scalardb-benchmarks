@@ -1,0 +1,12 @@
+{
+  "ycsb.usertable_vt": {
+    "transaction": false,
+    "partition-key": [
+      "ycsb_key"
+    ],
+    "columns": {
+      "ycsb_key": "INT",
+      "payload": "TEXT"
+    }
+  }
+}
