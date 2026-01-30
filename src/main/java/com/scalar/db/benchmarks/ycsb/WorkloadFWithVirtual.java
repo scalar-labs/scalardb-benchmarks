@@ -38,7 +38,7 @@ public class WorkloadFWithVirtual extends TimeBasedProcessor {
     this.manager = Common.getTransactionManager(config);
     this.recordCount = getRecordCount(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
-    this.payloadSize = getPayloadSize(config) / 2;
+    this.payloadSize = getPayloadSize(config);
   }
 
   @Override
