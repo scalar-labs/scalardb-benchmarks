@@ -38,7 +38,7 @@ public class WorkloadFWithVirtualSeparateRead extends TimeBasedProcessor {
     this.manager = Common.getTransactionManager(config);
     this.recordCount = getRecordCount(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
-    this.payloadSize = getPayloadSize(config);
+    this.payloadSize = getPayloadSize(config) / 2;
   }
 
   @Override
@@ -59,9 +59,14 @@ public class WorkloadFWithVirtualSeparateRead extends TimeBasedProcessor {
         for (int i = 0; i < userIds.size(); i++) {
           int userId = userIds.get(i);
           transaction.get(prepareGet(YcsbCommon.NAMESPACE, YcsbCommon.TABLE + "_vtsr_app", userId));
-          transaction.get(prepareGet(YcsbCommon.NAMESPACE, YcsbCommon.TABLE + "_vtsr_meta", userId));
-          transaction.put(preparePut(YcsbCommon.NAMESPACE, YcsbCommon.TABLE + "_vtsr_app", userId, payloads.get(i)));
-          transaction.put(preparePut(YcsbCommon.NAMESPACE, YcsbCommon.TABLE + "_vtsr_meta", userId, payloads.get(i)));
+          transaction.get(
+              prepareGet(YcsbCommon.NAMESPACE, YcsbCommon.TABLE + "_vtsr_meta", userId));
+          transaction.put(
+              preparePut(
+                  YcsbCommon.NAMESPACE, YcsbCommon.TABLE + "_vtsr_app", userId, payloads.get(i)));
+          transaction.put(
+              preparePut(
+                  YcsbCommon.NAMESPACE, YcsbCommon.TABLE + "_vtsr_meta", userId, payloads.get(i)));
         }
         transaction.commit();
         break;
