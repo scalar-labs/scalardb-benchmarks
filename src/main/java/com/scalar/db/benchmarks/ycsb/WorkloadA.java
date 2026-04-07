@@ -62,13 +62,13 @@ public class WorkloadA extends TimeBasedProcessor {
     }
 
     List<Integer> writeUserIds = new ArrayList<>(writeOpsPerTx);
-    List<String> payloads = new ArrayList<>(writeOpsPerTx);
-    char[] payload = new char[payloadSize];
+    List<byte[]> payloads = new ArrayList<>(writeOpsPerTx);
+    byte[] payload = new byte[payloadSize];
     for (int i = 0; i < writeOpsPerTx; ++i) {
       writeUserIds.add(ThreadLocalRandom.current().nextInt(recordCount));
 
-      YcsbCommon.randomFastChars(ThreadLocalRandom.current(), payload);
-      payloads.add(new String(payload));
+      YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);
+      payloads.add(payload.clone());
     }
 
     while (true) {

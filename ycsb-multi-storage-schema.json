@@ -6,7 +6,7 @@
     ],
     "columns": {
       "ycsb_key": "INT",
-      "payload": "TEXT"
+      "payload": "BLOB"
     }
   },
   "ycsb_secondary.usertable": {
@@ -16,7 +16,7 @@
     ],
     "columns": {
       "ycsb_key": "INT",
-      "payload": "TEXT"
+      "payload": "BLOB"
     }
   }
 }

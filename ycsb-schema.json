@@ -6,7 +6,7 @@
     ],
     "columns": {
       "ycsb_key": "INT",
-      "payload": "TEXT"
+      "payload": "BLOB"
     }
   }
 }

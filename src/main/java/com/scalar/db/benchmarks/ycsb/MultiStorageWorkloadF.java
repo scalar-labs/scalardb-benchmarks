@@ -50,14 +50,14 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
   public void executeEach() throws TransactionException {
     List<Integer> primaryIds = new ArrayList<>(opsPerTx);
     List<Integer> secondaryIds = new ArrayList<>(opsPerTx);
-    List<String> payloads = new ArrayList<>(opsPerTx);
-    char[] payload = new char[payloadSize];
+    List<byte[]> payloads = new ArrayList<>(opsPerTx);
+    byte[] payload = new byte[payloadSize];
     for (int i = 0; i < opsPerTx; ++i) {
       primaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
       secondaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
 
-      YcsbCommon.randomFastChars(ThreadLocalRandom.current(), payload);
-      payloads.add(new String(payload)); // use same payload for primary and secondary
+      YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);
+      payloads.add(payload.clone()); // use same payload for primary and secondary
     }
 
     while (true) {

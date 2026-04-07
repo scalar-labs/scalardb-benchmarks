@@ -44,13 +44,13 @@ public class WorkloadF extends TimeBasedProcessor {
   @Override
   public void executeEach() throws TransactionException {
     List<Integer> userIds = new ArrayList<>(opsPerTx);
-    List<String> payloads = new ArrayList<>(opsPerTx);
-    char[] payload = new char[payloadSize];
+    List<byte[]> payloads = new ArrayList<>(opsPerTx);
+    byte[] payload = new byte[payloadSize];
     for (int i = 0; i < opsPerTx; ++i) {
       userIds.add(ThreadLocalRandom.current().nextInt(recordCount));
 
-      YcsbCommon.randomFastChars(ThreadLocalRandom.current(), payload);
-      payloads.add(new String(payload));
+      YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);
+      payloads.add(payload.clone());
     }
 
     while (true) {

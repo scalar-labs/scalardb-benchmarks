@@ -9,7 +9,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.randomFastChars;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.randomFastBytes;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
@@ -31,7 +31,7 @@ public class LoadRunner {
   private final int id;
   private final int concurrency;
   private final int recordCount;
-  private final char[] payload;
+  private final byte[] payload;
   private final int batchSize;
   private final boolean overwrite;
 
@@ -41,7 +41,7 @@ public class LoadRunner {
     concurrency = getLoadConcurrency(config);
     batchSize = getLoadBatchSize(config);
     recordCount = getRecordCount(config);
-    payload = new char[getPayloadSize(config)];
+    payload = new byte[getPayloadSize(config)];
     overwrite = getLoadOverwrite(config);
   }
 
@@ -73,11 +73,11 @@ public class LoadRunner {
           try {
             transaction = manager.start();
             for (int i = startId; i < endId; ++i) {
-              randomFastChars(ThreadLocalRandom.current(), payload);
+              randomFastBytes(ThreadLocalRandom.current(), payload);
               if (forMultiStorage) {
-                putForMultiStorage(transaction, i, new String(payload));
+                putForMultiStorage(transaction, i, payload.clone());
               } else {
-                putForSingleStorage(transaction, i, new String(payload));
+                putForSingleStorage(transaction, i, payload.clone());
               }
             }
             transaction.commit();
@@ -104,7 +104,7 @@ public class LoadRunner {
     }
   }
 
-  private void putForSingleStorage(DistributedTransaction transaction, int userId, String payload)
+  private void putForSingleStorage(DistributedTransaction transaction, int userId, byte[] payload)
       throws TransactionException {
     if (overwrite) {
       Get get = prepareGet(userId);
@@ -114,7 +114,7 @@ public class LoadRunner {
     transaction.put(put);
   }
 
-  private void putForMultiStorage(DistributedTransaction transaction, int userId, String payload)
+  private void putForMultiStorage(DistributedTransaction transaction, int userId, byte[] payload)
       throws TransactionException {
     if (overwrite) {
       Get primaryGet = prepareGet(NAMESPACE_PRIMARY, userId);
