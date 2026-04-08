@@ -4,6 +4,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 
@@ -28,6 +29,7 @@ public class WorkloadF extends TimeBasedProcessor {
   private static final long DEFAULT_OPS_PER_TX = 1;
   private final DistributedTransactionManager manager;
   private final int recordCount;
+  private final int recordsPerPartition;
   private final int opsPerTx;
   private final int payloadSize;
 
@@ -37,6 +39,7 @@ public class WorkloadF extends TimeBasedProcessor {
     super(config);
     this.manager = Common.getTransactionManager(config);
     this.recordCount = getRecordCount(config);
+    this.recordsPerPartition = getRecordsPerPartition(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
     this.payloadSize = getPayloadSize(config);
   }
@@ -44,10 +47,12 @@ public class WorkloadF extends TimeBasedProcessor {
   @Override
   public void executeEach() throws TransactionException {
     List<Integer> userIds = new ArrayList<>(opsPerTx);
+    List<Integer> seqs = new ArrayList<>(opsPerTx);
     List<byte[]> payloads = new ArrayList<>(opsPerTx);
     byte[] payload = new byte[payloadSize];
     for (int i = 0; i < opsPerTx; ++i) {
       userIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      seqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
 
       YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);
       payloads.add(payload.clone());
@@ -58,8 +63,9 @@ public class WorkloadF extends TimeBasedProcessor {
       try {
         for (int i = 0; i < userIds.size(); i++) {
           int userId = userIds.get(i);
-          transaction.get(prepareGet(userId));
-          transaction.put(preparePut(userId, payloads.get(i)));
+          int seq = seqs.get(i);
+          transaction.get(prepareGet(userId, seq));
+          transaction.put(preparePut(userId, seq, payloads.get(i)));
         }
         transaction.commit();
         break;

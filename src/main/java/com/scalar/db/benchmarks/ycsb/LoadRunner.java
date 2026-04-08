@@ -7,6 +7,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadConcurrency;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadOverwrite;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.randomFastBytes;
@@ -31,6 +32,7 @@ public class LoadRunner {
   private final int id;
   private final int concurrency;
   private final int recordCount;
+  private final int recordsPerPartition;
   private final byte[] payload;
   private final int batchSize;
   private final boolean overwrite;
@@ -41,6 +43,7 @@ public class LoadRunner {
     concurrency = getLoadConcurrency(config);
     batchSize = getLoadBatchSize(config);
     recordCount = getRecordCount(config);
+    recordsPerPartition = getRecordsPerPartition(config);
     payload = new byte[getPayloadSize(config)];
     overwrite = getLoadOverwrite(config);
   }
@@ -57,27 +60,21 @@ public class LoadRunner {
     int numPerThread = (recordCount + concurrency - 1) / concurrency;
     int start = numPerThread * id;
     int end = Math.min(numPerThread * (id + 1), recordCount);
-    IntStream.range(0, (numPerThread + batchSize - 1) / batchSize)
-        .forEach(
-            i -> {
-              int startId = start + batchSize * i;
-              int endId = Math.min(start + batchSize * (i + 1), end);
-              populateWithTx(startId, endId, forMultiStorage);
-            });
+    IntStream.range(start, end).forEach(partitionKey -> populatePartition(partitionKey, forMultiStorage));
   }
 
-  private void populateWithTx(int startId, int endId, boolean forMultiStorage) {
+  private void populatePartition(int partitionKey, boolean forMultiStorage) {
     Runnable populate =
         () -> {
           DistributedTransaction transaction = null;
           try {
             transaction = manager.start();
-            for (int i = startId; i < endId; ++i) {
+            for (int seq = 0; seq < recordsPerPartition; seq++) {
               randomFastBytes(ThreadLocalRandom.current(), payload);
               if (forMultiStorage) {
-                putForMultiStorage(transaction, i, payload.clone());
+                putForMultiStorage(transaction, partitionKey, seq, payload.clone());
               } else {
-                putForSingleStorage(transaction, i, payload.clone());
+                putForSingleStorage(transaction, partitionKey, seq, payload.clone());
               }
             }
             transaction.commit();
@@ -104,26 +101,28 @@ public class LoadRunner {
     }
   }
 
-  private void putForSingleStorage(DistributedTransaction transaction, int userId, byte[] payload)
+  private void putForSingleStorage(
+      DistributedTransaction transaction, int userId, int seq, byte[] payload)
       throws TransactionException {
     if (overwrite) {
-      Get get = prepareGet(userId);
+      Get get = prepareGet(userId, seq);
       transaction.get(get);
     }
-    Put put = preparePut(userId, payload);
+    Put put = preparePut(userId, seq, payload);
     transaction.put(put);
   }
 
-  private void putForMultiStorage(DistributedTransaction transaction, int userId, byte[] payload)
+  private void putForMultiStorage(
+      DistributedTransaction transaction, int userId, int seq, byte[] payload)
       throws TransactionException {
     if (overwrite) {
-      Get primaryGet = prepareGet(NAMESPACE_PRIMARY, userId);
-      Get secondaryGet = prepareGet(NAMESPACE_SECONDARY, userId);
+      Get primaryGet = prepareGet(NAMESPACE_PRIMARY, userId, seq);
+      Get secondaryGet = prepareGet(NAMESPACE_SECONDARY, userId, seq);
       transaction.get(primaryGet);
       transaction.get(secondaryGet);
     }
-    Put primaryPut = preparePut(NAMESPACE_PRIMARY, userId, payload);
-    Put secondaryPut = preparePut(NAMESPACE_SECONDARY, userId, payload);
+    Put primaryPut = preparePut(NAMESPACE_PRIMARY, userId, seq, payload);
+    Put secondaryPut = preparePut(NAMESPACE_SECONDARY, userId, seq, payload);
     transaction.put(primaryPut);
     transaction.put(secondaryPut);
   }

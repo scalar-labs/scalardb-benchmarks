@@ -13,11 +13,13 @@ public class YcsbCommon {
   static final long DEFAULT_LOAD_BATCH_SIZE = 1;
   static final long DEFAULT_RECORD_COUNT = 1000;
   static final long DEFAULT_PAYLOAD_SIZE = 1000;
+  static final long DEFAULT_RECORDS_PER_PARTITION = 1;
   static final String NAMESPACE = "ycsb";
   static final String NAMESPACE_PRIMARY = "ycsb_primary"; // for multi-storage mode
   static final String NAMESPACE_SECONDARY = "ycsb_secondary"; // for multi-storage mode
   static final String TABLE = "usertable";
   static final String YCSB_KEY = "ycsb_key";
+  static final String SEQ = "seq";
   static final String PAYLOAD = "payload";
   static final String CONFIG_NAME = "ycsb_config";
   static final String LOAD_CONCURRENCY = "load_concurrency";
@@ -26,37 +28,40 @@ public class YcsbCommon {
   static final String RECORD_COUNT = "record_count";
   static final String PAYLOAD_SIZE = "payload_size";
   static final String OPS_PER_TX = "ops_per_tx";
+  static final String RECORDS_PER_PARTITION = "records_per_partition";
 
-  public static Get prepareGet(int key) {
-    return prepareGet(NAMESPACE, TABLE, key);
+  public static Get prepareGet(int key, int seq) {
+    return prepareGet(NAMESPACE, TABLE, key, seq);
   }
 
-  public static Get prepareGet(String namespace, int key) {
-    return prepareGet(namespace, TABLE, key);
+  public static Get prepareGet(String namespace, int key, int seq) {
+    return prepareGet(namespace, TABLE, key, seq);
   }
 
-  public static Get prepareGet(String namespace, String table, int key) {
+  public static Get prepareGet(String namespace, String table, int key, int seq) {
     return Get.newBuilder()
         .namespace(namespace)
         .table(table)
         .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .clusteringKey(Key.ofInt(SEQ, seq))
         .consistency(Consistency.LINEARIZABLE)
         .build();
   }
 
-  public static Put preparePut(int key, byte[] payload) {
-    return preparePut(NAMESPACE, TABLE, key, payload);
+  public static Put preparePut(int key, int seq, byte[] payload) {
+    return preparePut(NAMESPACE, TABLE, key, seq, payload);
   }
 
-  public static Put preparePut(String namespace, int key, byte[] payload) {
-    return preparePut(namespace, TABLE, key, payload);
+  public static Put preparePut(String namespace, int key, int seq, byte[] payload) {
+    return preparePut(namespace, TABLE, key, seq, payload);
   }
 
-  public static Put preparePut(String namespace, String table, int key, byte[] payload) {
+  public static Put preparePut(String namespace, String table, int key, int seq, byte[] payload) {
     return Put.newBuilder()
         .namespace(namespace)
         .table(table)
         .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .clusteringKey(Key.ofInt(SEQ, seq))
         .value(BlobColumn.of(PAYLOAD, payload))
         .consistency(Consistency.LINEARIZABLE)
         .build();
@@ -80,6 +85,11 @@ public class YcsbCommon {
 
   public static int getPayloadSize(Config config) {
     return (int) config.getUserLong(CONFIG_NAME, PAYLOAD_SIZE, DEFAULT_PAYLOAD_SIZE);
+  }
+
+  public static int getRecordsPerPartition(Config config) {
+    return (int)
+        config.getUserLong(CONFIG_NAME, RECORDS_PER_PARTITION, DEFAULT_RECORDS_PER_PARTITION);
   }
 
   public static byte[] randomFastBytes(Random rng, byte[] bytes) {

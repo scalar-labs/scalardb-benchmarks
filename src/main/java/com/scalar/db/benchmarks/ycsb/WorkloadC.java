@@ -3,6 +3,7 @@ package com.scalar.db.benchmarks.ycsb;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 
 import com.scalar.db.api.DistributedTransaction;
@@ -24,6 +25,7 @@ public class WorkloadC extends TimeBasedProcessor {
   private static final long DEFAULT_OPS_PER_TX = 2; // two read operations
   private final DistributedTransactionManager manager;
   private final int recordCount;
+  private final int recordsPerPartition;
   private final int opsPerTx;
 
   private final LongAdder transactionRetryCount = new LongAdder();
@@ -32,21 +34,24 @@ public class WorkloadC extends TimeBasedProcessor {
     super(config);
     this.manager = Common.getTransactionManager(config);
     this.recordCount = getRecordCount(config);
+    this.recordsPerPartition = getRecordsPerPartition(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
   }
 
   @Override
   public void executeEach() throws TransactionException {
     List<Integer> userIds = new ArrayList<>(opsPerTx);
+    List<Integer> seqs = new ArrayList<>(opsPerTx);
     for (int i = 0; i < opsPerTx; ++i) {
       userIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      seqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
     }
 
     while (true) {
       DistributedTransaction transaction = manager.start();
       try {
-        for (Integer userId : userIds) {
-          transaction.get(prepareGet(userId));
+        for (int i = 0; i < userIds.size(); i++) {
+          transaction.get(prepareGet(userIds.get(i), seqs.get(i)));
         }
         transaction.commit();
         break;

@@ -6,6 +6,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.NAMESPACE_SECONDARY;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 
@@ -33,6 +34,7 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
   private static final long DEFAULT_OPS_PER_TX = 1;
   private final DistributedTransactionManager manager;
   private final int recordCount;
+  private final int recordsPerPartition;
   private final int opsPerTx;
   private final int payloadSize;
 
@@ -42,6 +44,7 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
     super(config);
     this.manager = Common.getTransactionManager(config);
     this.recordCount = getRecordCount(config);
+    this.recordsPerPartition = getRecordsPerPartition(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
     this.payloadSize = getPayloadSize(config);
   }
@@ -49,12 +52,16 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
   @Override
   public void executeEach() throws TransactionException {
     List<Integer> primaryIds = new ArrayList<>(opsPerTx);
+    List<Integer> primarySeqs = new ArrayList<>(opsPerTx);
     List<Integer> secondaryIds = new ArrayList<>(opsPerTx);
+    List<Integer> secondarySeqs = new ArrayList<>(opsPerTx);
     List<byte[]> payloads = new ArrayList<>(opsPerTx);
     byte[] payload = new byte[payloadSize];
     for (int i = 0; i < opsPerTx; ++i) {
       primaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      primarySeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
       secondaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      secondarySeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
 
       YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);
       payloads.add(payload.clone()); // use same payload for primary and secondary
@@ -65,13 +72,15 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
       try {
         for (int i = 0; i < primaryIds.size(); i++) {
           int userId = primaryIds.get(i);
-          transaction.get(prepareGet(NAMESPACE_PRIMARY, userId));
-          transaction.put(preparePut(NAMESPACE_PRIMARY, userId, payloads.get(i)));
+          int seq = primarySeqs.get(i);
+          transaction.get(prepareGet(NAMESPACE_PRIMARY, userId, seq));
+          transaction.put(preparePut(NAMESPACE_PRIMARY, userId, seq, payloads.get(i)));
         }
         for (int i = 0; i < secondaryIds.size(); i++) {
           int userId = secondaryIds.get(i);
-          transaction.get(prepareGet(NAMESPACE_SECONDARY, userId));
-          transaction.put(preparePut(NAMESPACE_SECONDARY, userId, payloads.get(i)));
+          int seq = secondarySeqs.get(i);
+          transaction.get(prepareGet(NAMESPACE_SECONDARY, userId, seq));
+          transaction.put(preparePut(NAMESPACE_SECONDARY, userId, seq, payloads.get(i)));
         }
         transaction.commit();
         break;

@@ -4,6 +4,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
 
@@ -33,6 +34,7 @@ public class WorkloadA extends TimeBasedProcessor {
   private static final String USE_READ_MODIFY_WRITE = "use_read_modify_write";
   private final DistributedTransactionManager manager;
   private final int recordCount;
+  private final int recordsPerPartition;
   private final int opsPerTx;
   private final boolean useReadModifyWrite;
   private final int payloadSize;
@@ -43,6 +45,7 @@ public class WorkloadA extends TimeBasedProcessor {
     super(config);
     this.manager = Common.getTransactionManager(config);
     this.recordCount = getRecordCount(config);
+    this.recordsPerPartition = getRecordsPerPartition(config);
     this.payloadSize = getPayloadSize(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
     if (opsPerTx % 2 != 0) {
@@ -57,15 +60,19 @@ public class WorkloadA extends TimeBasedProcessor {
     int writeOpsPerTx = opsPerTx / 2;
 
     List<Integer> readUserIds = new ArrayList<>(readOpsPerTx);
+    List<Integer> readSeqs = new ArrayList<>(readOpsPerTx);
     for (int i = 0; i < readOpsPerTx; ++i) {
       readUserIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      readSeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
     }
 
     List<Integer> writeUserIds = new ArrayList<>(writeOpsPerTx);
+    List<Integer> writeSeqs = new ArrayList<>(writeOpsPerTx);
     List<byte[]> payloads = new ArrayList<>(writeOpsPerTx);
     byte[] payload = new byte[payloadSize];
     for (int i = 0; i < writeOpsPerTx; ++i) {
       writeUserIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      writeSeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
 
       YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);
       payloads.add(payload.clone());
@@ -74,16 +81,17 @@ public class WorkloadA extends TimeBasedProcessor {
     while (true) {
       DistributedTransaction transaction = manager.start();
       try {
-        for (Integer readUserId : readUserIds) {
-          transaction.get(prepareGet(readUserId));
+        for (int i = 0; i < readUserIds.size(); i++) {
+          transaction.get(prepareGet(readUserIds.get(i), readSeqs.get(i)));
         }
 
         for (int i = 0; i < writeUserIds.size(); i++) {
           int writeUserId = writeUserIds.get(i);
+          int writeSeq = writeSeqs.get(i);
           if (useReadModifyWrite) {
-            transaction.get(prepareGet(writeUserId));
+            transaction.get(prepareGet(writeUserId, writeSeq));
           }
-          transaction.put(preparePut(writeUserId, payloads.get(i)));
+          transaction.put(preparePut(writeUserId, writeSeq, payloads.get(i)));
         }
         transaction.commit();
         break;

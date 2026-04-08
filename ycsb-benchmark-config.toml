@@ -10,28 +10,19 @@ name = "com.scalar.db.benchmarks.ycsb.YcsbReporter"
 path = "./build/libs/scalardb-benchmarks-all.jar"
 
 [common]
-concurrency = 4
-run_for_sec = 5
-ramp_for_sec = 5
+concurrency = 1
+run_for_sec = 1
+ramp_for_sec = 1
 
 [stats]
 realtime_report_enabled = true
 
 [ycsb_config]
+record_count = 1
+records_per_partition = 100
+payload_size = 1000
 ops_per_tx = 1
-record_count = 1000
-load_concurrency = 4
-#load_batch_size = 10
-#load_overwrite = true
-#use_read_modify_write = true
+load_concurrency = 1
 
 [database_config]
-config_file = "<PATH_TO_SCALARDB_PROPERTIES_FILE>"
-#contact_points = "jdbc:mysql://localhost/"
-#contact_port =
-#username = "root"
-#password = "mysql"
-#storage = "jdbc"
-#transaction_manager = "consensus-commit"
-#isolation_level = "SERIALIZABLE"
-#serializable_strategy = "EXTRA_READ"
+config_file = "./client.properties"
