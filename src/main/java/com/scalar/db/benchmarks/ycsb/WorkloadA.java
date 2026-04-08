@@ -3,7 +3,7 @@ package com.scalar.db.benchmarks.ycsb;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPartitionCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
@@ -33,7 +33,7 @@ public class WorkloadA extends TimeBasedProcessor {
   private static final long DEFAULT_OPS_PER_TX = 2; // one read operation and one write operation
   private static final String USE_READ_MODIFY_WRITE = "use_read_modify_write";
   private final DistributedTransactionManager manager;
-  private final int recordCount;
+  private final int partitionCount;
   private final int recordsPerPartition;
   private final int opsPerTx;
   private final boolean useReadModifyWrite;
@@ -44,7 +44,7 @@ public class WorkloadA extends TimeBasedProcessor {
   public WorkloadA(Config config) {
     super(config);
     this.manager = Common.getTransactionManager(config);
-    this.recordCount = getRecordCount(config);
+    this.partitionCount = getPartitionCount(config);
     this.recordsPerPartition = getRecordsPerPartition(config);
     this.payloadSize = getPayloadSize(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
@@ -62,7 +62,7 @@ public class WorkloadA extends TimeBasedProcessor {
     List<Integer> readUserIds = new ArrayList<>(readOpsPerTx);
     List<Integer> readSeqs = new ArrayList<>(readOpsPerTx);
     for (int i = 0; i < readOpsPerTx; ++i) {
-      readUserIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      readUserIds.add(ThreadLocalRandom.current().nextInt(partitionCount));
       readSeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
     }
 
@@ -71,7 +71,7 @@ public class WorkloadA extends TimeBasedProcessor {
     List<byte[]> payloads = new ArrayList<>(writeOpsPerTx);
     byte[] payload = new byte[payloadSize];
     for (int i = 0; i < writeOpsPerTx; ++i) {
-      writeUserIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      writeUserIds.add(ThreadLocalRandom.current().nextInt(partitionCount));
       writeSeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
 
       YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);

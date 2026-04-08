@@ -19,7 +19,7 @@ realtime_report_enabled = true
 
 [ycsb_config]
 ops_per_tx = 1
-record_count = 1000
+partition_count = 1000
 load_concurrency = 4
 #load_batch_size = 10
 #load_overwrite = true

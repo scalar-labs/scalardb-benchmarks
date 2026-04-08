@@ -5,7 +5,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.NAMESPACE_PRIMARY;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.NAMESPACE_SECONDARY;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPartitionCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
@@ -33,7 +33,7 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
   // operation)
   private static final long DEFAULT_OPS_PER_TX = 1;
   private final DistributedTransactionManager manager;
-  private final int recordCount;
+  private final int partitionCount;
   private final int recordsPerPartition;
   private final int opsPerTx;
   private final int payloadSize;
@@ -43,7 +43,7 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
   public MultiStorageWorkloadF(Config config) {
     super(config);
     this.manager = Common.getTransactionManager(config);
-    this.recordCount = getRecordCount(config);
+    this.partitionCount = getPartitionCount(config);
     this.recordsPerPartition = getRecordsPerPartition(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
     this.payloadSize = getPayloadSize(config);
@@ -58,9 +58,9 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
     List<byte[]> payloads = new ArrayList<>(opsPerTx);
     byte[] payload = new byte[payloadSize];
     for (int i = 0; i < opsPerTx; ++i) {
-      primaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      primaryIds.add(ThreadLocalRandom.current().nextInt(partitionCount));
       primarySeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
-      secondaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      secondaryIds.add(ThreadLocalRandom.current().nextInt(partitionCount));
       secondarySeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
 
       YcsbCommon.randomFastBytes(ThreadLocalRandom.current(), payload);

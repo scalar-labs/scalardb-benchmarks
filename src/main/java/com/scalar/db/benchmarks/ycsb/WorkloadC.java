@@ -2,7 +2,7 @@ package com.scalar.db.benchmarks.ycsb;
 
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPartitionCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 
@@ -24,7 +24,7 @@ import javax.json.Json;
 public class WorkloadC extends TimeBasedProcessor {
   private static final long DEFAULT_OPS_PER_TX = 2; // two read operations
   private final DistributedTransactionManager manager;
-  private final int recordCount;
+  private final int partitionCount;
   private final int recordsPerPartition;
   private final int opsPerTx;
 
@@ -33,7 +33,7 @@ public class WorkloadC extends TimeBasedProcessor {
   public WorkloadC(Config config) {
     super(config);
     this.manager = Common.getTransactionManager(config);
-    this.recordCount = getRecordCount(config);
+    this.partitionCount = getPartitionCount(config);
     this.recordsPerPartition = getRecordsPerPartition(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
   }
@@ -43,7 +43,7 @@ public class WorkloadC extends TimeBasedProcessor {
     List<Integer> userIds = new ArrayList<>(opsPerTx);
     List<Integer> seqs = new ArrayList<>(opsPerTx);
     for (int i = 0; i < opsPerTx; ++i) {
-      userIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      userIds.add(ThreadLocalRandom.current().nextInt(partitionCount));
       seqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
     }
 

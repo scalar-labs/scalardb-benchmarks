@@ -4,7 +4,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.CONFIG_NAME;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.NAMESPACE_PRIMARY;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.NAMESPACE_SECONDARY;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPartitionCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 
@@ -28,7 +28,7 @@ import javax.json.Json;
 public class MultiStorageWorkloadC extends TimeBasedProcessor {
   private static final long DEFAULT_OPS_PER_TX = 2; // 2 read operations per database
   private final DistributedTransactionManager manager;
-  private final int recordCount;
+  private final int partitionCount;
   private final int recordsPerPartition;
   private final int opsPerTx;
 
@@ -37,7 +37,7 @@ public class MultiStorageWorkloadC extends TimeBasedProcessor {
   public MultiStorageWorkloadC(Config config) {
     super(config);
     this.manager = Common.getTransactionManager(config);
-    this.recordCount = getRecordCount(config);
+    this.partitionCount = getPartitionCount(config);
     this.recordsPerPartition = getRecordsPerPartition(config);
     this.opsPerTx = (int) config.getUserLong(CONFIG_NAME, OPS_PER_TX, DEFAULT_OPS_PER_TX);
   }
@@ -49,9 +49,9 @@ public class MultiStorageWorkloadC extends TimeBasedProcessor {
     List<Integer> secondaryIds = new ArrayList<>(opsPerTx);
     List<Integer> secondarySeqs = new ArrayList<>(opsPerTx);
     for (int i = 0; i < opsPerTx; ++i) {
-      primaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      primaryIds.add(ThreadLocalRandom.current().nextInt(partitionCount));
       primarySeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
-      secondaryIds.add(ThreadLocalRandom.current().nextInt(recordCount));
+      secondaryIds.add(ThreadLocalRandom.current().nextInt(partitionCount));
       secondarySeqs.add(ThreadLocalRandom.current().nextInt(recordsPerPartition));
     }
 

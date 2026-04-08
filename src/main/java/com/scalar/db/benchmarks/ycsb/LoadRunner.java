@@ -6,7 +6,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadBatchSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadConcurrency;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadOverwrite;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPartitionCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordsPerPartition;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
@@ -31,7 +31,7 @@ public class LoadRunner {
   private final DistributedTransactionManager manager;
   private final int id;
   private final int concurrency;
-  private final int recordCount;
+  private final int partitionCount;
   private final int recordsPerPartition;
   private final byte[] payload;
   private final int batchSize;
@@ -42,7 +42,7 @@ public class LoadRunner {
     this.manager = manager;
     concurrency = getLoadConcurrency(config);
     batchSize = getLoadBatchSize(config);
-    recordCount = getRecordCount(config);
+    partitionCount = getPartitionCount(config);
     recordsPerPartition = getRecordsPerPartition(config);
     payload = new byte[getPayloadSize(config)];
     overwrite = getLoadOverwrite(config);
@@ -57,9 +57,9 @@ public class LoadRunner {
   }
 
   private void run(boolean forMultiStorage) {
-    int numPerThread = (recordCount + concurrency - 1) / concurrency;
+    int numPerThread = (partitionCount + concurrency - 1) / concurrency;
     int start = numPerThread * id;
-    int end = Math.min(numPerThread * (id + 1), recordCount);
+    int end = Math.min(numPerThread * (id + 1), partitionCount);
     IntStream.range(start, end).forEach(partitionKey -> populatePartition(partitionKey, forMultiStorage));
   }
 

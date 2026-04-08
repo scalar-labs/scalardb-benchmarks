@@ -18,7 +18,7 @@ ramp_for_sec = 1
 realtime_report_enabled = true
 
 [ycsb_config]
-record_count = 1
+partition_count = 100
 records_per_partition = 100
 payload_size = 1000
 ops_per_tx = 1

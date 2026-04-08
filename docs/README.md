@@ -233,7 +233,7 @@ Select a benchmark to see its available workload parameters.
 | `load_batch_size`       | Number of put records in a single loading transaction.                            | `1`                                           |
 | `load_overwrite`        | Whether or not to overwrite when loading records.                                 | `false`                                       |
 | `ops_per_tx`            | Number of operations in a single transaction.                                     | `2` (Workloads A and C) <br> `1` (Workload F) |
-| `record_count`          | Number of records in the target table.                                            | `1000`                                        |
+| `partition_count`       | Number of partitions in the target table.                                         | `1000`                                        |
 | `use_read_modify_write` | Whether or not to use read-modify-writes instead of blind writes in Workload A.   | `false`[^rmw]                                 |
 
 [^rmw]: The default value is `false` for `use_read_modify_write` since Workload A doesn't assume that the transaction reads the original record first. However, if you're using Consensus Commit as the transaction manager, you must set `use_read_modify_write` to `true`. This is because ScalarDB doesn't allow a blind write for an existing record.

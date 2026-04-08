@@ -11,7 +11,7 @@ import java.util.Random;
 public class YcsbCommon {
   static final long DEFAULT_LOAD_CONCURRENCY = 1;
   static final long DEFAULT_LOAD_BATCH_SIZE = 1;
-  static final long DEFAULT_RECORD_COUNT = 1000;
+  static final long DEFAULT_PARTITION_COUNT = 1000;
   static final long DEFAULT_PAYLOAD_SIZE = 1000;
   static final long DEFAULT_RECORDS_PER_PARTITION = 1;
   static final String NAMESPACE = "ycsb";
@@ -25,7 +25,7 @@ public class YcsbCommon {
   static final String LOAD_CONCURRENCY = "load_concurrency";
   static final String LOAD_BATCH_SIZE = "load_batch_size";
   static final String LOAD_OVERWRITE = "load_overwrite";
-  static final String RECORD_COUNT = "record_count";
+  static final String PARTITION_COUNT = "partition_count";
   static final String PAYLOAD_SIZE = "payload_size";
   static final String OPS_PER_TX = "ops_per_tx";
   static final String RECORDS_PER_PARTITION = "records_per_partition";
@@ -79,8 +79,8 @@ public class YcsbCommon {
     return config.getUserBoolean(CONFIG_NAME, LOAD_OVERWRITE, false);
   }
 
-  public static int getRecordCount(Config config) {
-    return (int) config.getUserLong(CONFIG_NAME, RECORD_COUNT, DEFAULT_RECORD_COUNT);
+  public static int getPartitionCount(Config config) {
+    return (int) config.getUserLong(CONFIG_NAME, PARTITION_COUNT, DEFAULT_PARTITION_COUNT);
   }
 
   public static int getPayloadSize(Config config) {
