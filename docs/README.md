@@ -18,9 +18,8 @@ This tutorial describes how to run benchmarking tools for ScalarDB. Database ben
 
 ## Prerequisites
 
-- One of the following Java Development Kits (JDKs):
-  - [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) LTS version 8
-  - [OpenJDK](https://openjdk.org/install/) LTS version 8
+- Java Development Kit (JDK):
+  - Supported versions: 8, 11, 17, and 21
 - Gradle
 - [Kelpie](https://github.com/scalar-labs/kelpie)
   - Kelpie is a framework for performing end-to-end testing, such as system benchmarking and verification. Get the latest version from [Kelpie Releases](https://github.com/scalar-labs/kelpie), and unzip the archive file.
