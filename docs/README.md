@@ -27,13 +27,6 @@ This tutorial describes how to run benchmarking tools for ScalarDB. Database ben
 - A target database
   - For a list of databases that ScalarDB supports, see [Supported Databases](https://github.com/scalar-labs/scalardb/blob/master/docs/scalardb-supported-databases.md).
 
-{% capture notice--info %}
-**Note**
-
-Currently, only JDK 8 can be used when running the benchmarking tools.
-{% endcapture %}
-
-<div class="notice--info">{{ notice--info | markdownify }}</div>
 
 ## Set up the benchmarking tools
 
