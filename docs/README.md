@@ -25,7 +25,7 @@ This tutorial describes how to run benchmarking tools for ScalarDB. Database ben
   - Kelpie is a framework for performing end-to-end testing, such as system benchmarking and verification. Get the latest version from [Kelpie Releases](https://github.com/scalar-labs/kelpie), and unzip the archive file.
 - A client to run the benchmarking tools
 - A target database
-  - For a list of databases that ScalarDB supports, see [Supported Databases](https://github.com/scalar-labs/docs-internal-scalardb/blob/main/docs/en-us/requirements.mdx#databases).
+  - For a list of databases that ScalarDB supports, see [Supported Databases](https://scalardb.scalar-labs.com/docs/latest/requirements/#databases).
 
 
 ## Set up the benchmarking tools
