@@ -18,23 +18,18 @@ This tutorial describes how to run benchmarking tools for ScalarDB. Database ben
 
 ## Prerequisites
 
-- One of the following Java Development Kits (JDKs):
-  - [Oracle JDK](https://www.oracle.com/java/technologies/downloads/) LTS version 8
-  - [OpenJDK](https://openjdk.org/install/) LTS version 8
+The following Java Development Kits (JDKs) are verified and supported:
+
+- The following Java Development Kits (JDKs) are verified and supported:
+  - **[Oracle JDK](https://www.oracle.com/java/):** 8, 11, 17, or 21 (LTS versions)
+  - **OpenJDK distribution ([Eclipse Temurin](https://adoptium.net/temurin/), [Amazon Corretto](https://aws.amazon.com/corretto/), or [Microsoft Build of OpenJDK](https://learn.microsoft.com/en-us/java/openjdk/)):** 8, 11, 17, or 21 (LTS versions)
 - Gradle
 - [Kelpie](https://github.com/scalar-labs/kelpie)
   - Kelpie is a framework for performing end-to-end testing, such as system benchmarking and verification. Get the latest version from [Kelpie Releases](https://github.com/scalar-labs/kelpie), and unzip the archive file.
 - A client to run the benchmarking tools
 - A target database
-  - For a list of databases that ScalarDB supports, see [Supported Databases](https://github.com/scalar-labs/scalardb/blob/master/docs/scalardb-supported-databases.md).
+  - For a list of databases that ScalarDB supports, see [Supported Databases](https://scalardb.scalar-labs.com/docs/latest/requirements/#databases).
 
-{% capture notice--info %}
-**Note**
-
-Currently, only JDK 8 can be used when running the benchmarking tools.
-{% endcapture %}
-
-<div class="notice--info">{{ notice--info | markdownify }}</div>
 
 ## Set up the benchmarking tools
 
