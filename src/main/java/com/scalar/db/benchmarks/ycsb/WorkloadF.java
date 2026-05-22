@@ -5,7 +5,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareUpsert;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
@@ -59,7 +59,7 @@ public class WorkloadF extends TimeBasedProcessor {
         for (int i = 0; i < userIds.size(); i++) {
           int userId = userIds.get(i);
           transaction.get(prepareGet(userId));
-          transaction.put(preparePut(userId, payloads.get(i)));
+          transaction.upsert(prepareUpsert(userId, payloads.get(i)));
         }
         transaction.commit();
         break;

@@ -116,23 +116,20 @@ public class PaymentTransaction implements TpccTransaction {
     if (!result.isPresent()) {
       throw new TransactionException("Warehouse not found", transaction.getId());
     }
-    final String warehouseName =
-        result.get().getValue(Warehouse.KEY_NAME).get().getAsString().get();
-    final double warehouseYtd =
-        result.get().getValue(Warehouse.KEY_YTD).get().getAsDouble() + paymentAmount;
+    final String warehouseName = result.get().getText(Warehouse.KEY_NAME);
+    final double warehouseYtd = result.get().getDouble(Warehouse.KEY_YTD) + paymentAmount;
     Warehouse warehouse = new Warehouse(warehouseId, warehouseYtd);
-    transaction.put(warehouse.createPut());
+    transaction.upsert(warehouse.createUpsert());
 
     // Get and update district
     result = transaction.get(District.createGet(warehouseId, districtId));
     if (!result.isPresent()) {
       throw new TransactionException("District not found", transaction.getId());
     }
-    final String districtName = result.get().getValue(District.KEY_NAME).get().getAsString().get();
-    final double districtYtd =
-        result.get().getValue(District.KEY_YTD).get().getAsDouble() + paymentAmount;
+    final String districtName = result.get().getText(District.KEY_NAME);
+    final double districtYtd = result.get().getDouble(District.KEY_YTD) + paymentAmount;
     District district = new District(warehouseId, districtId, districtYtd);
-    transaction.put(district.createPut());
+    transaction.upsert(district.createUpsert());
 
     // Get and update customer
     if (byLastName) {
@@ -151,13 +148,11 @@ public class PaymentTransaction implements TpccTransaction {
     if (!result.isPresent()) {
       throw new TransactionException("Customer not found", transaction.getId());
     }
-    final double balance =
-        result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + paymentAmount;
-    final double ytdPayment =
-        result.get().getValue(Customer.KEY_YTD_PAYMENT).get().getAsDouble() + paymentAmount;
-    final int count = result.get().getValue(Customer.KEY_PAYMENT_CNT).get().getAsInt() + 1;
-    final String credit = result.get().getValue(Customer.KEY_CREDIT).get().getAsString().get();
-    String data = result.get().getValue(Customer.KEY_DATA).get().getAsString().get();
+    final double balance = result.get().getDouble(Customer.KEY_BALANCE) + paymentAmount;
+    final double ytdPayment = result.get().getDouble(Customer.KEY_YTD_PAYMENT) + paymentAmount;
+    final int count = result.get().getInt(Customer.KEY_PAYMENT_CNT) + 1;
+    final String credit = result.get().getText(Customer.KEY_CREDIT);
+    String data = result.get().getText(Customer.KEY_DATA);
     if (credit.equals("BC")) {
       data =
           generateCustomerData(
@@ -172,7 +167,7 @@ public class PaymentTransaction implements TpccTransaction {
     Customer customer =
         new Customer(
             customerWarehouseId, customerDistrictId, customerId, balance, ytdPayment, count, data);
-    transaction.put(customer.createPut());
+    transaction.upsert(customer.createUpsert());
 
     // Insert history
     final History history =
@@ -185,7 +180,7 @@ public class PaymentTransaction implements TpccTransaction {
             date,
             paymentAmount,
             generateHistoryData(warehouseName, districtName));
-    transaction.put(history.createPut());
+    transaction.upsert(history.createUpsert());
   }
 
   @Override

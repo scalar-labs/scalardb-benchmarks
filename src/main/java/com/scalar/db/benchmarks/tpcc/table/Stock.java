@@ -3,10 +3,7 @@ package com.scalar.db.benchmarks.tpcc.table;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
-import com.scalar.db.io.Value;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
@@ -114,10 +111,7 @@ public class Stock extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int itemId) {
-    ArrayList<Value<?>> keys = new ArrayList<>();
-    keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
-    keys.add(new IntValue(KEY_ITEM_ID, itemId));
-    return new Key(keys);
+    return Key.of(KEY_WAREHOUSE_ID, warehouseId, KEY_ITEM_ID, itemId);
   }
 
   /**
@@ -129,7 +123,7 @@ public class Stock extends TpccRecord {
    */
   public static Get createGet(int warehouseId, int itemId) {
     Key partitionKey = createPartitionKey(warehouseId, itemId);
-    return new Get(partitionKey).forTable(TABLE_NAME);
+    return buildGet(TABLE_NAME, partitionKey);
   }
 
   /**
@@ -139,8 +133,6 @@ public class Stock extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionKey = createPartitionKey();
-    ArrayList<Value<?>> values = createValues();
-    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
+    return applyColumns(buildPut(TABLE_NAME, createPartitionKey()));
   }
 }

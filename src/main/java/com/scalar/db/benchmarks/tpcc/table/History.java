@@ -2,11 +2,8 @@ package com.scalar.db.benchmarks.tpcc.table;
 
 import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.io.Key;
-import com.scalar.db.io.Value;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -124,8 +121,6 @@ public class History extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionKey = createPartitionKey();
-    ArrayList<Value<?>> values = createValues();
-    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
+    return applyColumns(buildPut(TABLE_NAME, createPartitionKey()));
   }
 }

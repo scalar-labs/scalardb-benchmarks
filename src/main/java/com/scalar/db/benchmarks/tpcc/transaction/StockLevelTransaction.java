@@ -47,7 +47,7 @@ public class StockLevelTransaction implements TpccTransaction {
     if (!result.isPresent()) {
       throw new TransactionException("District not found", transaction.getId());
     }
-    int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
+    int orderId = result.get().getInt(District.KEY_NEXT_O_ID);
 
     // Get order-lines of the last 20 orders
     List<Result> orderLines =
@@ -58,7 +58,7 @@ public class StockLevelTransaction implements TpccTransaction {
     // Prepare distinct items
     Set<Integer> itemSet = new HashSet<>();
     for (Result line : orderLines) {
-      int itemId = line.getValue(OrderLine.KEY_ITEM_ID).get().getAsInt();
+      int itemId = line.getInt(OrderLine.KEY_ITEM_ID);
       if (itemId != Item.UNUSED_ID) {
         itemSet.add(itemId);
       }
@@ -71,7 +71,7 @@ public class StockLevelTransaction implements TpccTransaction {
       if (!stock.isPresent()) {
         throw new TransactionException("Stock not found", transaction.getId());
       }
-      int quantity = stock.get().getValue(Stock.KEY_QUANTITY).get().getAsInt();
+      int quantity = stock.get().getInt(Stock.KEY_QUANTITY);
       if (quantity < threshold) {
         lowStock++;
       }

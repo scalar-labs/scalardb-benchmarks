@@ -1,8 +1,8 @@
 package com.scalar.db.benchmarks.tpcc.table;
 
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.io.TextValue;
-import com.scalar.db.io.Value;
+import com.scalar.db.io.Column;
+import com.scalar.db.io.TextColumn;
 import java.util.ArrayList;
 
 public class Address {
@@ -49,17 +49,17 @@ public class Address {
   }
 
   /**
-   * Creates an {@code ArrayList} of {@code Value<?>}.
+   * Creates an {@code ArrayList} of {@code Column<?>}.
    *
-   * @return an {@code ArrayList} of {@code Value<?>}
+   * @return an {@code ArrayList} of {@code Column<?>}
    */
-  public ArrayList<Value<?>> createValues() {
-    ArrayList<Value<?>> values = new ArrayList<>();
-    values.add(new TextValue(columnPrefix + KEY_STREET_1, street1));
-    values.add(new TextValue(columnPrefix + KEY_STREET_2, street2));
-    values.add(new TextValue(columnPrefix + KEY_CITY, city));
-    values.add(new TextValue(columnPrefix + KEY_STATE, state));
-    values.add(new TextValue(columnPrefix + KEY_ZIP, zip));
-    return values;
+  public ArrayList<Column<?>> createValues() {
+    ArrayList<Column<?>> columns = new ArrayList<>();
+    columns.add(TextColumn.of(columnPrefix + KEY_STREET_1, street1));
+    columns.add(TextColumn.of(columnPrefix + KEY_STREET_2, street2));
+    columns.add(TextColumn.of(columnPrefix + KEY_CITY, city));
+    columns.add(TextColumn.of(columnPrefix + KEY_STATE, state));
+    columns.add(TextColumn.of(columnPrefix + KEY_ZIP, zip));
+    return columns;
   }
 }

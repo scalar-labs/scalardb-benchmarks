@@ -39,7 +39,7 @@ public class TpccUtil {
     List<Result> results = tx.scan(Customer.createScan(warehouseId, districtId, customerLastName));
     results.sort(Customer.FIRST_NAME_COMPARATOR);
     int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
-    return results.get(offset).getValue(Customer.KEY_ID).get().getAsInt();
+    return results.get(offset).getInt(Customer.KEY_ID);
   }
 
   /**
@@ -58,7 +58,7 @@ public class TpccUtil {
     List<Result> results =
         tx.scan(CustomerSecondary.createScan(warehouseId, districtId, customerLastName));
     int offset = (results.size() + 1) / 2 - 1; // locate midpoint customer
-    return results.get(offset).getValue(CustomerSecondary.KEY_CUSTOMER_ID).get().getAsInt();
+    return results.get(offset).getInt(CustomerSecondary.KEY_CUSTOMER_ID);
   }
 
   /**
