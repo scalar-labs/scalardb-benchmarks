@@ -3,6 +3,7 @@ package com.scalar.db.benchmarks.ycsb;
 import com.scalar.db.api.Consistency;
 import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
+import com.scalar.db.api.Upsert;
 import com.scalar.db.io.Key;
 import com.scalar.db.io.TextColumn;
 import com.scalar.kelpie.config.Config;
@@ -81,6 +82,23 @@ public class YcsbCommon {
         .partitionKey(Key.ofInt(YCSB_KEY, key))
         .value(TextColumn.of(PAYLOAD, payload))
         .consistency(Consistency.LINEARIZABLE)
+        .build();
+  }
+
+  public static Upsert prepareUpsert(int key, String payload) {
+    return prepareUpsert(NAMESPACE, TABLE, key, payload);
+  }
+
+  public static Upsert prepareUpsert(String namespace, int key, String payload) {
+    return prepareUpsert(namespace, TABLE, key, payload);
+  }
+
+  public static Upsert prepareUpsert(String namespace, String table, int key, String payload) {
+    return Upsert.newBuilder()
+        .namespace(namespace)
+        .table(table)
+        .partitionKey(Key.ofInt(YCSB_KEY, key))
+        .value(TextColumn.of(PAYLOAD, payload))
         .build();
   }
 

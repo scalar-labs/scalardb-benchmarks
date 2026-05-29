@@ -1,7 +1,5 @@
 package com.scalar.db.benchmarks.tpcc;
 
-import static com.scalar.db.benchmarks.Common.getDatabaseConfig;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransaction;
@@ -18,9 +16,8 @@ import com.scalar.db.benchmarks.tpcc.table.OrderSecondary;
 import com.scalar.db.benchmarks.tpcc.table.Stock;
 import com.scalar.db.benchmarks.tpcc.table.TpccRecord;
 import com.scalar.db.benchmarks.tpcc.table.Warehouse;
-import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.benchmarks.Common;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
 import com.scalar.kelpie.modules.PreProcessor;
 import java.io.BufferedReader;
@@ -118,10 +115,7 @@ public class TpccLoader extends PreProcessor {
 
   public TpccLoader(Config config) {
     super(config);
-    DatabaseConfig dbConfig = getDatabaseConfig(config);
-    TransactionFactory factory = new TransactionFactory(dbConfig);
-    manager = factory.getTransactionManager();
-    manager.withNamespace(TpccRecord.NAMESPACE);
+    manager = Common.getTransactionManager(config);
 
     this.concurrency =
         (int) config.getUserLong(CONFIG_NAME, LOAD_CONCURRENCY, DEFAULT_LOAD_CONCURRENCY);
@@ -335,9 +329,8 @@ public class TpccLoader extends PreProcessor {
   private void insert(DistributedTransactionManager manager, TpccRecord record)
       throws TransactionException {
     DistributedTransaction tx = manager.start();
-    tx.withNamespace(TpccRecord.NAMESPACE);
     try {
-      tx.put(record.createPut());
+      tx.upsert(record.createUpsert());
       tx.commit();
     } catch (Exception e) {
       tx.abort();
@@ -347,12 +340,12 @@ public class TpccLoader extends PreProcessor {
 
   private void queueCsv(File file, BlockingQueue<TpccRecord> queue, AtomicInteger counter) {
     CSVFormat format =
-        CSVFormat.Builder.create(CSVFormat.DEFAULT)
-            .setHeader(HEADER_MAP.get(file.getName()))
-            .build();
+        CSVFormat.DEFAULT.builder().setHeader(HEADER_MAP.get(file.getName())).get();
 
     try (BufferedReader reader =
-        new BufferedReader(new InputStreamReader(new BOMInputStream(new FileInputStream(file))))) {
+        new BufferedReader(
+            new InputStreamReader(
+                BOMInputStream.builder().setInputStream(new FileInputStream(file)).get()))) {
       CSVParser parser = CSVParser.parse(reader, format);
       for (CSVRecord record : parser) {
         switch (file.getName()) {

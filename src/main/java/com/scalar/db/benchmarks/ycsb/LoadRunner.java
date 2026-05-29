@@ -8,7 +8,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getLoadOverwrite;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareUpsert;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.randomFastChars;
 
 import com.scalar.db.api.DistributedTransaction;
@@ -110,8 +110,7 @@ public class LoadRunner {
       Get get = prepareGet(userId);
       transaction.get(get);
     }
-    Put put = preparePut(userId, payload);
-    transaction.put(put);
+    transaction.upsert(prepareUpsert(userId, payload));
   }
 
   private void putForMultiStorage(DistributedTransaction transaction, int userId, String payload)
@@ -122,9 +121,7 @@ public class LoadRunner {
       transaction.get(primaryGet);
       transaction.get(secondaryGet);
     }
-    Put primaryPut = preparePut(NAMESPACE_PRIMARY, userId, payload);
-    Put secondaryPut = preparePut(NAMESPACE_SECONDARY, userId, payload);
-    transaction.put(primaryPut);
-    transaction.put(secondaryPut);
+    transaction.upsert(prepareUpsert(NAMESPACE_PRIMARY, userId, payload));
+    transaction.upsert(prepareUpsert(NAMESPACE_SECONDARY, userId, payload));
   }
 }

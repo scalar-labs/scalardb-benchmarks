@@ -2,11 +2,7 @@ package com.scalar.db.benchmarks.tpcc.table;
 
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Scan;
-import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
-import com.scalar.db.io.TextValue;
-import com.scalar.db.io.Value;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
@@ -66,11 +62,8 @@ public class CustomerSecondary extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, String lastName) {
-    ArrayList<Value<?>> keys = new ArrayList<>();
-    keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
-    keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
-    keys.add(new TextValue(KEY_LAST, lastName));
-    return new Key(keys);
+    return Key.of(
+        KEY_WAREHOUSE_ID, warehouseId, KEY_DISTRICT_ID, districtId, KEY_LAST, lastName);
   }
 
   /**
@@ -81,10 +74,7 @@ public class CustomerSecondary extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createClusteringKey(String firstName, int customerId) {
-    ArrayList<Value<?>> keys = new ArrayList<>();
-    keys.add(new TextValue(KEY_FIRST, firstName));
-    keys.add(new IntValue(KEY_CUSTOMER_ID, customerId));
-    return new Key(keys);
+    return Key.of(KEY_FIRST, firstName, KEY_CUSTOMER_ID, customerId);
   }
 
   /**
@@ -94,9 +84,7 @@ public class CustomerSecondary extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionKey = createPartitionKey();
-    Key clusteringKey = createClusteringKey();
-    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME);
+    return buildPut(TABLE_NAME, createPartitionKey(), createClusteringKey());
   }
 
   /**
@@ -106,6 +94,6 @@ public class CustomerSecondary extends TpccRecord {
    */
   public static Scan createScan(int warehouseId, int districtId, String lastName) {
     Key partitionKey = createPartitionKey(warehouseId, districtId, lastName);
-    return new Scan(partitionKey).forTable(TABLE_NAME);
+    return buildScan(TABLE_NAME, partitionKey);
   }
 }

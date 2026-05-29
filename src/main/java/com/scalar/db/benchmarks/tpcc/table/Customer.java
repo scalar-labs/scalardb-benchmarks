@@ -5,12 +5,9 @@ import com.scalar.db.api.Put;
 import com.scalar.db.api.Result;
 import com.scalar.db.api.Scan;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
-import com.scalar.db.io.Value;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -54,8 +51,8 @@ public class Customer extends TpccRecord {
 
   public static final Comparator<Result> FIRST_NAME_COMPARATOR =
       (a, b) -> {
-        String firstNameA = a.getValue(KEY_FIRST).get().getAsString().get();
-        String firstNameB = b.getValue(KEY_FIRST).get().getAsString().get();
+        String firstNameA = a.getText(KEY_FIRST);
+        String firstNameB = b.getText(KEY_FIRST);
         return firstNameA.compareTo(firstNameB);
       };
 
@@ -187,11 +184,8 @@ public class Customer extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId, int customerId) {
-    ArrayList<Value<?>> keys = new ArrayList<>();
-    keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
-    keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
-    keys.add(new IntValue(KEY_ID, customerId));
-    return new Key(keys);
+    return Key.of(
+        KEY_WAREHOUSE_ID, warehouseId, KEY_DISTRICT_ID, districtId, KEY_ID, customerId);
   }
 
   private static String createIndexString(int warehouseId, int districtId, String lastName) {
@@ -204,8 +198,8 @@ public class Customer extends TpccRecord {
    * @return a {@code Scan} object
    */
   public static Scan createScan(int warehouseId, int districtId, String lastName) {
-    Key key = new Key(KEY_INDEX, createIndexString(warehouseId, districtId, lastName));
-    return new Scan(key).forTable(TABLE_NAME);
+    Key key = Key.ofText(KEY_INDEX, createIndexString(warehouseId, districtId, lastName));
+    return buildScan(TABLE_NAME, key);
   }
 
   /**
@@ -218,7 +212,7 @@ public class Customer extends TpccRecord {
    */
   public static Get createGet(int warehouseId, int districtId, int customerId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId, customerId);
-    return new Get(partitionKey).forTable(TABLE_NAME);
+    return buildGet(TABLE_NAME, partitionKey);
   }
 
   /**
@@ -228,9 +222,7 @@ public class Customer extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionKey = createPartitionKey();
-    ArrayList<Value<?>> values = createValues();
-    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
+    return applyColumns(buildPut(TABLE_NAME, createPartitionKey()));
   }
 
   /** Builds a column for secondary index. */

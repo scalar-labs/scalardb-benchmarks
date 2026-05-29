@@ -1,21 +1,17 @@
 package com.scalar.db.benchmarks.tpcc;
 
-import static com.scalar.db.benchmarks.Common.getDatabaseConfig;
-
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.scalar.db.api.DistributedTransactionManager;
-import com.scalar.db.benchmarks.tpcc.table.TpccRecord;
 import com.scalar.db.benchmarks.tpcc.transaction.DeliveryTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.NewOrderTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.OrderStatusTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.PaymentTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.StockLevelTransaction;
 import com.scalar.db.benchmarks.tpcc.transaction.TpccTransaction;
-import com.scalar.db.config.DatabaseConfig;
+import com.scalar.db.benchmarks.Common;
 import com.scalar.db.exception.transaction.CommitConflictException;
 import com.scalar.db.exception.transaction.CrudConflictException;
 import com.scalar.db.exception.transaction.TransactionException;
-import com.scalar.db.service.TransactionFactory;
 import com.scalar.kelpie.config.Config;
 import com.scalar.kelpie.modules.TimeBasedProcessor;
 import java.util.concurrent.TimeUnit;
@@ -42,10 +38,7 @@ public class TpccBench extends TimeBasedProcessor {
 
   public TpccBench(Config config) {
     super(config);
-    DatabaseConfig dbConfig = getDatabaseConfig(config);
-    TransactionFactory factory = new TransactionFactory(dbConfig);
-    manager = factory.getTransactionManager();
-    manager.withNamespace(TpccRecord.NAMESPACE);
+    manager = Common.getTransactionManager(config);
 
     int numWarehouses =
         (int) config.getUserLong(CONFIG_NAME, NUM_WAREHOUSES, DEFAULT_NUM_WAREHOUSES);

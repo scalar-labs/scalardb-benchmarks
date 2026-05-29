@@ -37,7 +37,7 @@ public class OrderStatusTransaction implements TpccTransaction {
       throw new TransactionException("Invalid scan on order-secondary", tx.getId());
     }
     results.sort(Order.ORDER_ID_COMPARATOR);
-    return results.get(0).getValue(Order.KEY_ID).get().getAsInt();
+    return results.get(0).getInt(Order.KEY_ID);
   }
 
   private int getOrderIdByTableIndex(DistributedTransaction tx) throws TransactionException {
@@ -45,7 +45,7 @@ public class OrderStatusTransaction implements TpccTransaction {
     if (results.size() != 1) {
       throw new TransactionException("Invalid scan on order-secondary", tx.getId());
     }
-    return results.get(0).getValue(OrderSecondary.KEY_ORDER_ID).get().getAsInt();
+    return results.get(0).getInt(OrderSecondary.KEY_ORDER_ID);
   }
 
   private void generate() {
@@ -101,11 +101,11 @@ public class OrderStatusTransaction implements TpccTransaction {
         transaction.scan(OrderLine.createScan(warehouseId, districtId, orderId));
     orderLines.forEach(
         line -> {
-          int supplyWarehouseId = line.getValue(OrderLine.KEY_SUPPLY_W_ID).get().getAsInt();
-          int itemId = line.getValue(OrderLine.KEY_ITEM_ID).get().getAsInt();
-          int quantity = line.getValue(OrderLine.KEY_QUANTITY).get().getAsInt();
-          double amount = line.getValue(OrderLine.KEY_AMOUNT).get().getAsDouble();
-          Date deliveryDate = new Date(line.getValue(OrderLine.KEY_DELIVERY_D).get().getAsLong());
+          int supplyWarehouseId = line.getInt(OrderLine.KEY_SUPPLY_W_ID);
+          int itemId = line.getInt(OrderLine.KEY_ITEM_ID);
+          int quantity = line.getInt(OrderLine.KEY_QUANTITY);
+          double amount = line.getDouble(OrderLine.KEY_AMOUNT);
+          Date deliveryDate = new Date(line.getBigInt(OrderLine.KEY_DELIVERY_D));
         });
   }
 

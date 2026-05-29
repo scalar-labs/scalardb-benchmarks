@@ -46,7 +46,7 @@ public class DeliveryTransaction implements TpccTransaction {
       if (newOrders.size() != 1) {
         throw new TransactionException("Invalid scan on new-order", transaction.getId());
       }
-      int orderId = newOrders.get(0).getValue(NewOrder.KEY_ORDER_ID).get().getAsInt();
+      int orderId = newOrders.get(0).getInt(NewOrder.KEY_ORDER_ID);
 
       // Delete the new-order
       transaction.delete(NewOrder.createDelete(warehouseId, districtId, orderId));
@@ -56,21 +56,21 @@ public class DeliveryTransaction implements TpccTransaction {
       if (!result.isPresent()) {
         throw new TransactionException("Order not found", transaction.getId());
       }
-      int customerId = result.get().getValue(Order.KEY_CUSTOMER_ID).get().getAsInt();
+      int customerId = result.get().getInt(Order.KEY_CUSTOMER_ID);
 
       // Update the carrier ID
       Order order = new Order(warehouseId, districtId, orderId, carrierId);
-      transaction.put(order.createPut());
+      transaction.upsert(order.createUpsert());
 
       // Get and update order-lines
       double total = 0;
       List<Result> orderLines =
           transaction.scan(OrderLine.createScan(warehouseId, districtId, orderId));
       for (Result line : orderLines) {
-        int number = line.getValue(OrderLine.KEY_NUMBER).get().getAsInt();
-        total += line.getValue(OrderLine.KEY_AMOUNT).get().getAsDouble();
+        int number = line.getInt(OrderLine.KEY_NUMBER);
+        total += line.getDouble(OrderLine.KEY_AMOUNT);
         OrderLine newLine = new OrderLine(warehouseId, districtId, orderId, number, deliveryDate);
-        transaction.put(newLine.createPut());
+        transaction.upsert(newLine.createUpsert());
       }
 
       // Update the customer with new balance and delivery count
@@ -78,10 +78,10 @@ public class DeliveryTransaction implements TpccTransaction {
       if (!result.isPresent()) {
         throw new TransactionException("Customer not found", transaction.getId());
       }
-      double balance = result.get().getValue(Customer.KEY_BALANCE).get().getAsDouble() + total;
-      int deliveryCount = result.get().getValue(Customer.KEY_DELIVERY_CNT).get().getAsInt() + 1;
+      double balance = result.get().getDouble(Customer.KEY_BALANCE) + total;
+      int deliveryCount = result.get().getInt(Customer.KEY_DELIVERY_CNT) + 1;
       Customer customer = new Customer(warehouseId, districtId, customerId, balance, deliveryCount);
-      transaction.put(customer.createPut());
+      transaction.upsert(customer.createUpsert());
     }
   }
 

@@ -3,12 +3,9 @@ package com.scalar.db.benchmarks.tpcc.table;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Scan;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
-import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
-import com.scalar.db.io.Value;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -172,18 +169,12 @@ public class OrderLine extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
-    ArrayList<Value<?>> keys = new ArrayList<>();
-    keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
-    keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
-    return new Key(keys);
+    return Key.of(KEY_WAREHOUSE_ID, warehouseId, KEY_DISTRICT_ID, districtId);
   }
 
   /** Creates a clustering {@code Key}. */
   public static Key createClusteringKey(int orderId, int orderLineNumber) {
-    ArrayList<Value<?>> keys = new ArrayList<>();
-    keys.add(new IntValue(KEY_ORDER_ID, orderId));
-    keys.add(new IntValue(KEY_NUMBER, orderLineNumber));
-    return new Key(keys);
+    return Key.of(KEY_ORDER_ID, orderId, KEY_NUMBER, orderLineNumber);
   }
 
   /**
@@ -193,10 +184,7 @@ public class OrderLine extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionKey = createPartitionKey();
-    Key clusteringKey = createClusteringKey();
-    ArrayList<Value<?>> values = createValues();
-    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME).withValues(values);
+    return applyColumns(buildPut(TABLE_NAME, createPartitionKey(), createClusteringKey()));
   }
 
   /** Creates a {@code Scan} object for order-lines with a specified order ID. */
@@ -207,8 +195,14 @@ public class OrderLine extends TpccRecord {
   /** Creates a {@code Scan} object for order-lines with a range of order IDs. */
   public static Scan createScan(int warehouseId, int districtId, int orderIdStart, int orderIdEnd) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
-    Key start = new Key(OrderLine.KEY_ORDER_ID, orderIdStart);
-    Key end = new Key(OrderLine.KEY_ORDER_ID, orderIdEnd);
-    return new Scan(partitionKey).forTable(TABLE_NAME).withStart(start).withEnd(end);
+    Key start = Key.ofInt(OrderLine.KEY_ORDER_ID, orderIdStart);
+    Key end = Key.ofInt(OrderLine.KEY_ORDER_ID, orderIdEnd);
+    return Scan.newBuilder()
+        .namespace(NAMESPACE)
+        .table(TABLE_NAME)
+        .partitionKey(partitionKey)
+        .start(start)
+        .end(end)
+        .build();
   }
 }

@@ -5,7 +5,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareUpsert;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
@@ -83,7 +83,7 @@ public class WorkloadA extends TimeBasedProcessor {
           if (useReadModifyWrite) {
             transaction.get(prepareGet(writeUserId));
           }
-          transaction.put(preparePut(writeUserId, payloads.get(i)));
+          transaction.upsert(prepareUpsert(writeUserId, payloads.get(i)));
         }
         transaction.commit();
         break;

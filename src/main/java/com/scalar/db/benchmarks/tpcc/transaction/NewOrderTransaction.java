@@ -73,25 +73,25 @@ public class NewOrderTransaction implements TpccTransaction {
   private String getDistInfo(Optional<Result> stock, int districtId, String transactionId) throws TransactionException {
     switch (districtId) {
       case 1:
-        return stock.get().getValue(Stock.KEY_DISTRICT01).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT01);
       case 2:
-        return stock.get().getValue(Stock.KEY_DISTRICT02).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT02);
       case 3:
-        return stock.get().getValue(Stock.KEY_DISTRICT03).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT03);
       case 4:
-        return stock.get().getValue(Stock.KEY_DISTRICT04).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT04);
       case 5:
-        return stock.get().getValue(Stock.KEY_DISTRICT05).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT05);
       case 6:
-        return stock.get().getValue(Stock.KEY_DISTRICT06).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT06);
       case 7:
-        return stock.get().getValue(Stock.KEY_DISTRICT07).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT07);
       case 8:
-        return stock.get().getValue(Stock.KEY_DISTRICT08).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT08);
       case 9:
-        return stock.get().getValue(Stock.KEY_DISTRICT09).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT09);
       case 10:
-        return stock.get().getValue(Stock.KEY_DISTRICT10).get().getAsString().get();
+        return stock.get().getText(Stock.KEY_DISTRICT10);
       default:
         throw new TransactionException("No such district ID", transactionId);
     }
@@ -106,28 +106,28 @@ public class NewOrderTransaction implements TpccTransaction {
     if (!result.isPresent()) {
       throw new TransactionException("Warehouse not found", transaction.getId());
     }
-    final double warehouseTax = result.get().getValue(Warehouse.KEY_TAX).get().getAsDouble();
+    final double warehouseTax = result.get().getDouble(Warehouse.KEY_TAX);
 
     // Get and update district
     result = transaction.get(District.createGet(warehouseId, districtId));
     if (!result.isPresent()) {
       throw new TransactionException("District not found", transaction.getId());
     }
-    final double districtTax = result.get().getValue(District.KEY_TAX).get().getAsDouble();
-    final int orderId = result.get().getValue(District.KEY_NEXT_O_ID).get().getAsInt();
+    final double districtTax = result.get().getDouble(District.KEY_TAX);
+    final int orderId = result.get().getInt(District.KEY_NEXT_O_ID);
     District district = new District(warehouseId, districtId, orderId + 1);
-    transaction.put(district.createPut());
+    transaction.upsert(district.createUpsert());
 
     // Get customer
     result = transaction.get(Customer.createGet(warehouseId, districtId, customerId));
     if (!result.isPresent()) {
       throw new TransactionException("Customer not found", transaction.getId());
     }
-    double discount = result.get().getValue(Customer.KEY_DISCOUNT).get().getAsDouble();
+    double discount = result.get().getDouble(Customer.KEY_DISCOUNT);
 
     // Insert new-order
     NewOrder newOrder = new NewOrder(warehouseId, districtId, orderId);
-    transaction.put(newOrder.createPut());
+    transaction.upsert(newOrder.createUpsert());
 
     // Insert order
     Order order =
@@ -136,13 +136,13 @@ public class NewOrderTransaction implements TpccTransaction {
     if (!config.useTableIndex()) {
       order.buildIndexColumn();
     }
-    transaction.put(order.createPut());
+    transaction.upsert(order.createUpsert());
 
     // Insert order's secondary index
     if (!config.isNpOnly() && config.useTableIndex()) {
       OrderSecondary orderSecondary =
           new OrderSecondary(warehouseId, districtId, customerId, orderId);
-      transaction.put(orderSecondary.createPut());
+      transaction.upsert(orderSecondary.createUpsert());
     }
 
     // Insert order-line
@@ -156,7 +156,7 @@ public class NewOrderTransaction implements TpccTransaction {
       if (!result.isPresent()) {
         throw new TransactionException("Item not found", transaction.getId());
       }
-      final double itemPrice = result.get().getValue(Item.KEY_PRICE).get().getAsDouble();
+      final double itemPrice = result.get().getDouble(Item.KEY_PRICE);
       final double amount =
           quantity * itemPrice * (1.0 + warehouseTax + districtTax) * (1.0 - discount);
 
@@ -165,13 +165,13 @@ public class NewOrderTransaction implements TpccTransaction {
       if (!result.isPresent()) {
         throw new TransactionException("Stock not found", transaction.getId());
       }
-      double stockYtd = result.get().getValue(Stock.KEY_YTD).get().getAsDouble() + quantity;
-      int stockOrderCount = result.get().getValue(Stock.KEY_ORDER_CNT).get().getAsInt() + 1;
-      int stockRemoteCount = result.get().getValue(Stock.KEY_REMOTE_CNT).get().getAsInt();
+      double stockYtd = result.get().getDouble(Stock.KEY_YTD) + quantity;
+      int stockOrderCount = result.get().getInt(Stock.KEY_ORDER_CNT) + 1;
+      int stockRemoteCount = result.get().getInt(Stock.KEY_REMOTE_CNT);
       if (remote) {
         stockRemoteCount++;
       }
-      int stockQuantity = result.get().getValue(Stock.KEY_QUANTITY).get().getAsInt();
+      int stockQuantity = result.get().getInt(Stock.KEY_QUANTITY);
       if (stockQuantity > quantity + 10) {
         stockQuantity -= quantity;
       } else {
@@ -186,7 +186,7 @@ public class NewOrderTransaction implements TpccTransaction {
               stockYtd,
               stockOrderCount,
               stockRemoteCount);
-      transaction.put(stock.createPut());
+      transaction.upsert(stock.createUpsert());
 
       // Insert order-line
       OrderLine orderLine =
@@ -200,7 +200,7 @@ public class NewOrderTransaction implements TpccTransaction {
               quantity,
               itemId,
               distInfo);
-      transaction.put(orderLine.createPut());
+      transaction.upsert(orderLine.createUpsert());
     }
   }
 

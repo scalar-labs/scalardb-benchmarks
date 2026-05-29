@@ -1,6 +1,6 @@
 plugins {
     id 'java-library-distribution'
-    id "com.github.johnrengelman.shadow" version "7.1.2"
+    id 'com.gradleup.shadow' version '8.3.6'
 }
 
 repositories {
@@ -15,7 +15,7 @@ ext {
     kelpieVersion = '1.2.3'
     resilience4jRetryVersion = '1.7.1'
     slf4jVersion = '2.0.17'
-    scalarDbVersion = '3.15.3'
+    scalarDbVersion = '3.18.0'
 }
 
 dependencies {
@@ -30,10 +30,13 @@ dependencies {
     implementation group: 'org.slf4j', name: 'slf4j-log4j12', version: "${slf4jVersion}"
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
 shadowJar {
     mergeServiceFiles()
     zip64 = true
 }
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8

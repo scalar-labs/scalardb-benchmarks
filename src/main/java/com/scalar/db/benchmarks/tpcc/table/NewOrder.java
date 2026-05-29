@@ -3,11 +3,7 @@ package com.scalar.db.benchmarks.tpcc.table;
 import com.scalar.db.api.Delete;
 import com.scalar.db.api.Put;
 import com.scalar.db.api.Scan;
-import com.scalar.db.api.Scan.Ordering;
-import com.scalar.db.io.IntValue;
 import com.scalar.db.io.Key;
-import com.scalar.db.io.Value;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
 
@@ -58,10 +54,7 @@ public class NewOrder extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int warehouseId, int districtId) {
-    ArrayList<Value<?>> keys = new ArrayList<>();
-    keys.add(new IntValue(KEY_WAREHOUSE_ID, warehouseId));
-    keys.add(new IntValue(KEY_DISTRICT_ID, districtId));
-    return new Key(keys);
+    return Key.of(KEY_WAREHOUSE_ID, warehouseId, KEY_DISTRICT_ID, districtId);
   }
 
   /**
@@ -71,7 +64,7 @@ public class NewOrder extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createClusteringKey(int orderId) {
-    return new Key(KEY_ORDER_ID, orderId);
+    return Key.ofInt(KEY_ORDER_ID, orderId);
   }
 
   /**
@@ -81,24 +74,25 @@ public class NewOrder extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionKey = createPartitionKey();
-    Key clusteringKey = createClusteringKey();
-    return new Put(partitionKey, clusteringKey).forTable(TABLE_NAME);
+    return buildPut(TABLE_NAME, createPartitionKey(), createClusteringKey());
   }
 
   /** Creates a {@code Delete} object. */
   public static Delete createDelete(int warehouseId, int districtId, int orderId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
     Key clusteringKey = createClusteringKey(orderId);
-    return new Delete(partitionKey, clusteringKey).forTable(TABLE_NAME);
+    return buildDelete(TABLE_NAME, partitionKey, clusteringKey);
   }
 
   /** Creates a {@code Scan} object for the oldest outstanding new-order. */
   public static Scan createScan(int warehouseId, int districtId) {
     Key partitionKey = createPartitionKey(warehouseId, districtId);
-    return new Scan(partitionKey)
-        .forTable(TABLE_NAME)
-        .withOrdering(new Ordering(KEY_ORDER_ID, Scan.Ordering.Order.ASC))
-        .withLimit(1);
+    return Scan.newBuilder()
+        .namespace(NAMESPACE)
+        .table(TABLE_NAME)
+        .partitionKey(partitionKey)
+        .ordering(Scan.Ordering.asc(KEY_ORDER_ID))
+        .limit(1)
+        .build();
   }
 }

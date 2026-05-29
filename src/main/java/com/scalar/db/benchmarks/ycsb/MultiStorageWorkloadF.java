@@ -7,7 +7,7 @@ import static com.scalar.db.benchmarks.ycsb.YcsbCommon.OPS_PER_TX;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getPayloadSize;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.getRecordCount;
 import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareGet;
-import static com.scalar.db.benchmarks.ycsb.YcsbCommon.preparePut;
+import static com.scalar.db.benchmarks.ycsb.YcsbCommon.prepareUpsert;
 
 import com.scalar.db.api.DistributedTransaction;
 import com.scalar.db.api.DistributedTransactionManager;
@@ -66,12 +66,12 @@ public class MultiStorageWorkloadF extends TimeBasedProcessor {
         for (int i = 0; i < primaryIds.size(); i++) {
           int userId = primaryIds.get(i);
           transaction.get(prepareGet(NAMESPACE_PRIMARY, userId));
-          transaction.put(preparePut(NAMESPACE_PRIMARY, userId, payloads.get(i)));
+          transaction.upsert(prepareUpsert(NAMESPACE_PRIMARY, userId, payloads.get(i)));
         }
         for (int i = 0; i < secondaryIds.size(); i++) {
           int userId = secondaryIds.get(i);
           transaction.get(prepareGet(NAMESPACE_SECONDARY, userId));
-          transaction.put(preparePut(NAMESPACE_SECONDARY, userId, payloads.get(i)));
+          transaction.upsert(prepareUpsert(NAMESPACE_SECONDARY, userId, payloads.get(i)));
         }
         transaction.commit();
         break;

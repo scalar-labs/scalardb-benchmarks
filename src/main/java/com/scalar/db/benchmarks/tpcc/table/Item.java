@@ -4,8 +4,6 @@ import com.scalar.db.api.Get;
 import com.scalar.db.api.Put;
 import com.scalar.db.benchmarks.tpcc.TpccUtil;
 import com.scalar.db.io.Key;
-import com.scalar.db.io.Value;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.apache.commons.csv.CSVRecord;
@@ -66,7 +64,7 @@ public class Item extends TpccRecord {
    * @return a {@code Key} object
    */
   public static Key createPartitionKey(int itemId) {
-    return new Key(KEY_ID, itemId);
+    return Key.ofInt(KEY_ID, itemId);
   }
 
   /**
@@ -77,7 +75,7 @@ public class Item extends TpccRecord {
    */
   public static Get createGet(int itemId) {
     Key partitionKey = createPartitionKey(itemId);
-    return new Get(partitionKey).forTable(TABLE_NAME);
+    return buildGet(TABLE_NAME, partitionKey);
   }
 
   /**
@@ -87,8 +85,6 @@ public class Item extends TpccRecord {
    */
   @Override
   public Put createPut() {
-    Key partitionKey = createPartitionKey();
-    ArrayList<Value<?>> values = createValues();
-    return new Put(partitionKey).forTable(TABLE_NAME).withValues(values);
+    return applyColumns(buildPut(TABLE_NAME, createPartitionKey()));
   }
 }
